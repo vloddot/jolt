@@ -1,0 +1,29 @@
+.flex-container {
+	display: flex;
+}
+
+.flex-col {
+	flex-direction: column;
+}
+
+.flex-divider {
+	flex: 1;
+}
+
+.danger {
+	color: var(--error);
+}
+
+.button-primary {
+	border: 1px solid var(--primary-header);
+	background-color: var(--secondary-background);
+	margin: 0;
+
+	&:hover {
+		background-color: var(--hover);
+	}
+
+	&:focus {
+		outline: var(--accent) solid 2px;
+	}
+}
