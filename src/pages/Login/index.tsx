@@ -1,10 +1,11 @@
-import './index.css';
+import './index.scss';
 import styles from '@lib/util.module.scss';
-import { For, Show, createSignal, useContext } from 'solid-js';
+import { Index, Show, createSignal, useContext } from 'solid-js';
+import util from '@lib/util';
 import detect from 'browser-detect';
-import { ClientContext } from '@lib/context/client';
 import { useNavigate } from '@solidjs/router';
 import { createStore } from 'solid-js/store';
+import { SessionContext } from '@lib/context/session';
 
 const displayMethods: Record<MFAMethod, string> = {
 	Totp: 'TOTP Code',
@@ -28,48 +29,53 @@ function getFriendlyName(): string {
 }
 
 function Login() {
-	const client = useContext(ClientContext);
+	const [, setSession] = useContext(SessionContext);
+
 	const navigate = useNavigate();
 
 	let emailInput: HTMLInputElement;
 	let passwordInput: HTMLInputElement;
 
+	const [error, setError] = createSignal<string | undefined>();
 	const [rememberMe, setRememberMe] = createSignal(true);
-	const [error, setError] = createSignal<string | undefined>(undefined);
 	const [mfaMethods, setMfaMethods] = createStore<Partial<Record<MFAMethod, string>>>({
 		Totp: '',
 		Recovery: ''
 	});
 
-	async function handleLoginResponse(response: Exclude<ResponseLogin, { result: 'MFA' }>) {
-		if (response.result == 'Disabled') {
-			setError(`Account ${response.user_id} is disabled`);
-			return;
-		}
-
-		if (rememberMe()) {
-			localStorage.setItem('session', JSON.stringify(response));
-		}
-
-		client.authenticate(response);
-		navigate('/');
-	}
-
 	async function login(event: Event) {
 		event.preventDefault();
 
-		setError(undefined);
+		const email = emailInput.value.trim();
+		const password = passwordInput.value.trim();
 
+		if (email == '' || password == '') {
+			setError('Email and password fields are required.');
+			return;
+		}
 		const friendly_name = getFriendlyName();
-		const credentialLoginResponse: ResponseLogin | undefined = await client
-			.login({
-				email: emailInput.value.trim(),
-				password: passwordInput.value.trim(),
-				friendly_name
-			})
-			.catch((error) => setError(error));
+		const credentialLoginResponse = await util.login({
+			email,
+			password,
+			friendly_name
+		});
 
-		if (credentialLoginResponse == undefined) {
+		if ('type' in credentialLoginResponse) {
+			switch (credentialLoginResponse.type) {
+				case 'UnverifiedAccount':
+					setError('Your account is not verified. Check your email.');
+					break;
+				case 'LockedOut':
+					setError('You have been locked out of your account due to too many logins.');
+					break;
+				case 'InvalidToken':
+					setError('Invalid MFA ticket or token.');
+					break;
+				case 'InvalidCredentials':
+					setError('Invalid credentials');
+					break;
+			}
+
 			return;
 		}
 
@@ -83,18 +89,19 @@ function Login() {
 				mfa_response = { password: mfaMethods.Password };
 			}
 
-			if (mfa_response != undefined) {
+			if (mfa_response == undefined) {
 				setError('MFA is required for this account.');
-				return;
 			}
 
-			const mfaLoginResponse: ResponseLogin | undefined = await client
+			const mfaLoginResponse = await util
 				.login({
 					mfa_ticket: credentialLoginResponse.ticket,
 					mfa_response,
 					friendly_name
 				})
-				.catch((error) => setError(error));
+				.catch((error) => {
+					setError(error);
+				});
 
 			if (mfaLoginResponse == undefined) {
 				return;
@@ -115,9 +122,23 @@ function Login() {
 		handleLoginResponse(credentialLoginResponse);
 	}
 
+	async function handleLoginResponse(response: Exclude<ResponseLogin, { result: 'MFA' }>) {
+		if (response.result == 'Disabled') {
+			setError(`Account ${response.user_id} is disabled`);
+			return;
+		}
+
+		if (rememberMe()) {
+			localStorage.setItem('session', JSON.stringify(response));
+		}
+
+		setSession(response);
+		navigate('/');
+	}
+
 	return (
-		<div class="modal">
-			<form id="login-form" class="modal-base" onSubmit={login}>
+		<div class={styles.modalContainer}>
+			<form id="login-form" class={styles.modalBase} onSubmit={login}>
 				<h1>Jolt &#x26A1;</h1>
 
 				<p>
@@ -133,15 +154,18 @@ function Login() {
 					email and password as well
 				</p>
 
-				<For each={Object.entries(mfaMethods)}>
-					{([key]) => (
-						<input
-							type="text"
-							placeholder={displayMethods[key as MFAMethod]}
-							onInput={(event) => setMfaMethods(key as MFAMethod, event.currentTarget.value)}
-						/>
-					)}
-				</For>
+				<Index each={Object.entries(mfaMethods)}>
+					{(method) => {
+						const [key] = method();
+						return (
+							<input
+								type="text"
+								placeholder={`${displayMethods[key as MFAMethod]} (Optional)`}
+								onInput={(event) => setMfaMethods(key as MFAMethod, event.currentTarget.value)}
+							/>
+						);
+					}}
+				</Index>
 
 				<label>
 					Remember me
@@ -152,7 +176,7 @@ function Login() {
 					/>
 				</label>
 
-				<button class={styles['button-primary']} type="submit">
+				<button class={styles.buttonPrimary} type="submit">
 					Login
 				</button>
 

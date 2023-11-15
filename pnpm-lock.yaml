@@ -37,6 +37,9 @@ devDependencies:
   typescript:
     specifier: ^5.0.2
     version: 5.2.2
+  ulid:
+    specifier: ^2.3.0
+    version: 2.3.0
   vite:
     specifier: ^4.4.5
     version: 4.5.0(@types/node@20.9.0)(sass@1.69.5)
@@ -1069,6 +1072,11 @@ packages:
   /typescript@5.2.2:
     resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
     engines: {node: '>=14.17'}
+    hasBin: true
+    dev: true
+
+  /ulid@2.3.0:
+    resolution: {integrity: sha512-keqHubrlpvT6G2wH0OEfSW4mquYRcbe/J8NMmveoQOjUqmo+hXtO+ORCpWhdbZ7k72UtY61BL7haGxW6enBnjw==}
     hasBin: true
     dev: true
 

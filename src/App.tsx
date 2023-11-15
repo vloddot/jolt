@@ -5,8 +5,8 @@ import AppWrapper from './pages/(app)/layout';
 function App() {
 	return (
 		<Routes>
-				<Route path="/" component={AppWrapper}></Route>
-				<Route path="/login" component={Login}></Route>
+			<Route path="/" component={AppWrapper}></Route>
+			<Route path="/login" component={Login}></Route>
 		</Routes>
 	);
 }

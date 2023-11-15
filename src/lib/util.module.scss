@@ -1,12 +1,12 @@
-.flex-container {
+.flexContainer {
 	display: flex;
 }
 
-.flex-col {
+.flexCol {
 	flex-direction: column;
 }
 
-.flex-divider {
+.flexDivider {
 	flex: 1;
 }
 
@@ -14,7 +14,7 @@
 	color: var(--error);
 }
 
-.button-primary {
+.buttonPrimary {
 	border: 1px solid var(--primary-header);
 	background-color: var(--secondary-background);
 	margin: 0;
@@ -26,4 +26,30 @@
 	&:focus {
 		outline: var(--accent) solid 2px;
 	}
+}
+
+.cover {
+	width: 40px;
+	height: 40px;
+	object-fit: cover;
+	border-radius: 50%;
+}
+
+.modalContainer {
+	display: flex;
+	height: 100vh;
+	align-items: center;
+}
+
+.modalBase {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	width: 400px;
+	gap: 2px;
+	margin-left: 5%;
+	border-left: solid var(--accent);
+	border-radius: var(--border-radius);
+	padding: 20px;
+	background-color: var(--primary-background);
 }

@@ -1,5 +1,7 @@
 import { EventEmitter } from 'eventemitter3';
-import { PING_HEARTBEAT_INTERVAL, PONG_TIMEOUT } from './util';
+
+const PING_HEARTBEAT_INTERVAL = 30;
+const PONG_TIMEOUT = 10;
 
 /**
  * Messages sent to the server
@@ -30,7 +32,14 @@ export type ServerToClientMessage =
 	| ({ type: 'Error' } & WebSocketError)
 	| { type: 'Bulk'; v: ServerToClientMessage[] }
 	| { type: 'Authenticated' }
-	| ({ type: 'Ready' } & ReadyData)
+	| {
+			type: 'Ready';
+			users: User[];
+			servers: Server[];
+			channels: Channel[];
+			members: Member[];
+			emojis: Emoji[];
+	  }
 	| { type: 'Ping'; data: number }
 	| { type: 'Pong'; data: number }
 	| ({ type: 'Message' } & Message)
@@ -141,17 +150,6 @@ export type ServerToClientMessage =
 	  ));
 
 /**
- * Initial synchronisation packet
- */
-export type ReadyData = {
-	users: User[];
-	servers: Server[];
-	channels: Channel[];
-	members: Member[];
-	emojis: Emoji[];
-};
-
-/**
  * Websocket error packet
  */
 export type WebSocketError = {
@@ -160,11 +158,18 @@ export type WebSocketError = {
 
 export type ConnectionState = 'idle' | 'disconnected' | 'connecting' | 'connected';
 
-export class WebSocketClient extends EventEmitter<{
-	error: (error: Error) => void;
-	connectionStateChange: (state: ConnectionState) => void;
-	serverEvent: (event: ServerToClientMessage) => void;
-}> {
+export type ToEvents<T extends { type: string }> = {
+	[K in Exclude<T['type'], 'Bulk'>]: (message: Extract<T, { type: K }>) => void;
+};
+
+export class Client extends EventEmitter<
+	{
+		Error(
+			error: 'InternalError' | 'InvalidSession' | 'OnboardingNotFinished' | 'AlreadyAuthenticated'
+		): void;
+		ConnectionStateChange(state: ConnectionState): void;
+	} & ToEvents<ServerToClientMessage>
+> {
 	#socket: WebSocket | undefined;
 	#pingIntervalReference: NodeJS.Timeout | undefined;
 	#pongTimeoutReference: NodeJS.Timeout | undefined;
@@ -180,7 +185,6 @@ export class WebSocketClient extends EventEmitter<{
 
 	authenticate(token: string) {
 		this.#socket = new WebSocket(`wss://ws.revolt.chat?token=${token}`);
-
 		this.#connectionState = 'connecting';
 
 		this.#socket.onopen = () => {
@@ -189,8 +193,7 @@ export class WebSocketClient extends EventEmitter<{
 				this.#pongTimeoutReference = setTimeout(() => this.disconnect(), PONG_TIMEOUT * 1000);
 			}, PING_HEARTBEAT_INTERVAL * 1000);
 		};
-
-		this.#socket.onmessage = (event) => this.handleMessage(JSON.parse(event.data.toString()));
+		this.#socket.onmessage = (message) => this.handleMessage(JSON.parse(message.data.toString()));
 		this.#socket.onclose = () => this.disconnect();
 	}
 
@@ -201,35 +204,42 @@ export class WebSocketClient extends EventEmitter<{
 					type: 'Pong',
 					data: message.data
 				});
+				this.emit('Ping', message);
 				return;
 			case 'Pong':
 				clearTimeout(this.#pongTimeoutReference);
+				this.emit('Pong', message);
 				return;
 			case 'Error':
-				this.emit('error', message as never);
 				this.disconnect();
+				this.emit('Error', message as never);
 				return;
 		}
 
-		switch (this.connectionState) {
-			case 'connecting':
-				if (message.type == 'Ready') {
-					this.emit('serverEvent', message);
-					this.#connectionState = 'connected';
-				} else if (message.type != 'Authenticated') {
-					throw new Error(`Received ${message.type} in connecting state.`);
-				}
-				break;
-			case 'connected':
-				if (message.type == 'Authenticated' || message.type == 'Ready') {
-					throw new Error(`Received ${message.type} in connected state.`);
-				}
-
-				this.emit('serverEvent', message);
-				break;
-			default:
-				throw new Error(`Received ${message.type} in ${this.connectionState} state.`);
+		if (this.#connectionState == 'connecting') {
+			if (message.type == 'Ready') {
+				this.#connectionState = 'connected';
+				this.emit('Ready', message);
+				return;
+			}
 		}
+
+		if (
+			(this.#connectionState != 'connected' && message.type != 'Authenticated') ||
+			(this.#connectionState == 'connected' &&
+				(message.type == 'Authenticated' || message.type == 'Ready'))
+		) {
+			throw new Error(`Received ${message.type} in ${this.#connectionState} state.`);
+		}
+
+		if (message.type == 'Bulk') {
+			for (const e of message.v) {
+				this.handleMessage(e);
+			}
+			return;
+		}
+
+		this.emit(message.type, message as never);
 	}
 
 	send(message: ClientToServerMessage) {

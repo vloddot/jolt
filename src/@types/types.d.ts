@@ -130,6 +130,7 @@ type MFATicket = components['schemas']['MFATicket'];
 type DataPasswordReset = components['schemas']['DataPasswordReset'];
 type DataSendPasswordReset = components['schemas']['DataSendPasswordReset'];
 type ResponseLogin = components['schemas']['ResponseLogin'];
+type Session = Extract<ResponseLogin, { result: 'Success' }>;
 type WebPushSubscription = components['schemas']['WebPushSubscription'];
 type MFAMethod = components['schemas']['MFAMethod'];
 type DataLogin = components['schemas']['DataLogin'];

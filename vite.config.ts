@@ -3,8 +3,15 @@ import solid from 'vite-plugin-solid';
 import path from 'path';
 
 export default defineConfig({
-	plugins: [solid({ typescript: { onlyRemoveTypeImports: true } })],
+	plugins: [solid()],
 
+	css: {
+		modules: {
+			generateScopedName(name) {
+				return name; // for custom CSS to be easier
+			}
+		}
+	},
 	resolve: {
 		alias: [
 			{ find: '@lib', replacement: path.resolve(__dirname, 'src', 'lib') },

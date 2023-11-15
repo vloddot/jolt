@@ -116,13 +116,6 @@ input:focus {
 	border-right-color: black !important;
 }
 
-img.cover {
-	width: 40px;
-	height: 40px;
-	object-fit: cover;
-	border-radius: 50%;
-}
-
 details {
 	margin-top: 8px;
 	> summary {
@@ -133,23 +126,4 @@ details {
 		font-weight: 600;
 		cursor: pointer;
 	}
-}
-
-.modal {
-	display: flex;
-	height: 100vh;
-	align-items: center;
-}
-
-.modal-base {
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	width: 400px;
-	gap: 2px;
-	margin-left: 5%;
-	border-left: solid var(--accent);
-	border-radius: var(--border-radius);
-	padding: 20px;
-	background-color: var(--primary-background);
 }

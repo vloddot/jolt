@@ -1,28 +1,18 @@
-export const PING_HEARTBEAT_INTERVAL = 30;
-export const PONG_TIMEOUT = 10;
-export const AUTUMN_URL = 'https://autumn.revolt.chat';
-export const API_URL = 'https://api.revolt.chat';
-// export const DEFAULT_SETTINGS: Settings = {
-// 	ordering: {
-// 		servers: []
-// 	},
-// 	'jolt:low-data-mode': false,
-// 	'jolt:receive-typing-indicators': true,
-// 	'jolt:send-typing-indicators': true
-// };
+import { useContext } from 'solid-js';
+import { SessionContext } from './context/session';
 
-export function getAutumnURL(
+function getAutumnURL(
 	file: { _id: string; tag: string },
 	options?: Partial<{ max_side: string }>
 ): string {
-	return `${AUTUMN_URL}/${file.tag}/${file._id}?${new URLSearchParams(options)}`;
+	return `https://autumn.revolt.chat/${file.tag}/${file._id}?${new URLSearchParams(options)}`;
 }
 
-export function getDefaultUserAvatar(user_id: string): string {
-	return `${API_URL}/users/${user_id}/default_avatar`;
+function getDefaultUserAvatar(user_id: string): string {
+	return `https://api.revolt.chat/users/${user_id}/default_avatar`;
 }
 
-export function getDisplayName(
+function getDisplayName(
 	user: { display_name?: string; username: string },
 	member?: Member,
 	message?: Message
@@ -30,7 +20,7 @@ export function getDisplayName(
 	return message?.masquerade?.name ?? member?.nickname ?? user?.display_name ?? user.username;
 }
 
-export function getDisplayAvatar(
+function getDisplayAvatar(
 	user: { _id: string; avatar?: { _id: string; tag: string } },
 	member?: Member,
 	message?: Message
@@ -57,3 +47,33 @@ export function getDisplayAvatar(
 
 	return `${getAutumnURL(user.avatar, { max_side: '256' })}`;
 }
+
+async function req(
+	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+	path: string,
+	body?: string
+): Promise<Response> {
+	const session = useContext(SessionContext)[0]();
+
+	const response = await fetch(`https://api.revolt.chat${path}`, {
+		method,
+		body,
+		headers: session?.token == undefined ? undefined : { 'x-session-token': session.token }
+	});
+
+	return response;
+}
+
+async function login(data_login: DataLogin): Promise<ResponseLogin> {
+	return req('POST', '/auth/session/login', JSON.stringify(data_login)).then((response) =>
+		response.json()
+	);
+}
+
+export default {
+	getAutumnURL,
+	getDisplayName,
+	getDisplayAvatar,
+	login,
+	req
+};
