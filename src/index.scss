@@ -20,7 +20,6 @@
 	--scrollbar-thumb: #2469b2;
 	--error: #d2373d;
 	--scrollbar-thickness: 5px;
-	--border-radius: 6px;
 }
 
 body {
@@ -71,7 +70,7 @@ input, textarea, button {
 	font-family: inherit;
 	border: none;
 	padding: 8px;
-	border-radius: var(--border-radius);
+	border-radius: 6px;
 	transition: background-color 100ms, outline 50ms;
 }
 
@@ -105,7 +104,7 @@ input:focus {
 
 .tippy-box {
 	background-color: black !important;
-	border-radius: var(--border-radius) !important;
+	border-radius: 6px !important;
 }
 
 .tippy-box[data-theme='top-tooltip'] > .tippy-arrow::before {

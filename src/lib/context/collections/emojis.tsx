@@ -1,17 +1,17 @@
-import { createContext, createSignal, useContext, type JSX } from 'solid-js';
+import { createContext, createSignal, useContext, type JSX, type Accessor } from 'solid-js';
 import ClientContext from '@lib/context/client';
 import type { CollectionItem } from '.';
 import { createStore } from 'solid-js/store';
 
 export type EmojiCollection = Map<Emoji['_id'], CollectionItem<Emoji>>;
-export const EmojisContext = createContext<EmojiCollection>(new Map());
+export const EmojiCollectionContext = createContext<Accessor<EmojiCollection>>(() => new Map());
 
 interface Props {
 	children: JSX.Element;
 }
 
-export default function EmojisProvider(props: Props) {
-	const [emojis, setEmojis] = createSignal<EmojiCollection>(EmojisContext.defaultValue);
+export default function EmojiCollectionProvider(props: Props) {
+	const [emojis, setEmojis] = createSignal<EmojiCollection>(EmojiCollectionContext.defaultValue());
 	const client = useContext(ClientContext);
 
 	client.on('Ready', ({ emojis }) => {
@@ -32,5 +32,9 @@ export default function EmojisProvider(props: Props) {
 		});
 	});
 
-	return <EmojisContext.Provider value={emojis()}>{props.children}</EmojisContext.Provider>;
+	return (
+		<EmojiCollectionContext.Provider value={emojis}>
+			{props.children}
+		</EmojiCollectionContext.Provider>
+	);
 }

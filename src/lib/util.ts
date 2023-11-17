@@ -48,32 +48,15 @@ function getDisplayAvatar(
 	return `${getAutumnURL(user.avatar, { max_side: '256' })}`;
 }
 
-async function req(
-	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
-	path: string,
-	body?: string
-): Promise<Response> {
-	const session = useContext(SessionContext)[0]();
+function getOtherRecipient(recipients: string[]): string | undefined {
+	const [session] = useContext(SessionContext);
 
-	const response = await fetch(`https://api.revolt.chat${path}`, {
-		method,
-		body,
-		headers: session?.token == undefined ? undefined : { 'x-session-token': session.token }
-	});
-
-	return response;
-}
-
-async function login(data_login: DataLogin): Promise<ResponseLogin> {
-	return req('POST', '/auth/session/login', JSON.stringify(data_login)).then((response) =>
-		response.json()
-	);
+	return recipients.find((user) => user != session()?.user_id);
 }
 
 export default {
 	getAutumnURL,
 	getDisplayName,
 	getDisplayAvatar,
-	login,
-	req
+	getOtherRecipient,
 };

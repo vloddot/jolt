@@ -1,17 +1,19 @@
-import { createContext, createSignal, useContext, type JSX, batch } from 'solid-js';
+import { createContext, createSignal, useContext, type JSX, batch, type Accessor } from 'solid-js';
 import ClientContext from '@lib/context/client';
 import type { CollectionItem } from '.';
 import { createStore } from 'solid-js/store';
 
 export type ChannelCollection = Map<Channel['_id'], CollectionItem<Channel>>;
-export const ChannelsContext = createContext<ChannelCollection>(new Map());
+export const ChannelCollectionContext = createContext<Accessor<ChannelCollection>>(() => new Map());
 
 interface Props {
 	children: JSX.Element;
 }
 
-export default function ChannelsProvider(props: Props) {
-	const [channels, setChannels] = createSignal<ChannelCollection>(ChannelsContext.defaultValue);
+export default function ChannelCollectionProvider(props: Props) {
+	const [channels, setChannels] = createSignal<ChannelCollection>(
+		ChannelCollectionContext.defaultValue()
+	);
 	const client = useContext(ClientContext);
 
 	client.on('Ready', ({ channels }) => {
@@ -107,5 +109,25 @@ export default function ChannelsProvider(props: Props) {
 		}
 	});
 
-	return <ChannelsContext.Provider value={channels()}>{props.children}</ChannelsContext.Provider>;
+	client.on('Message', ({ channel: channel_id, _id: message_id }) => {
+		const store = channels().get(channel_id);
+
+		if (store == undefined) {
+			return;
+		}
+
+		const [channel, setChannel] = store;
+
+		if (channel.channel_type == 'VoiceChannel' || channel.channel_type == 'SavedMessages') {
+			return;
+		}
+
+		setChannel('last_message_id' as keyof Channel, message_id);
+	});
+
+	return (
+		<ChannelCollectionContext.Provider value={channels}>
+			{props.children}
+		</ChannelCollectionContext.Provider>
+	);
 }

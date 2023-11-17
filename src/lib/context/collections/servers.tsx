@@ -4,14 +4,16 @@ import type { CollectionItem } from '.';
 import { createStore } from 'solid-js/store';
 
 export type ServerCollection = Map<Server['_id'], CollectionItem<Server>>;
-export const ServersContext = createContext<Accessor<ServerCollection>>(() => new Map());
+export const ServerCollectionContext = createContext<Accessor<ServerCollection>>(() => new Map());
 
 interface Props {
 	children: JSX.Element;
 }
 
-export default function ServersProvider(props: Props) {
-	const [servers, setServers] = createSignal<ServerCollection>(new Map());
+export default function ServerCollectionProvider(props: Props) {
+	const [servers, setServers] = createSignal<ServerCollection>(
+		ServerCollectionContext.defaultValue()
+	);
 	const client = useContext(ClientContext);
 
 	client.on('Ready', ({ servers }) => {
@@ -101,5 +103,9 @@ export default function ServersProvider(props: Props) {
 		});
 	});
 
-	return <ServersContext.Provider value={servers}>{props.children}</ServersContext.Provider>;
+	return (
+		<ServerCollectionContext.Provider value={servers}>
+			{props.children}
+		</ServerCollectionContext.Provider>
+	);
 }

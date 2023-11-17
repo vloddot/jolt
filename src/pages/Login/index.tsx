@@ -1,7 +1,7 @@
 import './index.scss';
 import styles from '@lib/util.module.scss';
 import { Index, Show, createSignal, useContext } from 'solid-js';
-import util from '@lib/util';
+import api from '@lib/api';
 import detect from 'browser-detect';
 import { useNavigate } from '@solidjs/router';
 import { createStore } from 'solid-js/store';
@@ -54,7 +54,7 @@ function Login() {
 			return;
 		}
 		const friendly_name = getFriendlyName();
-		const credentialLoginResponse = await util.login({
+		const credentialLoginResponse = await api.login({
 			email,
 			password,
 			friendly_name
@@ -93,7 +93,7 @@ function Login() {
 				setError('MFA is required for this account.');
 			}
 
-			const mfaLoginResponse = await util
+			const mfaLoginResponse = await api
 				.login({
 					mfa_ticket: credentialLoginResponse.ticket,
 					mfa_response,

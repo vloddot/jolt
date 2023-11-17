@@ -1,4 +1,5 @@
 import { EventEmitter } from 'eventemitter3';
+import { createSignal, type Accessor, type Setter } from 'solid-js';
 
 const PING_HEARTBEAT_INTERVAL = 30;
 const PONG_TIMEOUT = 10;
@@ -173,19 +174,21 @@ export class Client extends EventEmitter<
 	#socket: WebSocket | undefined;
 	#pingIntervalReference: NodeJS.Timeout | undefined;
 	#pongTimeoutReference: NodeJS.Timeout | undefined;
-	#connectionState: ConnectionState = 'idle';
-
-	get connectionState() {
-		return this.#connectionState;
-	}
+	#connectionState: Accessor<ConnectionState>;
+	#setConnectionState: Setter<ConnectionState>;
 
 	constructor() {
 		super();
+		[this.#connectionState, this.#setConnectionState] = createSignal<ConnectionState>('idle');
+	}
+
+	get connectionState(): Accessor<ConnectionState> {
+		return this.#connectionState;
 	}
 
 	authenticate(token: string) {
 		this.#socket = new WebSocket(`wss://ws.revolt.chat?token=${token}`);
-		this.#connectionState = 'connecting';
+		this.#setConnectionState('connecting');
 
 		this.#socket.onopen = () => {
 			this.#pingIntervalReference = setInterval(() => {
@@ -216,20 +219,20 @@ export class Client extends EventEmitter<
 				return;
 		}
 
-		if (this.#connectionState == 'connecting') {
+		const state = this.#connectionState();
+		if (state == 'connecting') {
 			if (message.type == 'Ready') {
-				this.#connectionState = 'connected';
+				this.#setConnectionState('connected');
 				this.emit('Ready', message);
 				return;
 			}
 		}
 
 		if (
-			(this.#connectionState != 'connected' && message.type != 'Authenticated') ||
-			(this.#connectionState == 'connected' &&
-				(message.type == 'Authenticated' || message.type == 'Ready'))
+			(state != 'connected' && message.type != 'Authenticated') ||
+			(state == 'connected' && (message.type == 'Authenticated' || message.type == 'Ready'))
 		) {
-			throw new Error(`Received ${message.type} in ${this.#connectionState} state.`);
+			throw new Error(`Received ${message.type} in ${state} state.`);
 		}
 
 		if (message.type == 'Bulk') {
@@ -261,6 +264,6 @@ export class Client extends EventEmitter<
 		this.#socket = undefined;
 		websocket.close();
 
-		this.#connectionState = 'disconnected';
+		this.#setConnectionState('disconnected');
 	}
 }

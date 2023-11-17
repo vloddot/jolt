@@ -14,4 +14,14 @@
 		background-color: var(--background);
 		overflow-y: scroll;
 	}
+
+	.channel-bar-container {
+		width: 232px;
+		height: 100vh;
+		display: flex;
+		flex-direction: column;
+		border-right: 1px solid var(--secondary-header);
+		background-color: var(--secondary-background);
+		overflow-y: scroll;
+	}
 }

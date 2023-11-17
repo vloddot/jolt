@@ -1,17 +1,19 @@
-import { createContext, createSignal, useContext, type JSX, batch } from 'solid-js';
+import { createContext, createSignal, useContext, type JSX, batch, type Accessor } from 'solid-js';
 import ClientContext from '@lib/context/client';
 import type { CollectionItem } from '.';
 import { createStore } from 'solid-js/store';
 
 export type MemberCollection = Map<Member['_id'], CollectionItem<Member>>;
-export const MembersContext = createContext<MemberCollection>(new Map());
+export const MemberCollectionContext = createContext<Accessor<MemberCollection>>(() => new Map());
 
 interface Props {
 	children: JSX.Element;
 }
 
-export default function MembersProvider(props: Props) {
-	const [members, setMembers] = createSignal<MemberCollection>(MembersContext.defaultValue);
+export default function MemberCollectionProvider(props: Props) {
+	const [members, setMembers] = createSignal<MemberCollection>(
+		MemberCollectionContext.defaultValue()
+	);
 	const client = useContext(ClientContext);
 
 	client.on('Ready', ({ members }) => {
@@ -51,5 +53,9 @@ export default function MembersProvider(props: Props) {
 		});
 	});
 
-	return <MembersContext.Provider value={members()}>{props.children}</MembersContext.Provider>;
+	return (
+		<MemberCollectionContext.Provider value={members}>
+			{props.children}
+		</MemberCollectionContext.Provider>
+	);
 }
