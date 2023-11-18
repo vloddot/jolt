@@ -16,12 +16,21 @@
 	}
 
 	.channel-bar-container {
+		padding: 4px 0;
 		width: 232px;
 		height: 100vh;
 		display: flex;
+		gap: 8px;
 		flex-direction: column;
 		border-right: 1px solid var(--secondary-header);
 		background-color: var(--secondary-background);
 		overflow-y: scroll;
+	}
+
+	.main-content-container {
+		flex: 1;
+		height: 100vh;
+		overflow-x: hidden;
+		background-color: var(--primary-background);
 	}
 }

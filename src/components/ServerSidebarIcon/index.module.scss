@@ -42,7 +42,11 @@
 	}
 
 	.icon, img {
-		transition: border-radius 150ms;
+		transition: border-radius 150ms, outline 150ms;
+
+		&:focus {
+			outline: solid var(--accent);
+		}
 	}
 
 	.icon:hover,

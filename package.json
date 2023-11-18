@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "localforage": "^1.10.0",
     "solid-js": "^1.7.8"
   },
   "devDependencies": {

@@ -6,6 +6,7 @@ import detect from 'browser-detect';
 import { useNavigate } from '@solidjs/router';
 import { createStore } from 'solid-js/store';
 import { SessionContext } from '@lib/context/session';
+import localforage from 'localforage';
 
 const displayMethods: Record<MFAMethod, string> = {
 	Totp: 'TOTP Code',
@@ -129,7 +130,7 @@ function Login() {
 		}
 
 		if (rememberMe()) {
-			localStorage.setItem('session', JSON.stringify(response));
+			localforage.setItem('session', response);
 		}
 
 		setSession(response);

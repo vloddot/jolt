@@ -1,5 +1,5 @@
 interface Settings {
 	ordering: {
-		servers: string[]
+		servers?: string[]
 	}
 }

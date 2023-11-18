@@ -1,26 +1,32 @@
 .channelItem {
-	margin-top: 4px;
 	margin-right: 16px;
 	gap: 2px;
 	border-top-right-radius: 15px;
 	border-bottom-right-radius: 15px;
 	display: flex;
 	align-items: center;
-	transition: background-color 150ms;
+	transition: background-color 150ms, outline 150ms;
 	min-height: 32px;
 	color: inherit;
-
+	outline-style: inherit;
+	outline-color: var(--accent);
+	outline-width: inherit;
+	
 	:global(img),
 	:global(svg) {
 		width: 24px;
 		height: 24px;
 		padding: 4px;
 	}
-
+	
 	&[data-selected='true'],
 	&:hover,
 	&:focus {
 		background-color: var(--hover);
+	}
+	
+	&[data-selected='true'], &:focus {
+		outline-style: solid;
 	}
 
 	:global(*) {

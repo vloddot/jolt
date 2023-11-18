@@ -62,8 +62,8 @@ function ServerSidebar() {
 
 			<Index
 				each={Array.from(servers().values()).sort(([a], [b]) => {
-					const aIndex = settings.ordering.servers.indexOf(a._id);
-					const bIndex = settings.ordering.servers.indexOf(b._id);
+					const aIndex = settings.ordering.servers?.indexOf(a._id) ?? 0;
+					const bIndex = settings.ordering.servers?.indexOf(b._id) ?? 0;
 
 					if (aIndex > bIndex) {
 						return 1;

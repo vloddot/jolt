@@ -1,6 +1,5 @@
 import { createContext, createSignal, useContext, type JSX, batch, type Accessor } from 'solid-js';
 import ClientContext from '@lib/context/client';
-import type { CollectionItem } from '.';
 import { createStore } from 'solid-js/store';
 
 export type MemberCollection = Map<Member['_id'], CollectionItem<Member>>;

@@ -1,6 +1,5 @@
 import { createContext, createSignal, useContext, type JSX, type Accessor } from 'solid-js';
 import ClientContext from '@lib/context/client';
-import type { CollectionItem } from '.';
 import { createStore } from 'solid-js/store';
 
 export type EmojiCollection = Map<Emoji['_id'], CollectionItem<Emoji>>;

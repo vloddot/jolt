@@ -6,8 +6,9 @@ import SessionProvider from '@lib/context/session';
 import AppWrapper from './pages/(app)/layout';
 import HomeWrapper from './pages/(app)/(home)/layout';
 import HomeScreen from './pages/(app)/(home)/page';
-import HomeChat from './pages/(app)/(home)/conversations/:cid/page';
+import HomeChat from './pages/(app)/(home)/conversations/:cid/HomeChat';
 import Login from './pages/Login';
+import Friends from './pages/(app)/(home)/friends/page';
 
 render(
 	() => (
@@ -17,6 +18,7 @@ render(
 					<Route path="/" component={AppWrapper}>
 						<Route path="/" component={HomeWrapper}>
 							<Route path="/" component={HomeScreen}></Route>
+							<Route path="/friends" component={Friends}></Route>
 							<Route path="/conversations/:cid" component={HomeChat}></Route>
 						</Route>
 					</Route>

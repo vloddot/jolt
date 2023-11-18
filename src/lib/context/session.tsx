@@ -1,5 +1,6 @@
 import { createContext, createEffect, createSignal, useContext, type JSX, onMount } from 'solid-js';
 import ClientContext from './client';
+import localforage from 'localforage';
 
 export const SessionContext = createContext(createSignal<Session>());
 
@@ -18,10 +19,10 @@ export default function SessionProvider(props: Props) {
 		}
 	});
 
-	onMount(() => {
-		const session = localStorage.getItem('session');
+	onMount(async () => {
+		const session: Session | null = await localforage.getItem('session');
 		if (session != null) {
-			setSession(JSON.parse(session));
+			setSession(session);
 		}
 	});
 

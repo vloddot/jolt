@@ -3,6 +3,7 @@ import { SessionContext } from './context/session';
 import { UserCollectionContext } from './context/collections/users';
 import { createStore, type Store } from 'solid-js/store';
 import { ChannelCollectionContext } from './context/collections/channels';
+import { MemberCollectionContext } from './context/collections/members';
 
 async function req(
 	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
@@ -60,10 +61,73 @@ async function fetchSettings<K extends string>(keys: K[]): Promise<Record<K, [nu
 	);
 }
 
+async function fetchChannel(id: string): Promise<Store<Channel>> {
+	const channels = useContext(ChannelCollectionContext)();
+	const channel = channels.get(id);
+
+	if (channel == undefined) {
+		const [store, setStore] = createStore<Channel>(
+			await req('GET', `/channels/${id}`).then((response) => response.json())
+		);
+
+		channels.set(id, [store, setStore]);
+		return store;
+	}
+
+	return channel[0];
+}
+
+async function queryMessages([channel_id, options]: [string, OptionsQueryMessages]): Promise<
+	Extract<BulkMessageResponse, { messages: {} }>
+> {
+	const params =
+		'?' +
+		new URLSearchParams(
+			Object.entries(options).flatMap(([key, value]) =>
+				value == undefined ? [] : [[key, value.toString()]]
+			)
+		);
+
+	const response: BulkMessageResponse = await req(
+		'GET',
+		`/channels/${channel_id}/messages${params}`
+	).then((response) => response.json());
+
+	if (Array.isArray(response)) {
+		return {
+			messages: response,
+			users: []
+		};
+	} else {
+		return response;
+	}
+}
+
+async function fetchMember(id: MemberCompositeKey): Promise<Member> {
+	const members = useContext(MemberCollectionContext)();
+	const member = members.get(id);
+
+	if (member == undefined) {
+		const [store, setStore] = createStore<Member>(
+			await req('GET', `/servers/${id.server}/members/${id.user}`).then((response) =>
+				response.json()
+			)
+		);
+
+		members.set(id, [store, setStore]);
+		return store;
+	}
+
+	return member[0];
+}
+
 export default {
 	req,
 	login,
 	fetchUser,
 	fetchSettings,
-	fetchDMs
+	fetchDMs,
+	fetchChannel,
+	queryMessages,
+	fetchMember
 };
