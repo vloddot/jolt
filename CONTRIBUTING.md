@@ -29,11 +29,11 @@ If you then still feel the need to ask a question and need clarification, we rec
 
 We will then take care of the issue as soon as possible.
 
-You can also ask questions on the [Jolt Lounge](https://rvlt.gg/a55AyxeD) Revolt server
+You can also ask questions on the [Jolt Lounge](https://rvlt.gg/fHNkmtwZ) Revolt server
 
 ### Reporting Bugs
 
-You can report bugs through the [Jolt Lounge](https://rvlt.gg/a55AyxeD) Revolt server or through [opening an issue](https://www.github.com/vloddot/jolt/issues/new).
+You can report bugs through the [Jolt Lounge](https://rvlt.gg/fHNkmtwZ) Revolt server or through [opening an issue](https://www.github.com/vloddot/jolt/issues/new).
 
 <!-- omit in toc -->
 
@@ -86,7 +86,7 @@ This section guides you through submitting an enhancement suggestion for Jolt, *
 
 #### How Do I Submit a Good Enhancement Suggestion?
 
-Enhancement suggestions are tracked as [GitHub issues](https://www.github.com/vloddot/jolt/issues) or the [Jolt Lounge](https://rvlt.gg/a55AyxeD) Revolt server.
+Enhancement suggestions are tracked as [GitHub issues](https://www.github.com/vloddot/jolt/issues) or the [Jolt Lounge](https://rvlt.gg/fHNkmtwZ) Revolt server.
 
 - Use a **clear and descriptive title** for the issue to identify the suggestion.
 - Provide a **step-by-step description of the suggested enhancement** in as many details as possible.

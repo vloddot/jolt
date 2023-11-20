@@ -72,7 +72,7 @@ pnpm run dev # you can also adapt your favorite package manager
 
 ## Links
 
-- [Jolt Support Server on Revolt](https://rvlt.gg/a55AyxeD)
+- [Jolt Support Server on Revolt](https://rvlt.gg/fHNkmtwZ)
 - [Tauri](https://tauri.app)
 - [Solid.js](https://solidjs.com)
 
