@@ -66,20 +66,22 @@ function ServerSidebar() {
 			return Array.from(servers().values());
 		}
 
-		return Array.from(servers().values()).sort(([a], [b]) => {
+		const result = Array.from(servers().values()).sort(([a], [b]) => {
 			const aIndex = ordering.indexOf(a._id) ?? 0;
 			const bIndex = ordering.indexOf(b._id) ?? 0;
 
 			if (aIndex > bIndex) {
-				return -1;
+				return 1;
 			}
 
 			if (bIndex < aIndex) {
-				return 1;
+				return -1;
 			}
 
 			return 0;
 		});
+
+		return result;
 	});
 
 	return (
