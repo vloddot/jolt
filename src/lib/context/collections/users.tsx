@@ -14,9 +14,17 @@ export default function UserCollectionProvider(props: Props) {
 	const client = useContext(ClientContext);
 
 	client.on('Ready', ({ users }) => {
-		setUsers(new Map(users.map((user) => [user._id, createStore(user)])));
+		setUsers(
+			new Map(
+				users.map((user) => {
+					// eslint-disable-next-line solid/reactivity
+					return [user._id, createStore(user)];
+				})
+			)
+		);
 	});
 
+	// eslint-disable-next-line solid/reactivity
 	client.on('UserUpdate', (m) => {
 		const u = users().get(m.id);
 		if (u == undefined) {
@@ -73,11 +81,13 @@ export default function UserCollectionProvider(props: Props) {
 		});
 	});
 
+	// eslint-disable-next-line solid/reactivity
 	client.on('UserRelationship', (message) => {
 		const user = users().get(message.user._id);
 		if (user == undefined) {
 			setUsers((users) => {
-				users.set(message.user._id, createStore(message.user));
+				const [store, setStore] = createStore(message.user);
+				users.set(message.user._id, [store, setStore]);
 				return users;
 			});
 		} else {
@@ -86,6 +96,7 @@ export default function UserCollectionProvider(props: Props) {
 		}
 	});
 
+	// eslint-disable-next-line solid/reactivity
 	client.on('UserPresence', (m) => {
 		const user = users().get(m.id);
 		if (user == undefined) {
@@ -96,6 +107,7 @@ export default function UserCollectionProvider(props: Props) {
 		setUser('online', m.online);
 	});
 
+	// eslint-disable-next-line solid/reactivity
 	client.on('UserPlatformWipe', (m) => {
 		const user = users().get(m.user_id);
 		if (user == undefined) {
@@ -107,8 +119,6 @@ export default function UserCollectionProvider(props: Props) {
 	});
 
 	return (
-		<UserCollectionContext.Provider value={users}>
-			{props.children}
-		</UserCollectionContext.Provider>
+		<UserCollectionContext.Provider value={users}>{props.children}</UserCollectionContext.Provider>
 	);
 }

@@ -2,6 +2,7 @@ import { createContext, createEffect, createSignal, useContext, type JSX, onMoun
 import ClientContext from './client';
 import localforage from 'localforage';
 
+// eslint-disable-next-line solid/reactivity
 export const SessionContext = createContext(createSignal<Session>());
 
 export interface Props {
@@ -9,7 +10,7 @@ export interface Props {
 }
 
 export default function SessionProvider(props: Props) {
-	const [session, setSession] = createSignal<Session>();
+	const [session, setSession] = SessionContext.defaultValue;
 	const client = useContext(ClientContext);
 
 	createEffect(() => {
@@ -21,7 +22,7 @@ export default function SessionProvider(props: Props) {
 
 	onMount(async () => {
 		const session: Session | null = await localforage.getItem('session');
-		if (session != null) {
+		if (session != undefined) {
 			setSession(session);
 		}
 	});

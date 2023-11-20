@@ -35,6 +35,7 @@ async function fetchUser(id: string): Promise<Store<User>> {
 		const [store, setStore] = createStore<User>(
 			await req('GET', `/users/${id}`).then((response) => response.json())
 		);
+		// eslint-disable-next-line solid/reactivity
 		users.set(store._id, [store, setStore]);
 		return store;
 	}
@@ -78,7 +79,7 @@ async function fetchChannel(id: string): Promise<Store<Channel>> {
 }
 
 async function queryMessages([channel_id, options]: [string, OptionsQueryMessages]): Promise<
-	Extract<BulkMessageResponse, { messages: {} }>
+	Extract<BulkMessageResponse, { messages: Message[] }>
 > {
 	const params =
 		'?' +

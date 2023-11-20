@@ -1,4 +1,4 @@
-import { type JSX, createSignal, mergeProps, children } from 'solid-js';
+import { type JSX, createSignal, mergeProps, children, createComputed } from 'solid-js';
 import styles from './index.module.scss';
 import type { Content } from 'tippy.js';
 import { A } from '@solidjs/router';
@@ -14,40 +14,43 @@ interface Props {
 	children: JSX.Element;
 }
 
-function ServerSidebarIcon(props: Props) {
-	const { href, tooltip, selected, unread } = mergeProps({ unread: false }, props);
+function ServerSidebarIcon(_props: Props) {
+	const props = mergeProps({ unread: false }, _props);
 	const [focused, setFocused] = createSignal(false);
 
 	const c = children(() => props.children);
 
 	const [tooltipTarget, setTooltipTarget] = createSignal<Element>();
-	useTippy(tooltipTarget, {
-		hidden: true,
-		props: {
-			placement: 'right',
-			content: tooltip,
-			theme: 'right-tooltip',
-			animation: 'scale-subtle',
-			duration: 100
-		}
-	});
+
+	createComputed(() =>
+		useTippy(tooltipTarget, {
+			hidden: true,
+			props: {
+				placement: 'right',
+				content: props.tooltip,
+				theme: 'right-tooltip',
+				animation: 'scale-subtle',
+				duration: 100
+			}
+		})
+	);
 
 	return (
 		<div
 			class={styles['icon-container']}
-			aria-selected={selected}
-			data-selected={selected}
+			aria-selected={props.selected}
+			data-selected={props.selected}
 			data-focused={focused()}
-			data-unread={unread}
+			data-unread={props.unread}
 		>
 			<A
 				class={styles.icon}
-				href={href}
+				href={props.href}
 				onMouseOver={() => setFocused(true)}
 				onMouseLeave={() => setFocused(false)}
 				onFocus={() => setFocused(true)}
 				onBlur={() => setFocused(false)}
-				aria-label={tooltip.toString()}
+				aria-label={props.tooltip.toString()}
 				ref={setTooltipTarget}
 			>
 				{c()}

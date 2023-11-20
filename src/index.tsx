@@ -17,12 +17,12 @@ render(
 				<Routes>
 					<Route path="/" component={AppWrapper}>
 						<Route path="/" component={HomeWrapper}>
-							<Route path="/" component={HomeScreen}></Route>
-							<Route path="/friends" component={Friends}></Route>
-							<Route path="/conversations/:cid" component={HomeChat}></Route>
+							<Route path="/" component={HomeScreen} />
+							<Route path="/friends" component={Friends} />
+							<Route path="/conversations/:cid" component={HomeChat} />
 						</Route>
 					</Route>
-					<Route path="/login" component={Login}></Route>
+					<Route path="/login" component={Login} />
 				</Routes>
 			</SessionProvider>
 		</Router>

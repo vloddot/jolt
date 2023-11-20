@@ -6,20 +6,37 @@ import {
 	FaSolidNoteSticky,
 	FaSolidUserGroup
 } from 'solid-icons/fa';
-import { For, Match, Show, Switch, createResource, createSelector, useContext } from 'solid-js';
+import {
+	For,
+	Match,
+	Show,
+	Switch,
+	createMemo,
+	createResource,
+	createSelector,
+	useContext
+} from 'solid-js';
 import styles from '@lib/util.module.scss';
 import util from '@lib/util';
 import api from '@lib/api';
-import ClientContext from '@lib/context/client';
 import { SelectedChannelIdContext } from '@lib/context/selectedChannelId';
+import { ChannelCollectionContext } from '@lib/context/collections/channels';
 
 export default function HomeWrapper() {
 	const location = useLocation();
-	const client = useContext(ClientContext);
+	const channelCollection = useContext(ChannelCollectionContext);
 	const selectedChannelId = useContext(SelectedChannelIdContext);
 	const channelIsSelected = createSelector(selectedChannelId);
 
-	const [channels] = createResource(() => client.connectionState() == 'connected', api.fetchDMs);
+	const channels = createMemo(() => {
+		const list = Array.from(channelCollection().values());
+
+		return list.filter((accessor) => {
+			const [channel] = accessor;
+
+			return channel.channel_type != 'TextChannel' && channel.channel_type != 'VoiceChannel';
+		}) as CollectionItem<Exclude<Channel, { channel_type: 'TextChannel' | 'VoiceChannel' }>>[];
+	});
 
 	return (
 		<>
@@ -35,7 +52,7 @@ export default function HomeWrapper() {
 					<span>Friends (placeholder)</span>
 				</ChannelItem>
 				<For
-					each={channels()?.sort((a, b) => {
+					each={channels()?.sort(([a], [b]) => {
 						if (a.channel_type == 'SavedMessages') {
 							return -1;
 						}
@@ -47,7 +64,7 @@ export default function HomeWrapper() {
 						return b.last_message_id?.localeCompare(a.last_message_id ?? '0') ?? 0;
 					})}
 				>
-					{(channel) => {
+					{([channel]) => {
 						if (channel.channel_type == 'SavedMessages') {
 							return (
 								<>

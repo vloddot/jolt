@@ -14,11 +14,13 @@ export default function EmojiCollectionProvider(props: Props) {
 	const client = useContext(ClientContext);
 
 	client.on('Ready', ({ emojis }) => {
+		// eslint-disable-next-line solid/reactivity
 		setEmojis(new Map(emojis.map((emoji) => [emoji._id, createStore(emoji)])));
 	});
 
 	client.on('EmojiCreate', (emoji) => {
 		setEmojis((emojis) => {
+			// eslint-disable-next-line solid/reactivity
 			emojis.set(emoji._id, createStore(emoji));
 			return emojis;
 		});

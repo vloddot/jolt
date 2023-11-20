@@ -1,6 +1,6 @@
 .channelItem {
 	margin-right: 16px;
-	gap: 2px;
+	gap: 8px;
 	border-top-right-radius: 15px;
 	border-bottom-right-radius: 15px;
 	display: flex;
@@ -11,12 +11,11 @@
 	outline-style: inherit;
 	outline-color: var(--accent);
 	outline-width: inherit;
-	
-	:global(img),
-	:global(svg) {
+
+	img,
+	svg {
 		width: 24px;
 		height: 24px;
-		padding: 4px;
 	}
 	
 	&[data-selected='true'],

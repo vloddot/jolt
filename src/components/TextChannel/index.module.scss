@@ -1,16 +1,8 @@
 .messageList {
 	display: flex;
 	flex-direction: column;
-	justify-items: end;
+	justify-content: end;
 	height: 100%;
-	overflow-x: hidden;
 	overflow-y: scroll;
 	margin-bottom: 16px;
-
-	.messageContainer {
-		display: flex;
-		padding: 4px 24px;
-		position: relative;
-		gap: 8px;
-	}
 }

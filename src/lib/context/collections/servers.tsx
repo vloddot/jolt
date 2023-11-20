@@ -16,11 +16,13 @@ export default function ServerCollectionProvider(props: Props) {
 	const client = useContext(ClientContext);
 
 	client.on('Ready', ({ servers }) => {
+		// eslint-disable-next-line solid/reactivity
 		setServers(new Map(servers.map((server) => [server._id, createStore(server)])));
 	});
 
 	client.on('ServerCreate', ({ server }) => {
 		setServers((servers) => {
+			// eslint-disable-next-line solid/reactivity
 			servers.set(server._id, createStore(server));
 			return servers;
 		});
@@ -33,6 +35,7 @@ export default function ServerCollectionProvider(props: Props) {
 		});
 	});
 
+	// eslint-disable-next-line solid/reactivity
 	client.on('ServerUpdate', (m) => {
 		const server = servers().get(m.id);
 		if (server == undefined) {
@@ -70,6 +73,7 @@ export default function ServerCollectionProvider(props: Props) {
 		});
 	});
 
+	// eslint-disable-next-line solid/reactivity
 	client.on('ServerRoleUpdate', (m) => {
 		const server = servers().get(m.id);
 		if (server == undefined) {
@@ -89,15 +93,16 @@ export default function ServerCollectionProvider(props: Props) {
 		});
 	});
 
-	client.on('ServerRoleDelete', (message) => {
-		const s = servers().get(message.id);
+	// eslint-disable-next-line solid/reactivity
+	client.on('ServerRoleDelete', (m) => {
+		const s = servers().get(m.id);
 		if (s == undefined) {
 			return;
 		}
 
 		const [, setServer] = s;
 		setServer((server) => {
-			delete server.roles?.[message.role_id];
+			delete server.roles?.[m.role_id];
 			return server;
 		});
 	});

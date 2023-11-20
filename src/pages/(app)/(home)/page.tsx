@@ -1,3 +1,3 @@
 export default function HomeScreen() {
-	return <div></div>;
+	return <p>Placeholder at the moment</p>;
 }

@@ -1,26 +1,27 @@
-import { createContext, createSignal, useContext, type JSX, batch, type Accessor } from 'solid-js';
+import { createContext, useContext, type JSX, batch, createSignal } from 'solid-js';
 import ClientContext from '@lib/context/client';
 import { createStore } from 'solid-js/store';
 
-export type ChannelCollection = Map<Channel['_id'], CollectionItem<Channel>>;
-export const ChannelCollectionContext = createContext<Accessor<ChannelCollection>>(() => new Map());
+export const ChannelCollectionContext = createContext(
+	() => new Map<Channel['_id'], CollectionItem<Channel>>()
+);
 
 interface Props {
 	children: JSX.Element;
 }
 
 export default function ChannelCollectionProvider(props: Props) {
-	const [channels, setChannels] = createSignal<ChannelCollection>(
-		ChannelCollectionContext.defaultValue()
-	);
+	const [channels, setChannels] = createSignal(ChannelCollectionContext.defaultValue());
 	const client = useContext(ClientContext);
 
 	client.on('Ready', ({ channels }) => {
+		// eslint-disable-next-line solid/reactivity
 		setChannels(new Map(channels.map((channel) => [channel._id, createStore(channel)])));
 	});
 
 	client.on('ChannelCreate', (channel) => {
 		setChannels((channels) => {
+			// eslint-disable-next-line solid/reactivity
 			channels.set(channel._id, createStore(channel));
 			return channels;
 		});
@@ -33,6 +34,7 @@ export default function ChannelCollectionProvider(props: Props) {
 		});
 	});
 
+	// eslint-disable-next-line solid/reactivity
 	client.on('ChannelUpdate', (m) => {
 		const c = channels().get(m.id);
 		if (c == undefined) {
@@ -79,6 +81,7 @@ export default function ChannelCollectionProvider(props: Props) {
 		});
 	});
 
+	// eslint-disable-next-line solid/reactivity
 	client.on('ChannelGroupJoin', (m) => {
 		const g = channels().get(m.id);
 		if (g == undefined) {
@@ -92,6 +95,7 @@ export default function ChannelCollectionProvider(props: Props) {
 		}
 	});
 
+	// eslint-disable-next-line solid/reactivity
 	client.on('ChannelGroupLeave', (m) => {
 		const g = channels().get(m.id);
 		if (g == undefined) {
@@ -108,6 +112,7 @@ export default function ChannelCollectionProvider(props: Props) {
 		}
 	});
 
+	// eslint-disable-next-line solid/reactivity
 	client.on('Message', ({ channel: channel_id, _id: message_id }) => {
 		const store = channels().get(channel_id);
 

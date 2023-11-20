@@ -16,9 +16,11 @@ export default function MemberCollectionProvider(props: Props) {
 	const client = useContext(ClientContext);
 
 	client.on('Ready', ({ members }) => {
+		// eslint-disable-next-line solid/reactivity
 		setMembers(new Map(members.map((member) => [member._id, createStore(member)])));
 	});
 
+	// eslint-disable-next-line solid/reactivity
 	client.on('ServerMemberUpdate', (m) => {
 		const member = members().get(m.id);
 		if (member == undefined) {

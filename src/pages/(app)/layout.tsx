@@ -1,10 +1,9 @@
-import { FaSolidHouse } from 'solid-icons/fa';
 import ServerSidebarIcon from '@components/ServerSidebarIcon';
 import './layout.scss';
 import styles from '@lib/util.module.scss';
 import util from '@lib/util';
-import { Index, Show, createSelector, useContext } from 'solid-js';
-import { Navigate, Outlet } from '@solidjs/router';
+import { For, Show, createMemo, createSelector, useContext } from 'solid-js';
+import { Outlet, useNavigate } from '@solidjs/router';
 import { SessionContext } from '@lib/context/session';
 import ServerCollectionProvider, {
 	ServerCollectionContext
@@ -16,6 +15,8 @@ import ChannelCollectionProvider from '@lib/context/collections/channels';
 import MemberCollectionProvider from '@lib/context/collections/members';
 import EmojiCollectionProvider from '@lib/context/collections/emojis';
 import SelectedChannelProvider from '@lib/context/selectedChannelId';
+import ClientContext from '@lib/context/client';
+import { FaSolidHouse } from 'solid-icons/fa';
 
 export default function AppWrapper() {
 	return (
@@ -24,15 +25,15 @@ export default function AppWrapper() {
 				<ChannelCollectionProvider>
 					<MemberCollectionProvider>
 						<EmojiCollectionProvider>
-							<SettingsProvider>
-								<SelectedServerIdProvider>
-									<SelectedChannelProvider>
+							<SelectedServerIdProvider>
+								<SelectedChannelProvider>
+									<SettingsProvider>
 										<ServerSidebar />
 
 										<Outlet />
-									</SelectedChannelProvider>
-								</SelectedServerIdProvider>
-							</SettingsProvider>
+									</SettingsProvider>
+								</SelectedChannelProvider>
+							</SelectedServerIdProvider>
 						</EmojiCollectionProvider>
 					</MemberCollectionProvider>
 				</ChannelCollectionProvider>
@@ -42,15 +43,44 @@ export default function AppWrapper() {
 }
 
 function ServerSidebar() {
-	const session = useContext(SessionContext);
+	const [session] = useContext(SessionContext);
+	const client = useContext(ClientContext);
+	const navigate = useNavigate();
+
+	client.on('Ready', () => {
+		if (session() == undefined) {
+			navigate('/login', { replace: true });
+		}
+	});
+
 	const settings = useContext(SettingsContext);
 	const servers = useContext(ServerCollectionContext);
 	const selectedServerId = useContext(SelectedServerIdContext);
 	const serverIsSelected = createSelector(selectedServerId);
 
-	if (session == undefined) {
-		return <Navigate href="/login" />;
-	}
+	const sortedServers = createMemo(() => {
+		const {
+			ordering: { servers: ordering }
+		} = settings();
+		if (ordering == undefined) {
+			return Array.from(servers().values());
+		}
+
+		return Array.from(servers().values()).sort(([a], [b]) => {
+			const aIndex = ordering.indexOf(a._id) ?? 0;
+			const bIndex = ordering.indexOf(b._id) ?? 0;
+
+			if (aIndex > bIndex) {
+				return -1;
+			}
+
+			if (bIndex < aIndex) {
+				return 1;
+			}
+
+			return 0;
+		});
+	});
 
 	return (
 		<div class="server-sidebar-container">
@@ -60,25 +90,8 @@ function ServerSidebar() {
 
 			<hr />
 
-			<Index
-				each={Array.from(servers().values()).sort(([a], [b]) => {
-					const aIndex = settings.ordering.servers?.indexOf(a._id) ?? 0;
-					const bIndex = settings.ordering.servers?.indexOf(b._id) ?? 0;
-
-					if (aIndex > bIndex) {
-						return 1;
-					}
-
-					if (bIndex < aIndex) {
-						return -1;
-					}
-
-					return 0;
-				})}
-			>
-				{(serverAccessor) => {
-					const [server] = serverAccessor();
-
+			<For each={sortedServers()}>
+				{([server]) => {
 					return (
 						<ServerSidebarIcon
 							href={`/servers/${server._id}`}
@@ -93,7 +106,7 @@ function ServerSidebar() {
 						</ServerSidebarIcon>
 					);
 				}}
-			</Index>
+			</For>
 		</div>
 	);
 }

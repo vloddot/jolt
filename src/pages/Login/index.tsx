@@ -54,6 +54,7 @@ function Login() {
 			setError('Email and password fields are required.');
 			return;
 		}
+
 		const friendly_name = getFriendlyName();
 		const credentialLoginResponse = await api.login({
 			email,
@@ -157,12 +158,12 @@ function Login() {
 
 				<Index each={Object.entries(mfaMethods)}>
 					{(method) => {
-						const [key] = method();
+						const key = () => method()[0];
 						return (
 							<input
 								type="text"
-								placeholder={`${displayMethods[key as MFAMethod]} (Optional)`}
-								onInput={(event) => setMfaMethods(key as MFAMethod, event.currentTarget.value)}
+								placeholder={`${displayMethods[key() as MFAMethod]} (Optional)`}
+								onInput={(event) => setMfaMethods(key() as MFAMethod, event.currentTarget.value)}
 							/>
 						);
 					}}

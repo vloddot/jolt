@@ -168,10 +168,10 @@ export class Client extends EventEmitter<
 		Error(
 			error: 'InternalError' | 'InvalidSession' | 'OnboardingNotFinished' | 'AlreadyAuthenticated'
 		): void;
-		ConnectionStateChange(state: ConnectionState): void;
 	} & ToEvents<ServerToClientMessage>
 > {
 	#socket: WebSocket | undefined;
+	token: string | undefined;
 	#pingIntervalReference: NodeJS.Timeout | undefined;
 	#pongTimeoutReference: NodeJS.Timeout | undefined;
 	#connectionState: Accessor<ConnectionState>;
@@ -179,7 +179,8 @@ export class Client extends EventEmitter<
 
 	constructor() {
 		super();
-		[this.#connectionState, this.#setConnectionState] = createSignal<ConnectionState>('idle');
+		const [state, setState] = createSignal<ConnectionState>('idle');
+		[this.#connectionState, this.#setConnectionState] = [state, setState];
 	}
 
 	get connectionState(): Accessor<ConnectionState> {
@@ -187,7 +188,8 @@ export class Client extends EventEmitter<
 	}
 
 	authenticate(token: string) {
-		this.#socket = new WebSocket(`wss://ws.revolt.chat?token=${token}`);
+		this.token = token;
+		this.#socket = new WebSocket(`wss://ws.revolt.chat?token=${this.token}`);
 		this.#setConnectionState('connecting');
 
 		this.#socket.onopen = () => {
@@ -260,9 +262,8 @@ export class Client extends EventEmitter<
 
 		clearInterval(this.#pingIntervalReference);
 
-		const websocket = this.#socket;
+		this.#socket.close();
 		this.#socket = undefined;
-		websocket.close();
 
 		this.#setConnectionState('disconnected');
 	}
