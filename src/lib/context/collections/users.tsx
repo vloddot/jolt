@@ -31,7 +31,7 @@ export default function UserCollectionProvider(props: Props) {
 			return;
 		}
 
-		const [user, setUser] = u;
+		const [, setUser] = u;
 
 		batch(() => {
 			if (m.clear != undefined) {
@@ -42,27 +42,19 @@ export default function UserCollectionProvider(props: Props) {
 							break swtch;
 						}
 						case 'StatusText': {
-							if (user.status != undefined) {
-								setUser('status', 'text', undefined);
-							}
+							setUser('status', 'text', undefined);
 							break swtch;
 						}
 						case 'StatusPresence': {
-							if (user.status != undefined) {
-								setUser('status', 'presence', undefined);
-							}
+							setUser('status', 'presence', undefined);
 							break swtch;
 						}
 						case 'ProfileContent': {
-							if (user.profile?.content != undefined) {
-								setUser('profile', 'content', undefined);
-							}
+							setUser('profile', 'content', undefined);
 							break swtch;
 						}
 						case 'ProfileBackground': {
-							if (user.profile?.background != undefined) {
-								setUser('profile', 'background', undefined);
-							}
+							setUser('profile', 'background', undefined);
 							break swtch;
 						}
 						case 'DisplayName': {
@@ -73,11 +65,9 @@ export default function UserCollectionProvider(props: Props) {
 				}
 			}
 
-			for (const [key, value] of Object.entries(m.data)) {
-				user[key as keyof User] = value as never;
+			for (const [key, value] of Object.entries(m.data) as [keyof User, never][]) {
+				setUser(key, value);
 			}
-
-			return user;
 		});
 	});
 

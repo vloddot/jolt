@@ -4,36 +4,51 @@ import { UserCollectionContext } from './context/collections/users';
 import { createStore, type Store } from 'solid-js/store';
 import { ChannelCollectionContext } from './context/collections/channels';
 import { MemberCollectionContext } from './context/collections/members';
+import { ServerCollectionContext } from './context/collections/servers';
+import util from './util';
 
-async function req(
+function req(
 	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
 	path: string,
 	body?: string
 ): Promise<Response> {
-	const session = useContext(SessionContext)[0]();
+	return new Promise((resolve, reject) => {
+		const session = useContext(SessionContext)[0]();
 
-	const response = await fetch(`https://api.revolt.chat${path}`, {
-		method,
-		body,
-		headers: session?.token == undefined ? undefined : { 'x-session-token': session.token }
+		fetch(`https://api.revolt.chat${path}`, {
+			method,
+			body,
+			headers: session?.token == undefined ? undefined : { 'x-session-token': session.token }
+		})
+			.then((response) => {
+				if (response.status == 429) {
+					response
+						.json()
+						.then(({ retry_after }) =>
+							setTimeout(() => req(method, path, body).then(resolve).catch(reject), retry_after)
+						)
+						.catch(reject);
+				}
+
+				resolve(response);
+			})
+			.catch(reject);
 	});
-
-	return response;
 }
 
-async function login(data_login: DataLogin): Promise<ResponseLogin> {
-	return req('POST', '/auth/session/login', JSON.stringify(data_login)).then((response) =>
+async function login(data: DataLogin): Promise<ResponseLogin> {
+	return req('POST', '/auth/session/login', JSON.stringify(data)).then((response) =>
 		response.json()
 	);
 }
 
-async function fetchUser(id: string): Promise<Store<User>> {
+async function fetchUser(target: string): Promise<Store<User>> {
 	const users = useContext(UserCollectionContext)();
-	const user = users.get(id);
+	const user = users.get(target);
 
 	if (user == undefined) {
 		const [store, setStore] = createStore<User>(
-			await req('GET', `/users/${id}`).then((response) => response.json())
+			await req('GET', `/users/${target}`).then((response) => response.json())
 		);
 		// eslint-disable-next-line solid/reactivity
 		users.set(store._id, [store, setStore]);
@@ -62,23 +77,23 @@ async function fetchSettings<K extends string>(keys: K[]): Promise<Record<K, [nu
 	);
 }
 
-async function fetchChannel(id: string): Promise<Store<Channel>> {
+async function fetchChannel(target: string): Promise<Store<Channel>> {
 	const channels = useContext(ChannelCollectionContext)();
-	const channel = channels.get(id);
+	const channel = channels.get(target);
 
 	if (channel == undefined) {
 		const [store, setStore] = createStore<Channel>(
-			await req('GET', `/channels/${id}`).then((response) => response.json())
+			await req('GET', `/channels/${target}`).then((response) => response.json())
 		);
 
-		channels.set(id, [store, setStore]);
+		channels.set(target, [store, setStore]);
 		return store;
 	}
 
 	return channel[0];
 }
 
-async function queryMessages([channel_id, options]: [string, OptionsQueryMessages]): Promise<
+async function queryMessages([target, options]: [string, OptionsQueryMessages]): Promise<
 	Extract<BulkMessageResponse, { messages: Message[] }>
 > {
 	const params =
@@ -91,7 +106,7 @@ async function queryMessages([channel_id, options]: [string, OptionsQueryMessage
 
 	const response: BulkMessageResponse = await req(
 		'GET',
-		`/channels/${channel_id}/messages${params}`
+		`/channels/${target}/messages${params}`
 	).then((response) => response.json());
 
 	if (Array.isArray(response)) {
@@ -104,22 +119,47 @@ async function queryMessages([channel_id, options]: [string, OptionsQueryMessage
 	}
 }
 
-async function fetchMember(id: MemberCompositeKey): Promise<Member> {
+async function fetchMember(target: MemberCompositeKey): Promise<Member> {
 	const members = useContext(MemberCollectionContext)();
-	const member = members.get(id);
+	const member = members.get(util.hashMemberId(target));
 
 	if (member == undefined) {
 		const [store, setStore] = createStore<Member>(
-			await req('GET', `/servers/${id.server}/members/${id.user}`).then((response) =>
+			await req('GET', `/servers/${target.server}/members/${target.user}`).then((response) =>
 				response.json()
 			)
 		);
 
-		members.set(id, [store, setStore]);
+		members.set(util.hashMemberId(target), [store, setStore]);
 		return store;
 	}
 
 	return member[0];
+}
+
+async function sendMessage(target: string, data: DataMessageSend): Promise<Message> {
+	return req('POST', `/channels/${target}/messages`, JSON.stringify(data)).then((response) =>
+		response.json()
+	);
+}
+
+async function deleteMessage(target: string, msg: string): Promise<void> {
+	await req('DELETE', `/channels/${target}/messages/${msg}`);
+}
+
+async function fetchServer(target: string): Promise<Server> {
+	const servers = useContext(ServerCollectionContext)();
+	const server = servers.get(target);
+
+	if (server == undefined) {
+		const [store, setStore] = createStore<Server>(
+			await req('GET', `/servers/${target}`).then((response) => response.json())
+		);
+		servers.set(target, [store, setStore]);
+		return store;
+	}
+
+	return server[0];
 }
 
 export default {
@@ -129,6 +169,9 @@ export default {
 	fetchSettings,
 	fetchDMs,
 	fetchChannel,
+	fetchServer,
 	queryMessages,
-	fetchMember
+	sendMessage,
+	fetchMember,
+	deleteMessage
 };

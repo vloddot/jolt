@@ -17,6 +17,7 @@ import EmojiCollectionProvider from '@lib/context/collections/emojis';
 import SelectedChannelProvider from '@lib/context/selectedChannelId';
 import ClientContext from '@lib/context/client';
 import { FaSolidHouse } from 'solid-icons/fa';
+import MessageCollectionProvider from '@lib/context/collections/messages';
 
 export default function AppWrapper() {
 	return (
@@ -25,15 +26,17 @@ export default function AppWrapper() {
 				<ChannelCollectionProvider>
 					<MemberCollectionProvider>
 						<EmojiCollectionProvider>
-							<SelectedServerIdProvider>
-								<SelectedChannelProvider>
-									<SettingsProvider>
-										<ServerSidebar />
+							<MessageCollectionProvider>
+								<SelectedServerIdProvider>
+									<SelectedChannelProvider>
+										<SettingsProvider>
+											<ServerSidebar />
 
-										<Outlet />
-									</SettingsProvider>
-								</SelectedChannelProvider>
-							</SelectedServerIdProvider>
+											<Outlet />
+										</SettingsProvider>
+									</SelectedChannelProvider>
+								</SelectedServerIdProvider>
+							</MessageCollectionProvider>
 						</EmojiCollectionProvider>
 					</MemberCollectionProvider>
 				</ChannelCollectionProvider>
@@ -96,7 +99,7 @@ function ServerSidebar() {
 				{([server]) => {
 					return (
 						<ServerSidebarIcon
-							href={`/servers/${server._id}`}
+							href={`/servers/${server._id}/channels/${server.channels[0]}`}
 							selected={serverIsSelected(server._id)}
 							tooltip={server.name}
 						>

@@ -1,0 +1,15 @@
+.textareaBase {
+	resize: none;
+	background-color: transparent;
+	color: inherit;
+	font-family: inherit;
+	outline: none;
+	width: 100%;
+	line-height: 20px;
+	height: 20px;
+	padding: 14px 14px 14px 0;
+
+	&:hover {
+		background-color: transparent;
+	}
+}

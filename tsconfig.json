@@ -19,7 +19,8 @@
 		"baseUrl": ".",
 		"paths": {
 			"@lib/*": ["./src/lib/*"],
-			"@components/*": ["./src/components/*"]
+			"@components/*": ["./src/components/*"],
+			"@pages/*": ["./src/pages/*"]
 		},
 
 		"verbatimModuleSyntax": true,

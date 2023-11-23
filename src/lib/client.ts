@@ -48,7 +48,7 @@ export type ServerToClientMessage =
 			type: 'MessageUpdate';
 			id: string;
 			channel: string;
-			data: Partial<ClientToServerMessage>;
+			data: Partial<Message>;
 	  }
 	| {
 			type: 'MessageAppend';

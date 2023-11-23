@@ -49,9 +49,25 @@ function getDisplayAvatar(
 }
 
 function getOtherRecipient(recipients: string[]): string | undefined {
-	const [session] = useContext(SessionContext);
+	const session = useContext(SessionContext)[0]();
 
-	return recipients.find((user) => user != session()?.user_id);
+	return recipients.find((user) => user != session?.user_id);
+}
+
+/**
+ * Objects in JavaScript are not hashable in complex objects like `Map`s. See:
+ * ```js
+ * const map = new Map();
+ * map.set({ a: 1, b: 2 }, 3);
+ * console.log(map.get({ a: 1, b: 2 })) // Output: undefined
+ * ```
+ *
+ * Because of this, this function is used to hash member IDs,
+ * @param id member ID
+ * @returns hashed member ID
+ */
+function hashMemberId(id: MemberCompositeKey) {
+	return id.server + id.user;
 }
 
 export default {
@@ -59,4 +75,5 @@ export default {
 	getDisplayName,
 	getDisplayAvatar,
 	getOtherRecipient,
+	hashMemberId
 };

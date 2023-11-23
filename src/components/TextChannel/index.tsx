@@ -4,20 +4,23 @@ import {
 	Switch,
 	createResource,
 	useContext,
-	type ResourceReturn,
 	createSignal,
 	Show,
-	type Resource,
-	createMemo
+	createMemo,
+	type JSX,
+	createComputed,
 } from 'solid-js';
 import styles from './index.module.scss';
 import utilStyles from '@lib/util.module.scss';
 import api from '@lib/api';
-import { UserCollectionContext } from '@lib/context/collections/users';
-import { MemberCollectionContext } from '@lib/context/collections/members';
-import ClientContext from '@lib/context/client';
 import { MessageComponent } from './Message';
-import RepliesProvider from './context';
+import RepliesProvider from './context/replies';
+import TextAreaBase from './TextAreaBase';
+import { ChannelContext as SelectedChannelContext } from './context/channel';
+import util from '@lib/util';
+import { MessageInputContext } from './context/messageInput';
+import { MessageCollectionContext } from '@lib/context/collections/messages';
+import { SelectedServerContext } from '@pages/(app)/servers/:sid/context';
 
 export interface Props {
 	channel: Exclude<Channel, { channel_type: 'VoiceChannel' }>;
@@ -47,103 +50,122 @@ export default function TextChannel(props: Props) {
 			<Match when={bulkMessageResponse.state == 'pending'}>Loading messages...</Match>
 			<Match when={bulkMessageResponse.state == 'refreshing'}>Reloading messages...</Match>
 			<Match when={bulkMessageResponse.state == 'unresolved'}>Unresolved channel.</Match>
-			<Match when={bulkMessageResponse.state == 'ready' ? bulkMessageResponse() : false}>
-				{(response) => (
-					<RepliesProvider>
-						<TextChannelMeta {...props} {...response()} />
-					</RepliesProvider>
-				)}
+			<Match when={bulkMessageResponse.state == 'ready' && bulkMessageResponse()}>
+				{(response) => {
+					return (
+						<MessageInputContext.Provider value={MessageInputContext.defaultValue}>
+							<SelectedChannelContext.Provider value={props.channel}>
+								<RepliesProvider>
+									<TextChannelMeta {...response()} />
+								</RepliesProvider>
+							</SelectedChannelContext.Provider>
+						</MessageInputContext.Provider>
+					);
+				}}
 			</Match>
 		</Switch>
 	);
 }
 
-export function TextChannelMeta(props: Props & Awaited<ReturnType<typeof api.queryMessages>>) {
+export function TextChannelMeta(props: Awaited<ReturnType<typeof api.queryMessages>>) {
 	// const [replies, { removeReply }] = useContext(RepliesContext)!;
-	const userCollection = useContext(UserCollectionContext);
-	const memberCollection = useContext(MemberCollectionContext);
+	let textbox: HTMLTextAreaElement;
+	const server = useContext(SelectedServerContext);
+	const channel = useContext(SelectedChannelContext)!;
+	const [, { initChannelCollection }] = useContext(MessageCollectionContext)!;
 
-	const client = useContext(ClientContext);
+	const messageCollection = createMemo(() => initChannelCollection(channel._id, props, server));
 
-	// eslint-disable-next-line solid/reactivity
-	const [messages, setMessages] = createSignal(props.messages.reverse());
-
-	// eslint-disable-next-line solid/reactivity
-	client.on('Message', (message) => {
-		if (message.channel == props.channel._id) {
-			setMessages((messages) => [...messages, message]);
+	const [channelName, setChannelName] = createSignal('<Unknown Channel>');
+	createComputed(() => {
+		if (channel == undefined) {
+			setChannelName('<Unknown Channel>');
+			return;
 		}
+
+		if (channel.channel_type != 'SavedMessages' && channel.channel_type != 'DirectMessage') {
+			setChannelName(`#${channel.name}`);
+			return;
+		}
+
+		if (channel.channel_type == 'SavedMessages') {
+			setChannelName('Saved Notes');
+			return;
+		}
+
+		const recipient = util.getOtherRecipient(channel.recipients);
+		if (recipient == undefined) {
+			setChannelName('DM');
+			return;
+		}
+
+		api.fetchUser(recipient).then((recipient) => setChannelName(`@${recipient.username}`));
 	});
 
-	const users = createMemo(
-		() =>
-			new Map<string, ResourceReturn<User>>(
-				props.users.map(({ _id: id }) => {
-					const item = userCollection().get(id);
-					if (item == undefined) {
-						return [id, createResource(() => api.fetchUser(id))];
-					}
+	const sendMessage: JSX.EventHandler<HTMLFormElement, SubmitEvent> = (event) => {
+		event.preventDefault();
+		if (channel == undefined) {
+			return;
+		}
 
-					const [user] = item;
-					return [user._id, createResource(() => user)];
-				})
-			)
-	);
+		const data: DataMessageSend = {};
 
-	const members = createMemo(
-		() =>
-			new Map<string, ResourceReturn<Member>>(
-				props.members?.map(({ _id: id }) => {
-					const item = memberCollection().get(id);
-					if (item == undefined) {
-						return [id.user, createResource(() => api.fetchMember(id))];
-					}
+		const content = textbox.value.trim();
+		if (content != '') {
+			data.content = content;
+			textbox.value = '';
+		}
 
-					const [member] = item;
-					return [member._id.user, createResource(() => member)];
-				})
-			)
-	);
+		api.sendMessage(channel?._id, data);
+	};
 
 	return (
-		<div class={styles.messageList}>
-			<For each={messages()}>
-				{(message) => {
-					const [author] =
-						users().get(message.author) ?? createResource(() => api.fetchUser(message.author));
+		<>
+			<div class={styles.messageList}>
+				<For each={Array.from(messageCollection()().messages.values())}>
+					{([message]) => {
+						const author = messageCollection()().users.get(message.author);
+						const member = messageCollection()().members.get(message.author);
 
-					let member: Resource<Member> | undefined = undefined;
-					if (props.server != undefined) {
-						const key: MemberCompositeKey = {
-							server: props.server._id,
-							user: message.author
-						};
-						[member] = members().get(key.user) ?? createResource(() => api.fetchMember(key));
-					}
-
-					return (
-						<Show
-							when={
-								author.state == 'ready' && (member == undefined || member.state == 'ready')
-									? ([author, member] as const)
-									: false
+						return (
+							<Show when={author != undefined && ([author, member] as const)}>
+								{(accessor) => {
+									const [[author], member] = accessor();
+									return (
+										<MessageComponent
+											message={message}
+											author={author}
+											member={member?.[0]}
+											isHead={true}
+										/>
+									);
+								}}
+							</Show>
+						);
+					}}
+				</For>
+			</div>
+			<div class={styles.messageFormBase}>
+				<form class={styles.messageForm} onSubmit={sendMessage}>
+					<TextAreaBase
+						placeholder={
+							channel?.channel_type == 'DirectMessage'
+								? `Send message to ${channelName()}`
+								: `Send message in ${channelName()}`
+						}
+						sendTypingIndicators
+						ref={textbox!}
+						onKeyDown={(event) => {
+							if (event.shiftKey || event.key != 'Enter') {
+								return;
 							}
-						>
-							{(accessor) => {
-								const [author, member] = accessor();
-								return (
-									<MessageComponent
-										message={message}
-										author={author()}
-										member={member?.()}
-										isHead={true}
-									/>
-								);
-							}}
-						</Show>
-					);
-				}}
-			</For>
-		</div>
+
+							event.preventDefault();
+							event.currentTarget.form?.requestSubmit();
+						}}
+					/>
+				</form>
+			</div>
+		</>
 	);
 }

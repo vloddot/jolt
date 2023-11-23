@@ -65,56 +65,47 @@ export default function HomeWrapper() {
 					})}
 				>
 					{([channel]) => {
-						if (channel.channel_type == 'SavedMessages') {
-							return (
-								<>
-									<ChannelItem
-										href={`/conversations/${channel._id}`}
-										selected={channelIsSelected(channel._id)}
-										unread={false}
-									>
-										<FaSolidNoteSticky />
-
-										<span>Saved Messages</span>
-									</ChannelItem>
-									<hr />
-								</>
-							);
-						}
-
 						return (
 							<Switch>
-								<Match when={channel.channel_type == 'Group' ? channel : false}>
-									{(channelAccessor) => {
-										const { name, icon } = channelAccessor();
-										return (
-											<ChannelItem
-												href={`/conversations/${channel._id}`}
-												selected={channelIsSelected(channel._id)}
-												unread={false}
-											>
-												<Show when={icon} fallback={<FaSolidUserGroup />}>
-													{(icon) => <img src={util.getAutumnURL(icon())} alt={name} />}
-												</Show>
-												<span>{name}</span>
-											</ChannelItem>
-										);
-									}}
+								<Match when={channel.channel_type == 'SavedMessages'}>
+									<>
+										<ChannelItem
+											href={`/conversations/${channel._id}`}
+											selected={channelIsSelected(channel._id)}
+											unread={false}
+										>
+											<FaSolidNoteSticky />
+
+											<span>Saved Messages</span>
+										</ChannelItem>
+										<hr />
+									</>
 								</Match>
-								<Match
-									when={channel.channel_type == 'DirectMessage' && channel.active ? channel : false}
-								>
-									{(channelAccessor) => {
-										const channel = channelAccessor();
+								<Match when={channel.channel_type == 'Group' && channel}>
+									{(channel) => (
+										<ChannelItem
+											href={`/conversations/${channel()._id}`}
+											selected={channelIsSelected(channel()._id)}
+											unread={false}
+										>
+											<Show when={channel().icon} fallback={<FaSolidUserGroup />}>
+												{(icon) => <img src={util.getAutumnURL(icon())} alt={channel().name} />}
+											</Show>
+											<span>{channel().name}</span>
+										</ChannelItem>
+									)}
+								</Match>
+								<Match when={channel.channel_type == 'DirectMessage' && channel.active && channel}>
+									{(channel) => {
 										const [recipient] = createResource(
-											util.getOtherRecipient(channel.recipients),
+											() => util.getOtherRecipient(channel().recipients),
 											api.fetchUser
 										);
 
 										return (
 											<ChannelItem
-												href={`/conversations/${channel._id}`}
-												selected={channelIsSelected(channel._id)}
+												href={`/conversations/${channel()._id}`}
+												selected={channelIsSelected(channel()._id)}
 												unread={false}
 											>
 												<Switch>
@@ -125,15 +116,15 @@ export default function HomeWrapper() {
 														Could not resolve user.
 													</Match>
 													<Match when={recipient.state == 'refreshing'}>Reloading user...</Match>
-													<Match when={recipient.state == 'ready' ? recipient()! : false}>
-														{(recipientAccessor) => {
-															const recipient = recipientAccessor();
-															const name = util.getDisplayName(recipient);
-															const avatar = util.getDisplayAvatar(recipient);
+													<Match when={recipient.state == 'ready' && recipient()}>
+														{(recipient) => {
+															const name = createMemo(() => util.getDisplayName(recipient()));
+															const avatar = createMemo(() => util.getDisplayAvatar(recipient()));
+
 															return (
 																<>
-																	<img class={styles.cover} src={avatar} alt={name} />
-																	<span>{name}</span>
+																	<img class={styles.cover} src={avatar()} alt={name()} />
+																	<span>{name()}</span>
 																</>
 															);
 														}}
