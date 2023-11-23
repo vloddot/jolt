@@ -36,3 +36,4 @@ render(
 	),
 	document.getElementById('root')!
 );
+

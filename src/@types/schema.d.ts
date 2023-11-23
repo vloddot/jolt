@@ -1166,7 +1166,7 @@ interface components {
 			replies?: string[];
 			/** @description Hashmap of emoji IDs to array of user IDs */
 			reactions?: {
-				[key: string]: string[];
+				[key: string]: string[] | undefined;
 			};
 			/** @description Information about how this message should be interacted with */
 			interactions?: components['schemas']['Interactions'];

@@ -6,12 +6,10 @@ import {
 	useContext,
 	createSignal,
 	Show,
-	createMemo,
 	type JSX,
-	createComputed,
+	createComputed
 } from 'solid-js';
 import styles from './index.module.scss';
-import utilStyles from '@lib/util.module.scss';
 import api from '@lib/api';
 import { MessageComponent } from './Message';
 import RepliesProvider from './context/replies';
@@ -19,8 +17,7 @@ import TextAreaBase from './TextAreaBase';
 import { ChannelContext as SelectedChannelContext } from './context/channel';
 import util from '@lib/util';
 import { MessageInputContext } from './context/messageInput';
-import { MessageCollectionContext } from '@lib/context/collections/messages';
-import { SelectedServerContext } from '@pages/(app)/servers/:sid/context';
+import { getMessageCollection, type MessageCollection } from '@lib/messageCollections';
 
 export interface Props {
 	channel: Exclude<Channel, { channel_type: 'VoiceChannel' }>;
@@ -28,35 +25,24 @@ export interface Props {
 }
 
 export default function TextChannel(props: Props) {
-	const [bulkMessageResponse, { refetch }] = createResource(
-		(): [string, OptionsQueryMessages] => [
-			props.channel._id,
-			{
-				sort: 'Latest',
-				include_users: true
-			}
-		],
-		api.queryMessages
+	const [messageCollection] = createResource(
+		[props.channel._id, props.server],
+		getMessageCollection
 	);
 
 	return (
 		<Switch>
-			<Match when={bulkMessageResponse.state == 'errored'}>
-				Error loading messages
-				<button class={utilStyles.buttonPrimary} onClick={refetch}>
-					Retry
-				</button>
-			</Match>
-			<Match when={bulkMessageResponse.state == 'pending'}>Loading messages...</Match>
-			<Match when={bulkMessageResponse.state == 'refreshing'}>Reloading messages...</Match>
-			<Match when={bulkMessageResponse.state == 'unresolved'}>Unresolved channel.</Match>
-			<Match when={bulkMessageResponse.state == 'ready' && bulkMessageResponse()}>
-				{(response) => {
+			<Match when={messageCollection.state == 'errored'}>Error loading messages</Match>
+			<Match when={messageCollection.state == 'pending'}>Loading messages...</Match>
+			<Match when={messageCollection.state == 'refreshing'}>Reloading messages...</Match>
+			<Match when={messageCollection.state == 'unresolved'}>Unresolved channel.</Match>
+			<Match when={messageCollection.state == 'ready' && messageCollection()}>
+				{(collection) => {
 					return (
 						<MessageInputContext.Provider value={MessageInputContext.defaultValue}>
 							<SelectedChannelContext.Provider value={props.channel}>
 								<RepliesProvider>
-									<TextChannelMeta {...response()} />
+									<TextChannelMeta collection={collection()} />
 								</RepliesProvider>
 							</SelectedChannelContext.Provider>
 						</MessageInputContext.Provider>
@@ -67,14 +53,14 @@ export default function TextChannel(props: Props) {
 	);
 }
 
-export function TextChannelMeta(props: Awaited<ReturnType<typeof api.queryMessages>>) {
+interface MetaProps {
+	collection: MessageCollection;
+}
+
+function TextChannelMeta(props: MetaProps) {
 	// const [replies, { removeReply }] = useContext(RepliesContext)!;
 	let textbox: HTMLTextAreaElement;
-	const server = useContext(SelectedServerContext);
 	const channel = useContext(SelectedChannelContext)!;
-	const [, { initChannelCollection }] = useContext(MessageCollectionContext)!;
-
-	const messageCollection = createMemo(() => initChannelCollection(channel._id, props, server));
 
 	const [channelName, setChannelName] = createSignal('<Unknown Channel>');
 	createComputed(() => {
@@ -83,23 +69,23 @@ export function TextChannelMeta(props: Awaited<ReturnType<typeof api.queryMessag
 			return;
 		}
 
-		if (channel.channel_type != 'SavedMessages' && channel.channel_type != 'DirectMessage') {
-			setChannelName(`#${channel.name}`);
-			return;
-		}
-
 		if (channel.channel_type == 'SavedMessages') {
 			setChannelName('Saved Notes');
 			return;
 		}
 
-		const recipient = util.getOtherRecipient(channel.recipients);
-		if (recipient == undefined) {
-			setChannelName('DM');
+		if (channel.channel_type == 'DirectMessage') {
+			const recipient = util.getOtherRecipient(channel.recipients);
+			if (recipient == undefined) {
+				setChannelName('DM');
+				return;
+			}
+
+			api.fetchUser(recipient).then((recipient) => setChannelName(`@${recipient.username}`));
 			return;
 		}
 
-		api.fetchUser(recipient).then((recipient) => setChannelName(`@${recipient.username}`));
+		setChannelName(`#${channel.name}`);
 	});
 
 	const sendMessage: JSX.EventHandler<HTMLFormElement, SubmitEvent> = (event) => {
@@ -122,22 +108,28 @@ export function TextChannelMeta(props: Awaited<ReturnType<typeof api.queryMessag
 	return (
 		<>
 			<div class={styles.messageList}>
-				<For each={Array.from(messageCollection()().messages.values())}>
-					{([message]) => {
-						const author = messageCollection()().users.get(message.author);
-						const member = messageCollection()().members.get(message.author);
-
+				<For each={Object.values(props.collection.messages)}>
+					{(message) => {
 						return (
-							<Show when={author != undefined && ([author, member] as const)}>
-								{(accessor) => {
-									const [[author], member] = accessor();
+							<Show when={message != undefined && message}>
+								{(message) => {
+									const author = props.collection.users[message().author];
+									const member = props.collection.members[message().author];
+
 									return (
-										<MessageComponent
-											message={message}
-											author={author}
-											member={member?.[0]}
-											isHead={true}
-										/>
+										<Show when={author != undefined && ([author, member] as const)}>
+											{(accessor) => {
+												const [author, member] = accessor();
+												return (
+													<MessageComponent
+														message={message()}
+														author={author}
+														member={member}
+														isHead={true}
+													/>
+												);
+											}}
+										</Show>
 									);
 								}}
 							</Show>

@@ -17,7 +17,6 @@ import EmojiCollectionProvider from '@lib/context/collections/emojis';
 import SelectedChannelProvider from '@lib/context/selectedChannelId';
 import ClientContext from '@lib/context/client';
 import { FaSolidHouse } from 'solid-icons/fa';
-import MessageCollectionProvider from '@lib/context/collections/messages';
 
 export default function AppWrapper() {
 	return (
@@ -26,17 +25,15 @@ export default function AppWrapper() {
 				<ChannelCollectionProvider>
 					<MemberCollectionProvider>
 						<EmojiCollectionProvider>
-							<MessageCollectionProvider>
-								<SelectedServerIdProvider>
-									<SelectedChannelProvider>
-										<SettingsProvider>
-											<ServerSidebar />
+							<SelectedServerIdProvider>
+								<SelectedChannelProvider>
+									<SettingsProvider>
+										<ServerSidebar />
 
-											<Outlet />
-										</SettingsProvider>
-									</SelectedChannelProvider>
-								</SelectedServerIdProvider>
-							</MessageCollectionProvider>
+										<Outlet />
+									</SettingsProvider>
+								</SelectedChannelProvider>
+							</SelectedServerIdProvider>
 						</EmojiCollectionProvider>
 					</MemberCollectionProvider>
 				</ChannelCollectionProvider>
