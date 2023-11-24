@@ -28,7 +28,7 @@ interface MessageControls {
 export function MessageComponent(props: Props) {
 	const [, { pushReply }] = useContext(RepliesContext)!;
 
-	const MESSAGE_CONTROLS: MessageControls[] = [
+	const messageControls: MessageControls[] = [
 		{
 			children: <BsReply size="18px" />,
 			name: 'Reply',
@@ -54,16 +54,18 @@ export function MessageComponent(props: Props) {
 
 	return (
 		<div class={styles.messageContainer}>
-			<Show when={props.isHead}>
-				<img
-					class={utilStyles.cover}
-					src={util.getDisplayAvatar(props.author, props.member, props.message)}
-					alt={displayName()}
-					style={{ width: '28px', height: '28px' }}
-				/>
-			</Show>
-			<div class={styles.messageControls}>
-				<For each={MESSAGE_CONTROLS}>
+			<span style={{ width: '28px' }}>
+				<Show when={props.isHead}>
+					<img
+						class={utilStyles.cover}
+						src={util.getDisplayAvatar(props.author, props.member, props.message)}
+						alt={displayName()}
+						style={{ width: '28px', height: '28px' }}
+					/>
+				</Show>
+			</span>
+			<span class={styles.messageControls}>
+				<For each={messageControls}>
 					{({ children, name, onclick }) => {
 						return (
 							<Tooltip
@@ -80,10 +82,10 @@ export function MessageComponent(props: Props) {
 						);
 					}}
 				</For>
-			</div>
-			<div class={styles.messageBase}>
+			</span>
+			<span class={styles.messageBase}>
 				<Show when={props.isHead}>
-					<div class={styles.messageMeta}>
+					<span class={styles.messageMeta}>
 						<span class={styles.displayName}>{displayName()}</span>
 						<Show when={displayName() != props.author.username}>
 							<span class={styles.username}>
@@ -91,11 +93,11 @@ export function MessageComponent(props: Props) {
 							</span>
 						</Show>
 						<time class={styles.timestamp}>{dayjs(decodeTime(props.message._id)).calendar()}</time>
-					</div>
+					</span>
 				</Show>
 
 				<span class={styles.messageContent}>
-					{props.message.content}{' '}
+					{props.message.content}
 					<Show when={props.message.edited}>
 						{(time) => {
 							return (
@@ -112,7 +114,7 @@ export function MessageComponent(props: Props) {
 						}}
 					</Show>
 				</span>
-			</div>
+			</span>
 		</div>
 	);
 }

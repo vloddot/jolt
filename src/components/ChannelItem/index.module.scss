@@ -8,34 +8,30 @@
 	transition: background-color 150ms, outline 150ms;
 	min-height: 32px;
 	color: inherit;
-	outline-style: inherit;
-	outline-color: var(--accent);
-	outline-width: inherit;
 
 	img,
 	svg {
 		width: 24px;
 		height: 24px;
 	}
-	
-	&[data-selected='true'],
+
 	&:hover,
 	&:focus {
 		background-color: var(--hover);
 	}
-	
-	&[data-selected='true'], &:focus {
-		outline-style: solid;
+
+	&[data-selected='true'] {
+		background-color: var(--selected);
 	}
 
-	:global(*) {
+	* {
 		color: var(--tertiary-foreground);
 	}
 
 	&[data-selected='true'],
 	&:hover,
 	&:focus {
-		:global(*) {
+		* {
 			color: var(--foreground);
 		}
 	}

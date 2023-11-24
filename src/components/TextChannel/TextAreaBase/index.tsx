@@ -1,6 +1,6 @@
 import ClientContext from '@lib/context/client';
 import { useContext, type JSX } from 'solid-js';
-import { ChannelContext } from '../context/channel';
+import { SelectedChannelContext } from '../context/channel';
 import styles from './index.module.scss';
 
 export interface Props {
@@ -11,7 +11,7 @@ export interface Props {
 }
 
 export default function TextAreaBase(props: Props) {
-	const channel = useContext(ChannelContext)!;
+	const channel = useContext(SelectedChannelContext)!;
 	const client = useContext(ClientContext);
 	let value = '';
 

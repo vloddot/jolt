@@ -7,17 +7,20 @@ import {
 	createSignal,
 	Show,
 	type JSX,
-	createComputed
+	createComputed,
+	createMemo
 } from 'solid-js';
 import styles from './index.module.scss';
 import api from '@lib/api';
 import { MessageComponent } from './Message';
 import RepliesProvider from './context/replies';
 import TextAreaBase from './TextAreaBase';
-import { ChannelContext as SelectedChannelContext } from './context/channel';
+import { SelectedChannelContext } from './context/channel';
 import util from '@lib/util';
 import { MessageInputContext } from './context/messageInput';
 import { getMessageCollection, type MessageCollection } from '@lib/messageCollections';
+import { decodeTime } from 'ulid';
+import { SelectedServerIdContext } from '@lib/context/selectedServerId';
 
 export interface Props {
 	channel: Exclude<Channel, { channel_type: 'VoiceChannel' }>;
@@ -26,7 +29,8 @@ export interface Props {
 
 export default function TextChannel(props: Props) {
 	const [messageCollection] = createResource(
-		[props.channel._id, props.server],
+		// eslint-disable-next-line solid/reactivity
+		() => props.channel._id,
 		getMessageCollection
 	);
 
@@ -58,8 +62,8 @@ interface MetaProps {
 }
 
 function TextChannelMeta(props: MetaProps) {
-	// const [replies, { removeReply }] = useContext(RepliesContext)!;
 	let textbox: HTMLTextAreaElement;
+	const server = useContext(SelectedServerIdContext);
 	const channel = useContext(SelectedChannelContext)!;
 
 	const [channelName, setChannelName] = createSignal('<Unknown Channel>');
@@ -105,27 +109,60 @@ function TextChannelMeta(props: MetaProps) {
 		api.sendMessage(channel?._id, data);
 	};
 
+	const messages = createMemo(() => Object.values(props.collection.messages));
+
 	return (
 		<>
 			<div class={styles.messageList}>
-				<For each={Object.values(props.collection.messages)}>
-					{(message) => {
+				<For each={messages()}>
+					{(message, messageIndex) => {
 						return (
 							<Show when={message != undefined && message}>
 								{(message) => {
-									const author = props.collection.users[message().author];
-									const member = props.collection.members[message().author];
+									const [author] = createResource(
+										() => message().author,
+										// eslint-disable-next-line solid/reactivity
+										(author) =>
+											(props.collection.users[author] as User | undefined) ?? api.fetchUser(author)
+									);
+
+									const [member] = createResource(
+										() => message().author,
+										// eslint-disable-next-line solid/reactivity
+										(author) =>
+											(props.collection.members[author] as Member | undefined) ??
+											server() == undefined
+												? undefined
+												: api.fetchMember({ server: server()!, user: author })
+									);
 
 									return (
-										<Show when={author != undefined && ([author, member] as const)}>
+										<Show when={author.state == 'ready' && ([author(), member()] as const)}>
 											{(accessor) => {
 												const [author, member] = accessor();
+												const isHead = createMemo(() => {
+													const lastMessage = messages()[messageIndex() - 1];
+
+													if (lastMessage == undefined) {
+														return true;
+													}
+
+													return (
+														author._id != lastMessage.author ||
+														message().masquerade?.name != lastMessage.masquerade?.name ||
+														message().masquerade?.avatar != lastMessage.masquerade?.avatar ||
+														message().masquerade?.colour != lastMessage.masquerade?.colour ||
+														decodeTime(message()._id) - decodeTime(lastMessage._id) >=
+															7 * 60 * 1000 ||
+														(message().replies?.length ?? 0) != 0
+													);
+												});
 												return (
 													<MessageComponent
 														message={message()}
 														author={author}
 														member={member}
-														isHead={true}
+														isHead={isHead()}
 													/>
 												);
 											}}

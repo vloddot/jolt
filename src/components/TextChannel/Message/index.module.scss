@@ -1,4 +1,3 @@
-
 .messageContainer {
 	display: flex;
 	padding: 4px 24px;
@@ -58,15 +57,14 @@
 				font-size: 0.7em;
 				opacity: 0.5;
 			}
-
 		}
-		
-		
+
 		.messageContent {
 			word-wrap: break-word;
 			white-space: pre-wrap;
-			
+
 			.editedText {
+				margin-left: 2px;
 				font-size: 0.7em;
 				opacity: 0.5;
 			}

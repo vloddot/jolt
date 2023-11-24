@@ -7,13 +7,12 @@ export interface MessageCollection {
 	messages: Record<Message['_id'], Message | undefined>;
 	users: Record<User['_id'], User>;
 	members: Record<Member['_id']['user'], Member>;
-	server?: Server;
 }
 
 const collections: Record<string, MessageCollection> = {};
 
 export async function getMessageCollection(
-	[channel_id, server]: [string, Server | undefined],
+	channel_id: string,
 	info: { refetching: boolean }
 ): Promise<MessageCollection> {
 	let collection = collections[channel_id];
@@ -104,7 +103,6 @@ export async function getMessageCollection(
 			members: Object.fromEntries(
 				response.members?.map((member) => [member._id.user, member]) ?? []
 			),
-			server
 		};
 
 		collections[channel_id] = collection;

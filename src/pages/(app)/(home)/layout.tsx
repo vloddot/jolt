@@ -1,4 +1,4 @@
-import ChannelItem from '@components/Channel/ChannelItem';
+import ChannelItem from '@components/ChannelItem';
 import { Outlet, useLocation } from '@solidjs/router';
 import {
 	FaRegularCircleUser,

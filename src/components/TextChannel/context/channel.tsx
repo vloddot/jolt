@@ -1,3 +1,3 @@
 import { createContext } from 'solid-js';
 
-export const ChannelContext = createContext<Channel>();
+export const SelectedChannelContext = createContext<Channel>();
