@@ -2,7 +2,7 @@ import ChannelLoader from '@components/ChannelLoader';
 import TextChannel from '@components/TextChannel';
 import { SelectedChannelIdContext } from '@lib/context/selectedChannelId';
 import { useNavigate } from '@solidjs/router';
-import { Show, useContext } from 'solid-js';
+import { Match, Show, Switch, createEffect, useContext } from 'solid-js';
 
 export default function Conversation() {
 	const selectedChannelId = useContext(SelectedChannelIdContext);
@@ -10,18 +10,33 @@ export default function Conversation() {
 	return (
 		<main class="main-content-container">
 			<Show when={selectedChannelId() != undefined && selectedChannelId()}>
-				{(channel_id) => (
-					<ChannelLoader id={channel_id()}>
-						{(channelAcessor) => {
-							const channel = channelAcessor();
+				{(id) => (
+					<ChannelLoader id={id()}>
+						{(channel) => {
 							const navigate = useNavigate();
 
-							if (channel.channel_type == 'TextChannel' || channel.channel_type == 'VoiceChannel') {
-								navigate(`/servers/${channel.server}`);
-								return null;
-							}
+							createEffect(() => {
+								const c = channel();
+								if (c.channel_type == 'TextChannel' || c.channel_type == 'VoiceChannel') {
+									navigate(`/servers/${c.server}/channels/${c._id}`);
+								}
+							});
 
-							return <TextChannel channel={channel} />;
+							return (
+								<Switch>
+									<Match when={channel().channel_type == 'VoiceChannel'}>
+										<p>Voice channels are not currently supported at the moment.</p>
+									</Match>
+									<Match
+										when={
+											channel().channel_type != 'VoiceChannel' &&
+											(channel() as Exclude<Channel, { channel_type: 'VoiceChannel' }>)
+										}
+									>
+										{(channel) => <TextChannel channel={channel()} />}
+									</Match>
+								</Switch>
+							);
 						}}
 					</ChannelLoader>
 				)}

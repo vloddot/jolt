@@ -8,7 +8,7 @@ import {
 	Show,
 	type JSX,
 	createComputed,
-	createMemo
+	createMemo,
 } from 'solid-js';
 import styles from './index.module.scss';
 import api from '@lib/api';
@@ -122,24 +122,32 @@ function TextChannelMeta(props: MetaProps) {
 									const [author] = createResource(
 										() => message().author,
 										// eslint-disable-next-line solid/reactivity
-										(author) =>
-											(props.collection.users[author] as User | undefined) ?? api.fetchUser(author)
+										(author) => {
+											const user = props.collection.users[author];
+											if (user == undefined) {
+												return api.fetchUser(author);
+											}
+
+											return user;
+										}
 									);
 
 									const [member] = createResource(
 										() => message().author,
 										// eslint-disable-next-line solid/reactivity
-										(author) =>
-											(props.collection.members[author] as Member | undefined) ??
-											server() == undefined
-												? undefined
-												: api.fetchMember({ server: server()!, user: author })
+										(author) => {
+											const member = props.collection.members[author] as Member | undefined;
+											if (member == undefined && server() != undefined) {
+												return api.fetchMember({ server: server()!, user: author });
+											}
+
+											return member;
+										}
 									);
 
 									return (
-										<Show when={author.state == 'ready' && ([author(), member()] as const)}>
-											{(accessor) => {
-												const [author, member] = accessor();
+										<Show when={author.state == 'ready' && { author: author(), member: member() }}>
+											{(messageData) => {
 												const isHead = createMemo(() => {
 													const lastMessage = messages()[messageIndex() - 1];
 
@@ -148,7 +156,7 @@ function TextChannelMeta(props: MetaProps) {
 													}
 
 													return (
-														author._id != lastMessage.author ||
+														messageData().author._id != lastMessage.author ||
 														message().masquerade?.name != lastMessage.masquerade?.name ||
 														message().masquerade?.avatar != lastMessage.masquerade?.avatar ||
 														message().masquerade?.colour != lastMessage.masquerade?.colour ||
@@ -160,8 +168,8 @@ function TextChannelMeta(props: MetaProps) {
 												return (
 													<MessageComponent
 														message={message()}
-														author={author}
-														member={member}
+														author={messageData().author}
+														member={messageData().member}
 														isHead={isHead()}
 													/>
 												);

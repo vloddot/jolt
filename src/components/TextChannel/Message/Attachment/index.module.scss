@@ -1,0 +1,21 @@
+.mediaAttachment {
+	max-width: 400px;
+	max-height: 400px;
+	border-radius: 6px;
+}
+
+.textAttachment {
+	max-width: 800px;
+	overflow: hidden;
+	border-radius: 6px;
+	
+	.textContent {
+		height: 140px;
+		overflow: auto;
+		background-color: var(--secondary-header);
+		padding: 12px;
+		white-space: pre-wrap;
+		overflow-wrap: break-word;
+		font-family: monospace;
+	}
+}

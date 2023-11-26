@@ -2,8 +2,8 @@ import ServerSidebarIcon from '@components/ServerSidebarIcon';
 import './layout.scss';
 import styles from '@lib/util.module.scss';
 import util from '@lib/util';
-import { For, Show, createMemo, createSelector, useContext } from 'solid-js';
-import { Outlet, useNavigate } from '@solidjs/router';
+import { For, Show, createMemo, createSelector, createSignal, useContext } from 'solid-js';
+import { Outlet, useLocation, useNavigate } from '@solidjs/router';
 import { SessionContext } from '@lib/context/session';
 import ServerCollectionProvider, {
 	ServerCollectionContext
@@ -14,11 +14,24 @@ import UserCollectionProvider from '@lib/context/collections/users';
 import ChannelCollectionProvider from '@lib/context/collections/channels';
 import MemberCollectionProvider from '@lib/context/collections/members';
 import EmojiCollectionProvider from '@lib/context/collections/emojis';
-import SelectedChannelProvider from '@lib/context/selectedChannelId';
+import SelectedChannelProvider, { SelectedChannelIdContext } from '@lib/context/selectedChannelId';
 import ClientContext from '@lib/context/client';
 import { FaSolidHouse } from 'solid-icons/fa';
 
 export default function AppWrapper() {
+	const [session] = useContext(SessionContext);
+	const client = useContext(ClientContext);
+	const [showContent, setShowContent] = createSignal(false);
+	const navigate = useNavigate();
+
+	client.on('Ready', () => {
+		if (session() == undefined) {
+			navigate('/login', { replace: true });
+		}
+	});
+
+	client.once('Ready', () => setShowContent(true));
+
 	return (
 		<ServerCollectionProvider>
 			<UserCollectionProvider>
@@ -28,9 +41,11 @@ export default function AppWrapper() {
 							<SelectedServerIdProvider>
 								<SelectedChannelProvider>
 									<SettingsProvider>
-										<ServerSidebar />
+										<Show when={showContent()} fallback={<p>Loading client...</p>}>
+											<ServerSidebar />
 
-										<Outlet />
+											<Outlet />
+										</Show>
 									</SettingsProvider>
 								</SelectedChannelProvider>
 							</SelectedServerIdProvider>
@@ -43,20 +58,12 @@ export default function AppWrapper() {
 }
 
 function ServerSidebar() {
-	const [session] = useContext(SessionContext);
-	const client = useContext(ClientContext);
-	const navigate = useNavigate();
-
-	client.on('Ready', () => {
-		if (session() == undefined) {
-			navigate('/login', { replace: true });
-		}
-	});
-
 	const settings = useContext(SettingsContext);
 	const servers = useContext(ServerCollectionContext);
 	const selectedServerId = useContext(SelectedServerIdContext);
+	const selectedChannelId = useContext(SelectedChannelIdContext);
 	const serverIsSelected = createSelector(selectedServerId);
+	const location = useLocation();
 
 	const sortedServers = createMemo(() => {
 		const {
@@ -66,9 +73,17 @@ function ServerSidebar() {
 			return Array.from(servers().values());
 		}
 
-		const result = Array.from(servers().values()).sort(([a], [b]) => {
-			const aIndex = ordering.indexOf(a._id) ?? 0;
-			const bIndex = ordering.indexOf(b._id) ?? 0;
+		return Array.from(servers().values()).sort(([a], [b]) => {
+			const aIndex = ordering.indexOf(a._id);
+			const bIndex = ordering.indexOf(b._id);
+
+			if (aIndex == -1) {
+				return 1;
+			}
+
+			if (bIndex == -1) {
+				return -1;
+			}
 
 			if (aIndex > bIndex) {
 				return 1;
@@ -80,13 +95,18 @@ function ServerSidebar() {
 
 			return 0;
 		});
-
-		return result;
 	});
 
 	return (
 		<div class="server-sidebar-container">
-			<ServerSidebarIcon href="/" selected={false} tooltip="Home">
+			<ServerSidebarIcon
+				href="/"
+				selected={
+					['/', '/friends'].includes(location.pathname) ||
+					(selectedServerId() == undefined && selectedChannelId() != undefined)
+				}
+				tooltip="Home"
+			>
 				<FaSolidHouse />
 			</ServerSidebarIcon>
 

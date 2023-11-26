@@ -12,7 +12,6 @@ import {
 	useContext
 } from 'solid-js';
 import { SelectedServerContext } from './context';
-import ClientContext from '@lib/context/client';
 import ChannelItem from '@components/ChannelItem';
 import util from '@lib/util';
 import { HiOutlineSpeakerWave } from 'solid-icons/hi';
@@ -22,7 +21,6 @@ import api from '@lib/api';
 
 export default function ServerWrapper() {
 	const selectedServerId = useContext(SelectedServerIdContext);
-	const client = useContext(ClientContext);
 	const selectedChannelId = useContext(SelectedChannelIdContext)!;
 	const channelIsSelected = createSelector(selectedChannelId);
 
@@ -30,7 +28,6 @@ export default function ServerWrapper() {
 		<Show
 			when={
 				selectedServerId() != undefined &&
-				client.connectionState() == 'connected' &&
 				selectedServerId()
 			}
 		>

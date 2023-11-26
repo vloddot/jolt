@@ -31,7 +31,6 @@ function ServerSidebarIcon(_props: Props) {
 			<Tooltip
 				placement="right"
 				content={props.tooltip}
-				theme="right-tooltip"
 				animation="scale-subtle"
 				duration={100}
 			>

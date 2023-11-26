@@ -10,6 +10,8 @@ import { RepliesContext } from '../context/replies';
 import 'tippy.js/animations/scale-subtle.css';
 import Tooltip from '@components/Tooltip';
 import api from '@lib/api';
+import Attachment from './Attachment';
+import Embed from './Embed';
 
 export interface Props {
 	message: Message;
@@ -68,13 +70,7 @@ export function MessageComponent(props: Props) {
 				<For each={messageControls}>
 					{({ children, name, onclick }) => {
 						return (
-							<Tooltip
-								placement="top"
-								content={name}
-								theme="top-tooltip"
-								animation="scale-subtle"
-								duration={100}
-							>
+							<Tooltip placement="top" content={name} animation="scale-subtle" duration={100}>
 								<button class={utilStyles.buttonPrimary} onClick={onclick}>
 									{children}
 								</button>
@@ -97,14 +93,13 @@ export function MessageComponent(props: Props) {
 				</Show>
 
 				<span class={styles.messageContent}>
-					{props.message.content}
+					<span>{props.message.content}</span>
 					<Show when={props.message.edited}>
 						{(time) => {
 							return (
 								<Tooltip
 									placement="top"
 									content={dayjs(time()).format('LLLL')}
-									theme="top-tooltip"
 									animation="scale-subtle"
 									duration={100}
 								>
@@ -114,6 +109,16 @@ export function MessageComponent(props: Props) {
 						}}
 					</Show>
 				</span>
+
+				<Show when={props.message.attachments}>
+					{(attachments) => (
+						<For each={attachments()}>{(attachment) => <Attachment {...attachment} />}</For>
+					)}
+				</Show>
+
+				<Show when={props.message.embeds}>
+					{(embeds) => <For each={embeds()}>{(embed) => <Embed {...embed} />}</For>}
+				</Show>
 			</span>
 		</div>
 	);

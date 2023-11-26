@@ -14,15 +14,18 @@ export default function ServerChannel() {
 			<Show when={selectedChannelId() != undefined && selectedChannelId()}>
 				{(channel_id) => (
 					<ChannelLoader id={channel_id()}>
-						{(channelAccessor) => {
-							const channel = channelAccessor();
-
+						{(channel) => {
 							return (
-								<Switch fallback={<Navigate href={`/conversations/${channel._id}`} />}>
-									<Match when={channel.channel_type == 'VoiceChannel'}>
+								<Switch fallback={<Navigate href={`/conversations/${channel()._id}`} />}>
+									<Match when={channel().channel_type == 'VoiceChannel'}>
 										<p>Voice channels are not supported at the moment.</p>
 									</Match>
-									<Match when={channel.channel_type == 'TextChannel' && channel}>
+									<Match
+										when={
+											channel().channel_type == 'TextChannel' &&
+											(channel() as Extract<Channel, { channel_type: 'TextChannel' }>)
+										}
+									>
 										{(channel) => <TextChannel channel={channel()} server={selectedServer} />}
 									</Match>
 								</Switch>

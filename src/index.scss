@@ -108,12 +108,20 @@ input:focus {
 	border-radius: 6px !important;
 }
 
-.tippy-box[data-theme='top-tooltip'] > .tippy-arrow::before {
+.tippy-box[data-placement='top'] > .tippy-arrow::before {
 	border-top-color: black !important;
 }
 
-.tippy-box[data-theme='right-tooltip'] > .tippy-arrow::before {
+.tippy-box[data-placement='right'] > .tippy-arrow::before {
 	border-right-color: black !important;
+}
+
+.tippy-box[data-placement='bottom'] > .tippy-arrow::before {
+	border-bottom-color: black !important;
+}
+
+.tippy-box[data-placement='left'] > .tippy-arrow::before {
+	border-left-color: black !important;
 }
 
 details {

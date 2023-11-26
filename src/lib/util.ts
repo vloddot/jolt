@@ -70,10 +70,30 @@ function hashMemberId(id: MemberCompositeKey) {
 	return id.server + id.user;
 }
 
+/**
+ * Formats a number of bytes into human-readable sizes.
+ * @param bytes Amount of bytes
+ * @param dp Number of decimal places to round to
+ * @param si Whether to use SI units, aka powers of 1000. If false, uses binary (IEC), aka powers of 1024.
+ * @returns Human-readable size
+ */
+function formatSize(bytes: number, dp = 2, si = true) {
+	const k = si ? 1000 : 1024;
+	const dm = dp < 0 ? 0 : dp;
+	const sizes = si
+		? ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+		: ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+
+	const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+	return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+}
+
 export default {
 	getAutumnURL,
 	getDisplayName,
 	getDisplayAvatar,
 	getOtherRecipient,
-	hashMemberId
+	hashMemberId,
+	formatSize
 };
