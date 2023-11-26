@@ -21,6 +21,15 @@
 		border-bottom: 2px solid var(--accent);
 		margin-bottom: 24px;
 	}
+
+	.typingIndicators {
+		display: flex;
+		position: absolute;
+		left: 16px;
+		bottom: 1px;
+		height: 24px;
+		align-items: center;
+	}
 }
 
 .attachmentPreviewBase {

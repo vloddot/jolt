@@ -2,11 +2,13 @@ import api from './api';
 import { batch, useContext } from 'solid-js';
 import ClientContext from './context/client';
 import { createStore } from 'solid-js/store';
+import { SessionContext } from './context/session';
 
 export interface MessageCollection {
 	messages: Record<Message['_id'], Message | undefined>;
 	users: Record<User['_id'], User>;
 	members: Record<Member['_id']['user'], Member>;
+	typing: string[];
 }
 
 const collections: Record<string, MessageCollection> = {};
@@ -19,10 +21,12 @@ export async function getMessageCollection(
 	if (!collection || info.refetching) {
 		const response = await api.queryMessages([channel_id, { sort: 'Latest', include_users: true }]);
 		const client = useContext(ClientContext);
+		const [session] = useContext(SessionContext);
 
 		const [messages, setMessages] = createStore<MessageCollection['messages']>(
 			Object.fromEntries(response.messages.reverse().map((message) => [message._id, message]))
 		);
+		const [typing, setTyping] = createStore<string[]>([]);
 
 		client.on('Message', (message) => {
 			if (message.channel == channel_id) {
@@ -97,12 +101,32 @@ export async function getMessageCollection(
 			}
 		});
 
+		client.on('ChannelStartTyping', ({ id, user }) => {
+			if (channel_id == id && user != session()?.user_id) {
+				if (collection.typing.includes(user)) {
+					return;
+				}
+
+				setTyping((typing) => [...typing, user]);
+			}
+		});
+
+		client.on('ChannelStopTyping', ({ id, user }) => {
+			if (channel_id == id && user != session()?.user_id) {
+				setTyping((typing) => {
+					typing = typing.filter((id) => id != user);
+					return typing;
+				});
+			}
+		});
+
 		collection = {
 			messages,
 			users: Object.fromEntries(response.users.map((user) => [user._id, user])),
 			members: Object.fromEntries(
 				response.members?.map((member) => [member._id.user, member]) ?? []
 			),
+			typing
 		};
 
 		collections[channel_id] = collection;

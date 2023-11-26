@@ -69,7 +69,6 @@ function TextChannelMeta(props: MetaProps) {
 	const channel = useContext(SelectedChannelContext)!;
 
 	const [attachments, setAttachments] = createSignal<File[]>([]);
-
 	const [channelName, setChannelName] = createSignal('<Unknown Channel>');
 	createComputed(() => {
 		if (channel == undefined) {
@@ -104,7 +103,6 @@ function TextChannelMeta(props: MetaProps) {
 
 		const data: DataMessageSend = {};
 
-		
 		if (attachments().length != 0) {
 			data.attachments = await Promise.all(
 				attachments().map((attachment) => api.uploadAttachment(attachment))
@@ -115,7 +113,7 @@ function TextChannelMeta(props: MetaProps) {
 		if (content != '') {
 			data.content = content;
 		}
-		
+
 		await api.sendMessage(channel._id, data);
 		textbox.value = '';
 		setAttachments([]);
@@ -134,6 +132,44 @@ function TextChannelMeta(props: MetaProps) {
 	}
 
 	const messages = createMemo(() => Object.values(props.collection.messages));
+	const typingIndicator = createMemo(() => {
+		const typing = props.collection.typing.map((user) => ({
+			member: createResource(
+				() => user,
+				// eslint-disable-next-line solid/reactivity
+				(user) => props.collection.members[user] ?? api.fetchMember({ server: server()!, user })
+			)[0],
+			user: createResource(
+				() => user,
+				// eslint-disable-next-line solid/reactivity
+				(user) => props.collection.users[user] ?? api.fetchUser(user)
+			)[0]
+		}));
+
+		const names = typing.flatMap(({ user, member }) => {
+			if (user.state == 'ready') {
+				return [util.getDisplayName(user(), member())];
+			}
+
+			return [];
+		});
+
+		if (names.length == 0) {
+			return '';
+		}
+
+		if (names.length == 1) {
+			return `${names[0]} is typing...`;
+		}
+
+		if (names.length >= 5) {
+			return 'Several users are typing...';
+		}
+
+		return `${names.slice(0, names.length - 1).join(', ')} and ${
+			names[names.length - 1]
+		} are typing...`;
+	});
 
 	return (
 		<>
@@ -271,6 +307,8 @@ function TextChannelMeta(props: MetaProps) {
 						}}
 					/>
 				</form>
+
+				<div class={styles.typingIndicators}>{typingIndicator()}</div>
 			</div>
 		</>
 	);
