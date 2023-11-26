@@ -162,6 +162,19 @@ async function fetchServer(target: string): Promise<Server> {
 	return server[0];
 }
 
+async function uploadAttachment(file: File, tag = 'attachments'): Promise<string> {
+	const form = new FormData();
+
+	form.append('file', file);
+
+	const { id } = await fetch(`https://autumn.revolt.chat/${tag}`, {
+		method: 'POST',
+		body: form
+	}).then((response) => response.json());
+
+	return id;
+}
+
 export default {
 	req,
 	login,
@@ -173,5 +186,6 @@ export default {
 	queryMessages,
 	sendMessage,
 	fetchMember,
-	deleteMessage
+	deleteMessage,
+	uploadAttachment
 };

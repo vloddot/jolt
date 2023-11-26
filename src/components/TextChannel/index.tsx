@@ -96,7 +96,7 @@ function TextChannelMeta(props: MetaProps) {
 		setChannelName(`#${channel.name}`);
 	});
 
-	const sendMessage: JSX.EventHandler<HTMLFormElement, SubmitEvent> = (event) => {
+	const sendMessage: JSX.EventHandler<HTMLFormElement, SubmitEvent> = async (event) => {
 		event.preventDefault();
 		if (channel == undefined) {
 			return;
@@ -104,13 +104,21 @@ function TextChannelMeta(props: MetaProps) {
 
 		const data: DataMessageSend = {};
 
+		
+		if (attachments().length != 0) {
+			data.attachments = await Promise.all(
+				attachments().map((attachment) => api.uploadAttachment(attachment))
+			);
+		}
+
 		const content = textbox.value.trim();
 		if (content != '') {
 			data.content = content;
-			textbox.value = '';
 		}
-
-		api.sendMessage(channel?._id, data);
+		
+		await api.sendMessage(channel._id, data);
+		textbox.value = '';
+		setAttachments([]);
 	};
 
 	function pushFile() {
