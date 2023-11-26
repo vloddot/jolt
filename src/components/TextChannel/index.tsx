@@ -8,7 +8,7 @@ import {
 	Show,
 	type JSX,
 	createComputed,
-	createMemo,
+	createMemo
 } from 'solid-js';
 import styles from './index.module.scss';
 import api from '@lib/api';
@@ -21,6 +21,8 @@ import { MessageInputContext } from './context/messageInput';
 import { getMessageCollection, type MessageCollection } from '@lib/messageCollections';
 import { decodeTime } from 'ulid';
 import { SelectedServerIdContext } from '@lib/context/selectedServerId';
+import { AiFillFileText, AiOutlinePlus } from 'solid-icons/ai';
+import { FiXCircle } from 'solid-icons/fi';
 
 export interface Props {
 	channel: Exclude<Channel, { channel_type: 'VoiceChannel' }>;
@@ -66,6 +68,8 @@ function TextChannelMeta(props: MetaProps) {
 	const server = useContext(SelectedServerIdContext);
 	const channel = useContext(SelectedChannelContext)!;
 
+	const [attachments, setAttachments] = createSignal<File[]>([]);
+
 	const [channelName, setChannelName] = createSignal('<Unknown Channel>');
 	createComputed(() => {
 		if (channel == undefined) {
@@ -108,6 +112,18 @@ function TextChannelMeta(props: MetaProps) {
 
 		api.sendMessage(channel?._id, data);
 	};
+
+	function pushFile() {
+		const input = document.createElement('input');
+		input.type = 'file';
+
+		input.onchange = (e) => {
+			const event = e as InputEvent & { target: { files?: FileList } };
+			setAttachments((attachments) => [...attachments, ...Array.from(event.target.files ?? [])]);
+		};
+
+		input.click(); // click :3
+	}
 
 	const messages = createMemo(() => Object.values(props.collection.messages));
 
@@ -156,7 +172,7 @@ function TextChannelMeta(props: MetaProps) {
 													}
 
 													return (
-														messageData().author._id != lastMessage.author ||
+														message().author != lastMessage.author ||
 														message().masquerade?.name != lastMessage.masquerade?.name ||
 														message().masquerade?.avatar != lastMessage.masquerade?.avatar ||
 														message().masquerade?.colour != lastMessage.masquerade?.colour ||
@@ -182,8 +198,53 @@ function TextChannelMeta(props: MetaProps) {
 					}}
 				</For>
 			</div>
+
+			<Show when={attachments().length != 0 && attachments()}>
+				{(attachments) => (
+					<div class={styles.attachmentPreviewBase}>
+						<div class={styles.attachmentPreview}>
+							<For each={attachments()}>
+								{(attachment, attachmentIndex) => (
+									<div class={styles.attachmentPreviewItem}>
+										<button
+											class={styles.attachmentIcon}
+											onClick={() => {
+												setAttachments((attachments) =>
+													attachments.filter((_, i) => i != attachmentIndex())
+												);
+											}}
+										>
+											<Show
+												when={attachment.type.startsWith('image/')}
+												fallback={<AiFillFileText size={30} />}
+											>
+												<img src={URL.createObjectURL(attachment)} />
+											</Show>
+											<div class={styles.attachmentCancelOverlay}>
+												<FiXCircle size={30} />
+											</div>
+										</button>
+										<div class={styles.attachmentName}>{attachment.name}</div>
+										<div class={styles.attachmentSize}>{util.formatSize(attachment.size)}</div>
+									</div>
+								)}
+							</For>
+						</div>
+						<hr />
+					</div>
+				)}
+			</Show>
 			<div class={styles.messageFormBase}>
-				<form class={styles.messageForm} onSubmit={sendMessage}>
+				<form id="send-message-form" class={styles.messageForm} onSubmit={sendMessage}>
+					<button onClick={() => (attachments().length == 0 ? pushFile() : setAttachments([]))}>
+						<AiOutlinePlus
+							size={24}
+							style={{
+								transform: attachments().length == 0 ? 'none' : 'rotate(45deg)',
+								transition: 'transform 150ms'
+							}}
+						/>
+					</button>
 					<TextAreaBase
 						placeholder={
 							channel?.channel_type == 'DirectMessage'
