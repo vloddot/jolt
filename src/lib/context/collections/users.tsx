@@ -1,6 +1,16 @@
-import { createContext, createSignal, useContext, type JSX, batch, type Accessor } from 'solid-js';
+import {
+	createContext,
+	createSignal,
+	useContext,
+	type JSX,
+	batch,
+	type Accessor,
+	onMount,
+	onCleanup
+} from 'solid-js';
 import ClientContext from '@lib/context/client';
 import { createStore } from 'solid-js/store';
+import type { ClientEvents } from '@lib/client';
 
 export type UserCollection = Map<User['_id'], CollectionItem<User>>;
 export const UserCollectionContext = createContext<Accessor<UserCollection>>(() => new Map());
@@ -13,99 +23,111 @@ export default function UserCollectionProvider(props: Props) {
 	const [users, setUsers] = createSignal<UserCollection>(UserCollectionContext.defaultValue());
 	const client = useContext(ClientContext);
 
-	client.on('Ready', ({ users }) => {
-		setUsers(
-			new Map(
-				users.map((user) => {
-					// eslint-disable-next-line solid/reactivity
-					return [user._id, createStore(user)];
-				})
-			)
-		);
-	});
+	onMount(() => {
+		const readyHandler: ClientEvents['Ready'] = ({ users }) => {
+			setUsers(
+				new Map(
+					users.map((user) => {
+						// eslint-disable-next-line solid/reactivity
+						return [user._id, createStore(user)];
+					})
+				)
+			);
+		};
 
-	// eslint-disable-next-line solid/reactivity
-	client.on('UserUpdate', (m) => {
-		const u = users().get(m.id);
-		if (u == undefined) {
-			return;
-		}
+		const userUpdateHandler: ClientEvents['UserUpdate'] = (m) => {
+			const u = users().get(m.id);
+			if (u == undefined) {
+				return;
+			}
 
-		const [, setUser] = u;
+			const [, setUser] = u;
 
-		batch(() => {
-			if (m.clear != undefined) {
-				for (const clear of m.clear) {
-					swtch: switch (clear) {
-						case 'Avatar': {
-							setUser('avatar', undefined);
-							break swtch;
-						}
-						case 'StatusText': {
-							setUser('status', 'text', undefined);
-							break swtch;
-						}
-						case 'StatusPresence': {
-							setUser('status', 'presence', undefined);
-							break swtch;
-						}
-						case 'ProfileContent': {
-							setUser('profile', 'content', undefined);
-							break swtch;
-						}
-						case 'ProfileBackground': {
-							setUser('profile', 'background', undefined);
-							break swtch;
-						}
-						case 'DisplayName': {
-							setUser('display_name', undefined);
-							break swtch;
+			batch(() => {
+				if (m.clear != undefined) {
+					for (const clear of m.clear) {
+						swtch: switch (clear) {
+							case 'Avatar': {
+								setUser('avatar', undefined);
+								break swtch;
+							}
+							case 'StatusText': {
+								setUser('status', 'text', undefined);
+								break swtch;
+							}
+							case 'StatusPresence': {
+								setUser('status', 'presence', undefined);
+								break swtch;
+							}
+							case 'ProfileContent': {
+								setUser('profile', 'content', undefined);
+								break swtch;
+							}
+							case 'ProfileBackground': {
+								setUser('profile', 'background', undefined);
+								break swtch;
+							}
+							case 'DisplayName': {
+								setUser('display_name', undefined);
+								break swtch;
+							}
 						}
 					}
 				}
-			}
 
-			for (const [key, value] of Object.entries(m.data) as [keyof User, never][]) {
-				setUser(key, value);
-			}
-		});
-	});
-
-	// eslint-disable-next-line solid/reactivity
-	client.on('UserRelationship', (message) => {
-		const user = users().get(message.user._id);
-		if (user == undefined) {
-			setUsers((users) => {
-				const [store, setStore] = createStore(message.user);
-				users.set(message.user._id, [store, setStore]);
-				return users;
+				for (const [key, value] of Object.entries(m.data) as [keyof User, never][]) {
+					setUser(key, value);
+				}
 			});
-		} else {
+		};
+
+		const userRelationshipHandler: ClientEvents['UserRelationship'] = (message) => {
+			const user = users().get(message.user._id);
+			if (user == undefined) {
+				setUsers((users) => {
+					const [store, setStore] = createStore(message.user);
+					users.set(message.user._id, [store, setStore]);
+					return users;
+				});
+			} else {
+				const [, setUser] = user;
+				setUser('relationship', message.user.relationship);
+			}
+		};
+
+		const userPresenceHandler: ClientEvents['UserPresence'] = (m) => {
+			const user = users().get(m.id);
+			if (user == undefined) {
+				return;
+			}
+
 			const [, setUser] = user;
-			setUser('relationship', message.user.relationship);
-		}
-	});
+			setUser('online', m.online);
+		};
 
-	// eslint-disable-next-line solid/reactivity
-	client.on('UserPresence', (m) => {
-		const user = users().get(m.id);
-		if (user == undefined) {
-			return;
-		}
+		const userPlatformWipeHandler: ClientEvents['UserPlatformWipe'] = (m) => {
+			const user = users().get(m.user_id);
+			if (user == undefined) {
+				return;
+			}
 
-		const [, setUser] = user;
-		setUser('online', m.online);
-	});
+			const [, setUser] = user;
+			setUser('flags', m.flags);
+		};
 
-	// eslint-disable-next-line solid/reactivity
-	client.on('UserPlatformWipe', (m) => {
-		const user = users().get(m.user_id);
-		if (user == undefined) {
-			return;
-		}
+		client.on('Ready', readyHandler);
+		client.on('UserUpdate', userUpdateHandler);
+		client.on('UserRelationship', userRelationshipHandler);
+		client.on('UserPresence', userPresenceHandler);
+		client.on('UserPlatformWipe', userPlatformWipeHandler);
 
-		const [, setUser] = user;
-		setUser('flags', m.flags);
+		onCleanup(() => {
+			client.removeListener('Ready', readyHandler);
+			client.removeListener('UserUpdate', userUpdateHandler);
+			client.removeListener('UserRelationship', userRelationshipHandler);
+			client.removeListener('UserPresence', userPresenceHandler);
+			client.removeListener('UserPlatformWipe', userPlatformWipeHandler);
+		});
 	});
 
 	return (

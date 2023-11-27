@@ -5,12 +5,13 @@ import {
 	type JSX,
 	batch,
 	type Accessor,
-	createEffect,
-	onCleanup
+	onCleanup,
+	onMount
 } from 'solid-js';
 import ClientContext from '@lib/context/client';
 import { createStore } from 'solid-js/store';
 import util from '@lib/util';
+import type { ClientEvents } from '@lib/client';
 
 export type MemberCollection = Map<string, CollectionItem<Member>>;
 export const MemberCollectionContext = createContext<Accessor<MemberCollection>>(() => new Map());
@@ -25,16 +26,15 @@ export default function MemberCollectionProvider(props: Props) {
 	);
 	const client = useContext(ClientContext);
 
-	createEffect(() => {
-		client.on('Ready', ({ members }) => {
+	onMount(() => {
+		const readyHandler: ClientEvents['Ready'] = ({ members }) => {
 			setMembers(
 				// eslint-disable-next-line solid/reactivity
 				new Map(members.map((member) => [util.hashMemberId(member._id), createStore(member)]))
 			);
-		});
+		};
 
-		// eslint-disable-next-line solid/reactivity
-		client.on('ServerMemberUpdate', (m) => {
+		const serverMemberUpdateHandler: ClientEvents['ServerMemberUpdate'] = (m) => {
 			const member = members().get(util.hashMemberId(m.id));
 			if (member == undefined) {
 				return;
@@ -70,11 +70,14 @@ export default function MemberCollectionProvider(props: Props) {
 					setMember(key, value);
 				}
 			});
-		});
+		};
+
+		client.on('Ready', readyHandler);
+		client.on('ServerMemberUpdate', serverMemberUpdateHandler);
 
 		onCleanup(() => {
-			client.removeListener('Ready');
-			client.removeListener('ServerMemberUpdate');
+			client.removeListener('Ready', readyHandler);
+			client.removeListener('ServerMemberUpdate', serverMemberUpdateHandler);
 		});
 	});
 

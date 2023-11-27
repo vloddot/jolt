@@ -3,7 +3,7 @@ import ClientContext from './client';
 import localforage from 'localforage';
 
 // eslint-disable-next-line solid/reactivity
-export const SessionContext = createContext(createSignal<Session>());
+export const SessionContext = createContext(createSignal<Session | undefined>());
 
 export interface Props {
 	children: JSX.Element;
@@ -14,9 +14,9 @@ export default function SessionProvider(props: Props) {
 	const client = useContext(ClientContext);
 
 	createEffect(() => {
-		const { token } = session() ?? { token: undefined };
-		if (token != undefined) {
-			client.authenticate(token);
+		const s = session();
+		if (s != undefined) {
+			client.authenticate(s.token);
 		}
 	});
 

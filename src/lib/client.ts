@@ -33,6 +33,7 @@ export type ServerToClientMessage =
 	| ({ type: 'Error' } & WebSocketError)
 	| { type: 'Bulk'; v: ServerToClientMessage[] }
 	| { type: 'Authenticated' }
+	| { type: 'NotFound' }
 	| {
 			type: 'Ready';
 			users: User[];
@@ -163,15 +164,14 @@ export type ToEvents<T extends { type: string }> = {
 	[K in Exclude<T['type'], 'Bulk'>]: (message: Extract<T, { type: K }>) => void;
 };
 
-export class Client extends EventEmitter<
-	{
-		Error(
-			error: 'InternalError' | 'InvalidSession' | 'OnboardingNotFinished' | 'AlreadyAuthenticated'
-		): void;
-	} & ToEvents<ServerToClientMessage>
-> {
+export type ClientEvents = {
+	Error(
+		error: 'InternalError' | 'InvalidSession' | 'OnboardingNotFinished' | 'AlreadyAuthenticated'
+	): void;
+} & ToEvents<ServerToClientMessage>;
+
+export class Client extends EventEmitter<ClientEvents> {
 	#socket: WebSocket | undefined;
-	token: string | undefined;
 	#pingIntervalReference: NodeJS.Timeout | undefined;
 	#pongTimeoutReference: NodeJS.Timeout | undefined;
 	#connectionState: Accessor<ConnectionState>;
@@ -188,8 +188,7 @@ export class Client extends EventEmitter<
 	}
 
 	authenticate(token: string) {
-		this.token = token;
-		this.#socket = new WebSocket(`wss://ws.revolt.chat?token=${this.token}`);
+		this.#socket = new WebSocket(`wss://ws.revolt.chat?token=${token}`);
 		this.#setConnectionState('connecting');
 
 		this.#socket.onopen = () => {
@@ -204,21 +203,30 @@ export class Client extends EventEmitter<
 
 	handleMessage(message: ServerToClientMessage): void {
 		switch (message.type) {
-			case 'Ping':
+			case 'Ping': {
 				this.send({
 					type: 'Pong',
 					data: message.data
 				});
 				this.emit('Ping', message);
 				return;
-			case 'Pong':
+			}
+			case 'Pong': {
 				clearTimeout(this.#pongTimeoutReference);
 				this.emit('Pong', message);
 				return;
-			case 'Error':
+			}
+			case 'NotFound': {
+				// localforage.removeItem('session');
+
+				this.emit('NotFound', message);
+				return;
+			}
+			case 'Error': {
 				this.disconnect();
 				this.emit('Error', message as never);
 				return;
+			}
 		}
 
 		const state = this.#connectionState();

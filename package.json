@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@solid-primitives/set": "^0.4.8",
     "dayjs": "^1.11.10",
     "localforage": "^1.10.0",
     "solid-js": "^1.7.8"

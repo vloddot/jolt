@@ -4,6 +4,7 @@ import path from 'path';
 
 export default defineConfig({
 	plugins: [solid()],
+	base: process.env.NODE_ENV == 'production' ? '/dist' : '',
 
 	css: {
 		modules: {

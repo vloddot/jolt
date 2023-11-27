@@ -5,8 +5,8 @@ import api from '@lib/api';
 import detect from 'browser-detect';
 import { useNavigate } from '@solidjs/router';
 import { createStore } from 'solid-js/store';
-import { SessionContext } from '@lib/context/session';
 import localforage from 'localforage';
+import { SessionContext } from '@lib/context/session';
 
 const displayMethods: Record<MFAMethod, string> = {
 	Totp: 'TOTP Code',
@@ -38,7 +38,6 @@ function Login() {
 	let passwordInput: HTMLInputElement;
 
 	const [error, setError] = createSignal<string | undefined>();
-	const [rememberMe, setRememberMe] = createSignal(true);
 	const [mfaMethods, setMfaMethods] = createStore<Partial<Record<MFAMethod, string>>>({
 		Totp: '',
 		Recovery: ''
@@ -66,19 +65,17 @@ function Login() {
 			switch (credentialLoginResponse.type) {
 				case 'UnverifiedAccount':
 					setError('Your account is not verified. Check your email.');
-					break;
+					return;
 				case 'LockedOut':
 					setError('You have been locked out of your account due to too many logins.');
-					break;
+					return;
 				case 'InvalidToken':
 					setError('Invalid MFA ticket or token.');
-					break;
+					return;
 				case 'InvalidCredentials':
 					setError('Invalid credentials');
-					break;
+					return;
 			}
-
-			return;
 		}
 
 		if (credentialLoginResponse.result == 'MFA') {
@@ -130,11 +127,9 @@ function Login() {
 			return;
 		}
 
-		if (rememberMe()) {
-			localforage.setItem('session', response);
-		}
-
+		await localforage.setItem('session', response);
 		setSession(response);
+
 		navigate('/');
 	}
 
@@ -168,15 +163,6 @@ function Login() {
 						);
 					}}
 				</Index>
-
-				<label>
-					Remember me
-					<input
-						type="checkbox"
-						checked={rememberMe()}
-						onInput={(event) => setRememberMe(event.currentTarget.checked)}
-					/>
-				</label>
 
 				<button class={styles.buttonPrimary} type="submit">
 					Login

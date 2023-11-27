@@ -8,7 +8,7 @@ import {
 	Show,
 	type JSX,
 	createComputed,
-	createMemo
+	createMemo,
 } from 'solid-js';
 import styles from './index.module.scss';
 import api from '@lib/api';
@@ -21,6 +21,7 @@ import { MessageInputContext } from './context/messageInput';
 import { getMessageCollection, type MessageCollection } from '@lib/messageCollections';
 import { decodeTime } from 'ulid';
 import { SelectedServerIdContext } from '@lib/context/selectedServerId';
+import AttachmentPreviewItem from './AttachmentPreviewItem';
 import { AiFillFileText, AiOutlinePlus } from 'solid-icons/ai';
 import { FiXCircle } from 'solid-icons/fi';
 
@@ -132,43 +133,20 @@ function TextChannelMeta(props: MetaProps) {
 	}
 
 	const messages = createMemo(() => Object.values(props.collection.messages));
-	const typingIndicator = createMemo(() => {
-		const typing = props.collection.typing.map((user) => ({
-			member: createResource(
-				() => user,
-				// eslint-disable-next-line solid/reactivity
-				(user) => props.collection.members[user] ?? api.fetchMember({ server: server()!, user })
-			)[0],
+	const typing = createMemo(() => {
+		return Array.from(props.collection.typing.values()).map((user) => ({
 			user: createResource(
 				() => user,
 				// eslint-disable-next-line solid/reactivity
-				(user) => props.collection.users[user] ?? api.fetchUser(user)
+				async (user) => props.collection.users[user] ?? (await api.fetchUser(user))
+			)[0],
+			member: createResource(
+				() => user,
+				// eslint-disable-next-line solid/reactivity
+				async (user) =>
+					props.collection.members[user] ?? (await api.fetchMember({ server: server()!, user }))
 			)[0]
 		}));
-
-		const names = typing.flatMap(({ user, member }) => {
-			if (user.state == 'ready') {
-				return [util.getDisplayName(user(), member())];
-			}
-
-			return [];
-		});
-
-		if (names.length == 0) {
-			return '';
-		}
-
-		if (names.length == 1) {
-			return `${names[0]} is typing...`;
-		}
-
-		if (names.length >= 5) {
-			return 'Several users are typing...';
-		}
-
-		return `${names.slice(0, names.length - 1).join(', ')} and ${
-			names[names.length - 1]
-		} are typing...`;
 	});
 
 	return (
@@ -248,31 +226,26 @@ function TextChannelMeta(props: MetaProps) {
 					<div class={styles.attachmentPreviewBase}>
 						<div class={styles.attachmentPreview}>
 							<For each={attachments()}>
-								{(attachment, attachmentIndex) => (
-									<div class={styles.attachmentPreviewItem}>
-										<button
-											class={styles.attachmentIcon}
-											onClick={() => {
-												setAttachments((attachments) =>
-													attachments.filter((_, i) => i != attachmentIndex())
-												);
-											}}
+								{(attachment, index) => (
+									<AttachmentPreviewItem
+										overlay={<FiXCircle size={30} />}
+										metadata={{ name: attachment.name, size: attachment.size }}
+										action={() => {
+											setAttachments((attachments) => attachments.filter((_, i) => i != index()));
+										}}
+									>
+										<Show
+											when={attachment.type.startsWith('image/')}
+											fallback={<AiFillFileText size={30} />}
 										>
-											<Show
-												when={attachment.type.startsWith('image/')}
-												fallback={<AiFillFileText size={30} />}
-											>
-												<img src={URL.createObjectURL(attachment)} />
-											</Show>
-											<div class={styles.attachmentCancelOverlay}>
-												<FiXCircle size={30} />
-											</div>
-										</button>
-										<div class={styles.attachmentName}>{attachment.name}</div>
-										<div class={styles.attachmentSize}>{util.formatSize(attachment.size)}</div>
-									</div>
+											<img src={URL.createObjectURL(attachment)} />
+										</Show>
+									</AttachmentPreviewItem>
 								)}
 							</For>
+							<AttachmentPreviewItem action={pushFile}>
+								<AiOutlinePlus size={24} />
+							</AttachmentPreviewItem>
 						</div>
 						<hr />
 					</div>
@@ -308,7 +281,59 @@ function TextChannelMeta(props: MetaProps) {
 					/>
 				</form>
 
-				<div class={styles.typingIndicators}>{typingIndicator()}</div>
+				<div class={styles.typingIndicators}>
+					<Switch>
+						<Match when={typing().length == 1 && typing()}>
+							{(typingAccessor) => {
+								const typingUser = createMemo(() => typingAccessor()[0]);
+								return (
+									<Show
+										when={
+											typingUser().user.state == 'ready' && {
+												user: typingUser().user()!,
+												member: typingUser().member()
+											}
+										}
+									>
+										{(typingAccessor) => (
+											<>
+												{util.getDisplayName(typingAccessor().user, typingAccessor().member)} is
+												typing...
+											</>
+										)}
+									</Show>
+								);
+							}}
+						</Match>
+						<Match when={typing().length > 1 && typing().length < 5 && typing()}>
+							{(typingAccessor) => {
+								const names = createMemo(() =>
+									typingAccessor().flatMap(({ user, member }) => {
+										if (user.state == 'ready') {
+											return [util.getDisplayName(user(), member())];
+										}
+
+										return [];
+									})
+								);
+
+								const namesExceptLast = createMemo(() =>
+									names()
+										.slice(0, names().length - 1)
+										.join(', ')
+								);
+								const lastName = createMemo(() => names()[names().length - 1]);
+
+								return (
+									<>
+										{namesExceptLast()} and {lastName()} are typing...
+									</>
+								);
+							}}
+						</Match>
+						<Match when={typing().length >= 5}>Several people are typing...</Match>
+					</Switch>
+				</div>
 			</div>
 		</>
 	);

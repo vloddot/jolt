@@ -2,7 +2,6 @@ import { render } from 'solid-js/web';
 import { Route, Router, Routes } from '@solidjs/router';
 
 import './index.scss';
-import SessionProvider from '@lib/context/session';
 import AppWrapper from './pages/(app)/layout';
 import HomeWrapper from './pages/(app)/(home)/layout';
 import HomeScreen from './pages/(app)/(home)/page';
@@ -12,11 +11,12 @@ import Friends from './pages/(app)/(home)/friends/page';
 import ServerChannel from './pages/(app)/servers/:sid/channels/:cid/page';
 import ServerWrapper from './pages/(app)/servers/:sid/layout';
 import ChannelMatcher from './pages/(app)/servers/:sid/page';
+import SessionProvider from '@lib/context/session';
 
 render(
 	() => (
-		<Router>
-			<SessionProvider>
+		<SessionProvider>
+			<Router>
 				<Routes>
 					<Route path="/" component={AppWrapper}>
 						<Route path="/servers/:sid" component={ServerWrapper}>
@@ -31,9 +31,8 @@ render(
 					</Route>
 					<Route path="/login" component={Login} />
 				</Routes>
-			</SessionProvider>
-		</Router>
+			</Router>
+		</SessionProvider>
 	),
 	document.getElementById('root')!
 );
-

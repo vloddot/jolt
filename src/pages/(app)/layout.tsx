@@ -2,9 +2,17 @@ import ServerSidebarIcon from '@components/ServerSidebarIcon';
 import './layout.scss';
 import styles from '@lib/util.module.scss';
 import util from '@lib/util';
-import { For, Show, createMemo, createSelector, createSignal, useContext } from 'solid-js';
-import { Outlet, useLocation, useNavigate } from '@solidjs/router';
-import { SessionContext } from '@lib/context/session';
+import {
+	For,
+	Show,
+	createMemo,
+	createSelector,
+	createSignal,
+	onCleanup,
+	onMount,
+	useContext
+} from 'solid-js';
+import { Outlet, useLocation } from '@solidjs/router';
 import ServerCollectionProvider, {
 	ServerCollectionContext
 } from '@lib/context/collections/servers';
@@ -19,18 +27,18 @@ import ClientContext from '@lib/context/client';
 import { FaSolidHouse } from 'solid-icons/fa';
 
 export default function AppWrapper() {
-	const [session] = useContext(SessionContext);
 	const client = useContext(ClientContext);
 	const [showContent, setShowContent] = createSignal(false);
-	const navigate = useNavigate();
 
-	client.on('Ready', () => {
-		if (session() == undefined) {
-			navigate('/login', { replace: true });
+	onMount(() => {
+		function showContent() {
+			setShowContent(true);
 		}
-	});
 
-	client.once('Ready', () => setShowContent(true));
+		client.once('Ready', showContent);
+
+		onCleanup(() => client.removeListener('Ready', showContent));
+	});
 
 	return (
 		<ServerCollectionProvider>
