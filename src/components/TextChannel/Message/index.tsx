@@ -24,6 +24,7 @@ import Embed from './Embed';
 import TextArea from '../TextArea';
 import { SessionContext } from '@lib/context/session';
 import { createStore } from 'solid-js/store';
+import MessageReply from './Reply';
 
 export interface Props {
 	message: Message;
@@ -79,154 +80,163 @@ export function MessageComponent(props: Props) {
 	);
 
 	return (
-		<div class={styles.messageContainer}>
-			<span style={{ width: '28px' }}>
-				<Show when={props.isHead}>
-					<img
-						class={utilStyles.cover}
-						src={util.getDisplayAvatar(props.author, props.member, props.message)}
-						alt={displayName()}
-						style={{ width: '28px', height: '28px' }}
-					/>
-				</Show>
-			</span>
-			<span class={styles.messageControls}>
-				<For each={messageControls}>
-					{({ children, name, onclick, showIf }) => {
-						return (
-							<Show when={showIf?.() ?? true}>
-								<Tooltip placement="top" content={name} animation="scale-subtle" duration={100}>
-									<button class={utilStyles.buttonPrimary} onClick={onclick}>
-										{children}
-									</button>
-								</Tooltip>
+		<div id={`MESSAGE-${props.message._id}`}>
+			<Show when={props.message.replies?.length != 0 && props.message.replies}>
+				{(replies) => (
+					<For each={replies()}>{(message_id) => <MessageReply message_id={message_id} />}</For>
+				)}
+			</Show>
+			<div class={styles.messageContainer}>
+				<span style={{ width: '28px' }}>
+					<Show when={props.isHead}>
+						<img
+							class={utilStyles.cover}
+							src={util.getDisplayAvatar(props.author, props.member, props.message)}
+							alt={displayName()}
+							style={{ width: '28px', height: '28px' }}
+						/>
+					</Show>
+				</span>
+				<span class={styles.messageControls}>
+					<For each={messageControls}>
+						{({ children, name, onclick, showIf }) => {
+							return (
+								<Show when={showIf?.() ?? true}>
+									<Tooltip placement="top" content={name} animation="scale-subtle" duration={100}>
+										<button class={utilStyles.buttonPrimary} onClick={onclick}>
+											{children}
+										</button>
+									</Tooltip>
+								</Show>
+							);
+						}}
+					</For>
+				</span>
+				<span class={styles.messageBase}>
+					<Show when={props.isHead}>
+						<span class={styles.messageMeta}>
+							<span class={styles.displayName}>{displayName()}</span>
+							<Show when={displayName() != props.author.username}>
+								<span class={styles.username}>
+									@{props.author.username}#{props.author.discriminator}
+								</span>
 							</Show>
-						);
-					}}
-				</For>
-			</span>
-			<span class={styles.messageBase}>
-				<Show when={props.isHead}>
-					<span class={styles.messageMeta}>
-						<span class={styles.displayName}>{displayName()}</span>
-						<Show when={displayName() != props.author.username}>
-							<span class={styles.username}>
-								@{props.author.username}#{props.author.discriminator}
-							</span>
-						</Show>
-						<time class={styles.timestamp}>{dayjs(decodeTime(props.message._id)).calendar()}</time>
-					</span>
-				</Show>
-
-				<Show
-					when={editingMessage()}
-					fallback={
-						<span class={styles.messageContent}>
-							<span>{props.message.content}</span>
-							<Show when={props.message.edited}>
-								{(time) => {
-									return (
-										<Tooltip
-											placement="top"
-											content={dayjs(time()).format('LLLL')}
-											animation="scale-subtle"
-											duration={100}
-										>
-											<span class={styles.editedText}>(edited)</span>
-										</Tooltip>
-									);
-								}}
-							</Show>
+							<time class={styles.timestamp}>
+								{dayjs(decodeTime(props.message._id)).calendar()}
+							</time>
 						</span>
-					}
-				>
-					{/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
-					{(_s) => {
-						const [editedMessageInput, setEditedMessageInput] = createSignal<string>(
-							props.message.content ?? ''
-						);
+					</Show>
 
-						let textarea: HTMLTextAreaElement;
-
-						function focus() {
-							textarea.focus();
+					<Show
+						when={editingMessage()}
+						fallback={
+							<span class={styles.messageContent}>
+								<span>{props.message.content}</span>
+								<Show when={props.message.edited}>
+									{(time) => {
+										return (
+											<Tooltip
+												placement="top"
+												content={dayjs(time()).format('LLLL')}
+												animation="scale-subtle"
+												duration={100}
+											>
+												<span class={styles.editedText}>(edited)</span>
+											</Tooltip>
+										);
+									}}
+								</Show>
+							</span>
 						}
+					>
+						{/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
+						{(_s) => {
+							const [editedMessageInput, setEditedMessageInput] = createSignal<string>(
+								props.message.content ?? ''
+							);
 
-						onMount(() => {
-							focus();
-							document.addEventListener('keydown', focus);
-							onCleanup(() => document.removeEventListener('keydown', focus));
-						});
+							let textarea: HTMLTextAreaElement;
 
-						function editMessage() {
-							api.editMessage(props.message.channel, props.message._id, {
-								content: editedMessageInput()
+							function focus() {
+								textarea.focus();
+							}
+
+							onMount(() => {
+								focus();
+								document.addEventListener('keydown', focus);
+								onCleanup(() => document.removeEventListener('keydown', focus));
 							});
 
-							setEditingMessage(false);
-						}
+							function editMessage() {
+								api.editMessage(props.message.channel, props.message._id, {
+									content: editedMessageInput()
+								});
 
-						return (
-							<div class={styles.messageEditFormBase}>
-								<form
-									class={styles.messageEditForm}
-									id="message-edit-form"
-									onSubmit={(event) => {
-										event.preventDefault();
-										editMessage();
-									}}
-								>
-									<TextArea
-										placeholder="Edit message"
-										initialValue={props.message.content}
-										sendTypingIndicators={false}
-										ref={textarea!}
-										onInput={(event) => setEditedMessageInput(event.currentTarget.value)}
-										onKeyDown={(event) => {
-											console.log(event.key);
-											if (event.key == 'Escape') {
-												setEditingMessage(false);
-												return;
-											}
+								setEditingMessage(false);
+							}
 
-											if (event.shiftKey || event.key != 'Enter') {
-												return;
-											}
-
+							return (
+								<div class={styles.messageEditFormBase}>
+									<form
+										class={styles.messageEditForm}
+										id="message-edit-form"
+										onSubmit={(event) => {
 											event.preventDefault();
-											event.currentTarget.form?.requestSubmit();
+											editMessage();
 										}}
-									/>
-								</form>
-								<span class={styles.caption}>
-									{'escape to '}
-									<a
-										style={{ cursor: 'pointer' }}
-										role="button"
-										onClick={() => setEditingMessage(false)}
 									>
-										cancel
-									</a>
-									{' · enter to '}
-									<a style={{ cursor: 'pointer' }} role="button" onClick={editMessage}>
-										save
-									</a>
-								</span>
-							</div>
-						);
-					}}
-				</Show>
+										<TextArea
+											placeholder="Edit message"
+											initialValue={props.message.content}
+											sendTypingIndicators={false}
+											ref={textarea!}
+											onInput={(event) => setEditedMessageInput(event.currentTarget.value)}
+											onKeyDown={(event) => {
+												console.log(event.key);
+												if (event.key == 'Escape') {
+													setEditingMessage(false);
+													return;
+												}
 
-				<Show when={props.message.attachments}>
-					{(attachments) => (
-						<For each={attachments()}>{(attachment) => <Attachment {...attachment} />}</For>
-					)}
-				</Show>
+												if (event.shiftKey || event.key != 'Enter') {
+													return;
+												}
 
-				<Show when={props.message.embeds}>
-					{(embeds) => <For each={embeds()}>{(embed) => <Embed {...embed} />}</For>}
-				</Show>
-			</span>
+												event.preventDefault();
+												event.currentTarget.form?.requestSubmit();
+											}}
+										/>
+									</form>
+									<span class={styles.caption}>
+										{'escape to '}
+										<a
+											style={{ cursor: 'pointer' }}
+											role="button"
+											onClick={() => setEditingMessage(false)}
+										>
+											cancel
+										</a>
+										{' · enter to '}
+										<a style={{ cursor: 'pointer' }} role="button" onClick={editMessage}>
+											save
+										</a>
+									</span>
+								</div>
+							);
+						}}
+					</Show>
+
+					<Show when={props.message.attachments}>
+						{(attachments) => (
+							<For each={attachments()}>{(attachment) => <Attachment {...attachment} />}</For>
+						)}
+					</Show>
+
+					<Show when={props.message.embeds}>
+						{(embeds) => <For each={embeds()}>{(embed) => <Embed {...embed} />}</For>}
+					</Show>
+				</span>
+			</div>
 		</div>
 	);
 }

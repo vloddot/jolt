@@ -7,7 +7,7 @@ import { MemberCollectionContext } from './context/collections/members';
 import util from './util';
 
 function req(
-	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+	method: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
 	path: string,
 	body?: string
 ): Promise<Response> {
@@ -169,6 +169,12 @@ async function editMessage(
 	);
 }
 
+async function fetchMessage([channel_id, target]: [string, string]): Promise<Message> {
+	return req('GET', `/channels/${channel_id}/messages/${target}`).then((response) =>
+		response.json()
+	);
+}
+
 export default {
 	req,
 	login,
@@ -176,6 +182,7 @@ export default {
 	fetchSettings,
 	fetchDMs,
 	fetchChannel,
+	fetchMessage,
 	queryMessages,
 	sendMessage,
 	fetchMember,

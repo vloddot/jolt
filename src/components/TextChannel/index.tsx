@@ -95,6 +95,7 @@ function TextChannelMeta(props: MetaProps) {
 
 	const [attachments, setAttachments] = createSignal<File[]>([]);
 	const [channelName, setChannelName] = createSignal('<Unknown Channel>');
+
 	createComputed(() => {
 		if (channel == undefined) {
 			setChannelName('<Unknown Channel>');
@@ -169,7 +170,6 @@ function TextChannelMeta(props: MetaProps) {
 		input.click(); // click :3
 	}
 
-	const messages = createMemo(() => Object.values(props.collection.messages));
 	const typing = createMemo(() => {
 		return Array.from(props.collection.typing.values()).map((user) => ({
 			user: createResource(
@@ -186,6 +186,7 @@ function TextChannelMeta(props: MetaProps) {
 		}));
 	});
 
+	const messages = createMemo(() => Object.values(props.collection.messages));
 	return (
 		<>
 			<div class={styles.messageList}>

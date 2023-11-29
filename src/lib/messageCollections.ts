@@ -17,10 +17,9 @@ const collections: Record<string, MessageCollection> = {};
 
 export async function getMessageCollection(
 	channel_id: string,
-	info: { refetching: boolean }
 ): Promise<MessageCollection> {
 	let collection = collections[channel_id];
-	if (!collection || info.refetching) {
+	if (!collection) {
 		const response = await api.queryMessages([channel_id, { sort: 'Latest', include_users: true }]);
 		const client = useContext(ClientContext);
 		const [session] = useContext(SessionContext);
