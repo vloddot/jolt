@@ -42,7 +42,7 @@ async function login(data: DataLogin): Promise<ResponseLogin> {
 }
 
 async function fetchUser(target: string): Promise<Store<User>> {
-	const users = useContext(UserCollectionContext)();
+	const users = useContext(UserCollectionContext);
 	const user = users.get(target);
 
 	if (user == undefined) {
@@ -58,7 +58,7 @@ async function fetchUser(target: string): Promise<Store<User>> {
 }
 
 async function fetchDMs() {
-	const channels = useContext(ChannelCollectionContext)();
+	const channels = useContext(ChannelCollectionContext);
 	const dms: Channel[] = await req('GET', '/users/dms').then((response) => response.json());
 
 	return dms.map((channel) => {
@@ -77,10 +77,10 @@ async function fetchSettings<K extends string>(keys: K[]): Promise<Record<K, [nu
 }
 
 async function fetchChannel(target: string): Promise<Store<Channel>> {
-	const channels = useContext(ChannelCollectionContext)();
-	const channel = channels.get(target);
+	const channels = useContext(ChannelCollectionContext);
+	const item = channels.get(target);
 
-	if (channel == undefined) {
+	if (item == undefined) {
 		const [store, setStore] = createStore<Channel>(
 			await req('GET', `/channels/${target}`).then((response) => response.json())
 		);
@@ -89,7 +89,9 @@ async function fetchChannel(target: string): Promise<Store<Channel>> {
 		return store;
 	}
 
-	return channel[0];
+	const [channel] = item;
+
+	return channel;
 }
 
 async function queryMessages([target, options]: [string, OptionsQueryMessages]): Promise<
@@ -119,7 +121,7 @@ async function queryMessages([target, options]: [string, OptionsQueryMessages]):
 }
 
 async function fetchMember(target: MemberCompositeKey): Promise<Member> {
-	const members = useContext(MemberCollectionContext)();
+	const members = useContext(MemberCollectionContext);
 	const member = members.get(util.hashMemberId(target));
 
 	if (member == undefined) {
@@ -175,6 +177,10 @@ async function fetchMessage([channel_id, target]: [string, string]): Promise<Mes
 	);
 }
 
+async function fetchUnreads(): Promise<ChannelUnread[]> {
+	return req('GET', '/sync/unreads').then((response) => response.json());
+}
+
 export default {
 	req,
 	login,
@@ -183,6 +189,7 @@ export default {
 	fetchDMs,
 	fetchChannel,
 	fetchMessage,
+	fetchUnreads,
 	queryMessages,
 	sendMessage,
 	fetchMember,

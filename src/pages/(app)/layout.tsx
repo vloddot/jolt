@@ -25,6 +25,7 @@ import EmojiCollectionProvider from '@lib/context/collections/emojis';
 import SelectedChannelProvider, { SelectedChannelIdContext } from '@lib/context/selectedChannelId';
 import ClientContext from '@lib/context/client';
 import { FaSolidHouse } from 'solid-icons/fa';
+import UnreadsCollectionProvider from '@lib/context/collections/unreads';
 
 export default function AppWrapper() {
 	const client = useContext(ClientContext);
@@ -46,17 +47,19 @@ export default function AppWrapper() {
 				<ChannelCollectionProvider>
 					<MemberCollectionProvider>
 						<EmojiCollectionProvider>
-							<SelectedServerIdProvider>
-								<SelectedChannelProvider>
-									<SettingsProvider>
-										<Show when={showContent()} fallback={<p>Loading client...</p>}>
-											<ServerSidebar />
+							<UnreadsCollectionProvider>
+								<SelectedServerIdProvider>
+									<SelectedChannelProvider>
+										<SettingsProvider>
+											<Show when={showContent()} fallback={<p>Loading client...</p>}>
+												<ServerSidebar />
 
-											<Outlet />
-										</Show>
-									</SettingsProvider>
-								</SelectedChannelProvider>
-							</SelectedServerIdProvider>
+												<Outlet />
+											</Show>
+										</SettingsProvider>
+									</SelectedChannelProvider>
+								</SelectedServerIdProvider>
+							</UnreadsCollectionProvider>
 						</EmojiCollectionProvider>
 					</MemberCollectionProvider>
 				</ChannelCollectionProvider>
@@ -79,10 +82,10 @@ function ServerSidebar() {
 		} = settings();
 
 		if (ordering == undefined || Object.keys(ordering).length == 0) {
-			return servers();
+			return Array.from(servers.values());
 		}
 
-		return servers().sort(([a], [b]) => {
+		return Array.from(servers.values()).sort(([a], [b]) => {
 			const aIndex = ordering.indexOf(a._id);
 			const bIndex = ordering.indexOf(b._id);
 

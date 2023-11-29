@@ -192,7 +192,6 @@ export function MessageComponent(props: Props) {
 											ref={textarea!}
 											onInput={(event) => setEditedMessageInput(event.currentTarget.value)}
 											onKeyDown={(event) => {
-												console.log(event.key);
 												if (event.key == 'Escape') {
 													setEditingMessage(false);
 													return;

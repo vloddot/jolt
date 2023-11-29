@@ -3,16 +3,16 @@ import {
 	useContext,
 	type JSX,
 	batch,
-	createSignal,
 	onMount,
-	onCleanup
+	onCleanup,
 } from 'solid-js';
 import ClientContext from '@lib/context/client';
 import { createStore } from 'solid-js/store';
 import type { ClientEvents } from '@lib/client';
+import { ReactiveMap } from '@solid-primitives/map';
 
 export const ChannelCollectionContext = createContext(
-	() => new Map<Channel['_id'], CollectionItem<Channel>>()
+	new ReactiveMap<Channel['_id'], CollectionItem<Channel>>()
 );
 
 interface Props {
@@ -20,32 +20,28 @@ interface Props {
 }
 
 export default function ChannelCollectionProvider(props: Props) {
-	const [channels, setChannels] = createSignal(ChannelCollectionContext.defaultValue());
+	const channels = ChannelCollectionContext.defaultValue;
 	const client = useContext(ClientContext);
 
 	onMount(() => {
-		const readyHandler: ClientEvents['Ready'] = ({ channels }) => {
-			// eslint-disable-next-line solid/reactivity
-			setChannels(new Map(channels.map((channel) => [channel._id, createStore(channel)])));
+		const readyHandler: ClientEvents['Ready'] = ({ channels: channelsArray }) => {
+			for (const channel of channelsArray) {
+				const [store, setStore] = createStore(channel);
+				channels.set(channel._id, [store, setStore]);
+			}
 		};
 
 		const channelCreateHandler: ClientEvents['ChannelCreate'] = (channel) => {
-			setChannels((channels) => {
-				// eslint-disable-next-line solid/reactivity
-				channels.set(channel._id, createStore(channel));
-				return channels;
-			});
+			const [store, setStore] = createStore(channel);
+			channels.set(channel._id, [store, setStore]);
 		};
 
 		const channelDeleteHandler: ClientEvents['ChannelDelete'] = ({ id }) => {
-			setChannels((channels) => {
-				channels.delete(id);
-				return channels;
-			});
+			channels.delete(id);
 		};
 
 		const channelUpdateHandler: ClientEvents['ChannelUpdate'] = (m) => {
-			const c = channels().get(m.id);
+			const c = channels.get(m.id);
 			if (c == undefined) {
 				return;
 			}
@@ -91,7 +87,7 @@ export default function ChannelCollectionProvider(props: Props) {
 		};
 
 		const channelGroupJoinHandler: ClientEvents['ChannelGroupJoin'] = (m) => {
-			const g = channels().get(m.id);
+			const g = channels.get(m.id);
 			if (g == undefined) {
 				return;
 			}
@@ -104,7 +100,7 @@ export default function ChannelCollectionProvider(props: Props) {
 		};
 
 		const channelGroupLeaveHandler: ClientEvents['ChannelGroupLeave'] = (m) => {
-			const g = channels().get(m.id);
+			const g = channels.get(m.id);
 			if (g == undefined) {
 				return;
 			}
@@ -120,7 +116,7 @@ export default function ChannelCollectionProvider(props: Props) {
 		};
 
 		const messageHandler: ClientEvents['Message'] = ({ channel: channel_id, _id: message_id }) => {
-			const store = channels().get(channel_id);
+			const store = channels.get(channel_id);
 
 			if (store == undefined) {
 				return;

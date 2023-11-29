@@ -1,10 +1,8 @@
 import {
 	createContext,
-	createSignal,
 	useContext,
 	type JSX,
 	batch,
-	type Accessor,
 	onCleanup,
 	onMount
 } from 'solid-js';
@@ -12,30 +10,30 @@ import ClientContext from '@lib/context/client';
 import { createStore } from 'solid-js/store';
 import util from '@lib/util';
 import type { ClientEvents } from '@lib/client';
+import { ReactiveMap } from '@solid-primitives/map';
 
-export type MemberCollection = Map<string, CollectionItem<Member>>;
-export const MemberCollectionContext = createContext<Accessor<MemberCollection>>(() => new Map());
+export const MemberCollectionContext = createContext(
+	new ReactiveMap<string, CollectionItem<Member>>()
+);
 
 interface Props {
 	children: JSX.Element;
 }
 
 export default function MemberCollectionProvider(props: Props) {
-	const [members, setMembers] = createSignal<MemberCollection>(
-		MemberCollectionContext.defaultValue()
-	);
+	const members = MemberCollectionContext.defaultValue;
 	const client = useContext(ClientContext);
 
 	onMount(() => {
-		const readyHandler: ClientEvents['Ready'] = ({ members }) => {
-			setMembers(
-				// eslint-disable-next-line solid/reactivity
-				new Map(members.map((member) => [util.hashMemberId(member._id), createStore(member)]))
-			);
+		const readyHandler: ClientEvents['Ready'] = ({ members: membersArray }) => {
+			for (const member of membersArray) {
+				const [store, setStore] = createStore(member);
+				members.set(util.hashMemberId(member._id), [store, setStore]);
+			}
 		};
 
 		const serverMemberUpdateHandler: ClientEvents['ServerMemberUpdate'] = (m) => {
-			const member = members().get(util.hashMemberId(m.id));
+			const member = members.get(util.hashMemberId(m.id));
 			if (member == undefined) {
 				return;
 			}

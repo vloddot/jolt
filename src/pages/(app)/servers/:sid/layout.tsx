@@ -18,6 +18,7 @@ import { OcHash3 } from 'solid-icons/oc';
 import { SelectedChannelIdContext } from '@lib/context/selectedChannelId';
 import api from '@lib/api';
 import { ServerCollectionContext } from '@lib/context/collections/servers';
+import { UnreadsCollectionContext } from '@lib/context/collections/unreads';
 
 export default function ServerWrapper() {
 	const selectedServerId = useContext(SelectedServerIdContext);
@@ -28,7 +29,7 @@ export default function ServerWrapper() {
 		<Show when={selectedServerId() != undefined && selectedServerId()}>
 			{(id) => {
 				const servers = useContext(ServerCollectionContext);
-				const server = createMemo(() => servers().find(([{ _id }]) => _id == id())?.[0]);
+				const server = createMemo(() => servers.get(id())?.[0]);
 				return (
 					<Show when={server()} fallback={<p>Unresolved server</p>}>
 						{(server) => {
@@ -67,7 +68,7 @@ export default function ServerWrapper() {
 											{([channel]) => (
 												<Show when={channel.state == 'ready' && channel()}>
 													{(channel) => (
-														<Channel
+														<ChannelComponent
 															channel={channel()}
 															selected={channelIsSelected(channel()._id)}
 														/>
@@ -82,12 +83,13 @@ export default function ServerWrapper() {
 													<For each={category.channels}>
 														{([channel]) => (
 															<Show when={channel.state == 'ready' && channel()}>
-																{(channel) => (
-																	<Channel
-																		channel={channel()}
-																		selected={channelIsSelected(channel()._id)}
-																	/>
-																)}
+																{(channel) => {
+																	return (
+																		<ChannelComponent
+																			channel={channel()}
+																			selected={channelIsSelected(channel()._id)} />
+																	);
+																}}
 															</Show>
 														)}
 													</For>
@@ -106,13 +108,41 @@ export default function ServerWrapper() {
 	);
 }
 
-interface ChannelProps {
+interface ChannelComponentProps {
 	channel: Channel;
 	selected: boolean;
 }
 
-function Channel(props: ChannelProps) {
+function ChannelComponent(props: ChannelComponentProps) {
 	const server = useContext(SelectedServerContext)!;
+	const unreads = useContext(UnreadsCollectionContext);
+	const unreadObject = createMemo(() => {
+		const item = unreads.get(props.channel._id);
+
+		if (item == undefined) {
+			return;
+		}
+
+		const [unread] = item;
+
+		return unread;
+	});
+
+	const unread = createMemo(() => {
+		if (
+			props.channel.channel_type == 'SavedMessages' ||
+			props.channel.channel_type == 'VoiceChannel'
+		) {
+			return false;
+		}
+
+		const unread = unreadObject();
+		if (unread == undefined) {
+			return false;
+		}
+
+		return (unread.last_id?.localeCompare(props.channel.last_message_id ?? '0') ?? 0) == -1;
+	});
 
 	return (
 		<Show
@@ -126,7 +156,7 @@ function Channel(props: ChannelProps) {
 				<ChannelItem
 					href={`/servers/${server._id}/channels/${channel()._id}`}
 					selected={props.selected}
-					unread={false}
+					unread={unread()}
 				>
 					<Show
 						when={channel().icon != undefined && channel().icon}

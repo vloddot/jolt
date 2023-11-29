@@ -1,46 +1,37 @@
-import {
-	createContext,
-	createSignal,
-	useContext,
-	type JSX,
-	type Accessor,
-	onMount,
-	onCleanup
-} from 'solid-js';
+import { createContext, useContext, type JSX, onMount, onCleanup } from 'solid-js';
 import ClientContext from '@lib/context/client';
 import { createStore } from 'solid-js/store';
 import type { ClientEvents } from '@lib/client';
+import { ReactiveMap } from '@solid-primitives/map';
 
-export type EmojiCollection = Map<Emoji['_id'], CollectionItem<Emoji>>;
-export const EmojiCollectionContext = createContext<Accessor<EmojiCollection>>(() => new Map());
+export const EmojiCollectionContext = createContext(
+	new ReactiveMap<Emoji['_id'], CollectionItem<Emoji>>()
+);
 
 interface Props {
 	children: JSX.Element;
 }
 
 export default function EmojiCollectionProvider(props: Props) {
-	const [emojis, setEmojis] = createSignal<EmojiCollection>(EmojiCollectionContext.defaultValue());
+	const emojis = EmojiCollectionContext.defaultValue;
 	const client = useContext(ClientContext);
 
 	onMount(() => {
-		const readyHandler: ClientEvents['Ready'] = ({ emojis }) => {
+		const readyHandler: ClientEvents['Ready'] = ({ emojis: emojisArray }) => {
 			// eslint-disable-next-line solid/reactivity
-			setEmojis(new Map(emojis.map((emoji) => [emoji._id, createStore(emoji)])));
+			for (const emoji of emojisArray) {
+				const [store, setStore] = createStore(emoji);
+				emojis.set(emoji._id, [store, setStore]);
+			}
 		};
 
 		const emojiCreateHandler: ClientEvents['EmojiCreate'] = (emoji) => {
-			setEmojis((emojis) => {
-				// eslint-disable-next-line solid/reactivity
-				emojis.set(emoji._id, createStore(emoji));
-				return emojis;
-			});
+			const [store, setStore] = createStore(emoji);
+			emojis.set(emoji._id, [store, setStore]);
 		};
 
 		const emojiDeleteHandler: ClientEvents['EmojiDelete'] = ({ id }) => {
-			setEmojis((emojis) => {
-				emojis.delete(id);
-				return emojis;
-			});
+			emojis.delete(id);
 		};
 
 		client.on('Ready', readyHandler);

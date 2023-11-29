@@ -29,7 +29,7 @@ export default function HomeWrapper() {
 	const channelIsSelected = createSelector(selectedChannelId);
 
 	const channels = createMemo(() => {
-		const list = Array.from(channelCollection().values());
+		const list = Array.from(channelCollection.values());
 
 		return list.filter((accessor) => {
 			const [channel] = accessor;

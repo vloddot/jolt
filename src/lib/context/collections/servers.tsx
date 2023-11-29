@@ -1,47 +1,40 @@
-import {
-	createContext,
-	useContext,
-	type JSX,
-	batch,
-	createSignal,
-	type Accessor,
-	onMount,
-	onCleanup
-} from 'solid-js';
+import { createContext, useContext, type JSX, batch, onMount, onCleanup } from 'solid-js';
 import ClientContext from '@lib/context/client';
 import { createStore } from 'solid-js/store';
 import type { ClientEvents } from '@lib/client';
+import { ReactiveMap } from '@solid-primitives/map';
 
-export type ServerCollection = Array<CollectionItem<Server>>;
-export const ServerCollectionContext = createContext<Accessor<ServerCollection>>(() => []);
+export const ServerCollectionContext = createContext(
+	new ReactiveMap<Server['_id'], CollectionItem<Server>>()
+);
 
 interface Props {
 	children: JSX.Element;
 }
 
 export default function ServerCollectionProvider(props: Props) {
-	const [servers, setServers] = createSignal<ServerCollection>(
-		ServerCollectionContext.defaultValue()
-	);
+	const servers = ServerCollectionContext.defaultValue;
 	const client = useContext(ClientContext);
 
 	onMount(() => {
-		const readyHandler: ClientEvents['Ready'] = ({ servers }) => {
-			// eslint-disable-next-line solid/reactivity
-			setServers(servers.map((server) => createStore(server)));
+		const readyHandler: ClientEvents['Ready'] = ({ servers: serversArray }) => {
+			for (const server of serversArray) {
+				const [store, setStore] = createStore(server);
+				servers.set(server._id, [store, setStore]);
+			}
 		};
 
 		const serverCreateHandler: ClientEvents['ServerCreate'] = ({ server }) => {
-			// eslint-disable-next-line solid/reactivity
-			setServers((servers) => [...servers, createStore(server)]);
+			const [store, setStore] = createStore(server);
+			servers.set(server._id, [store, setStore]);
 		};
 
 		const serverDeleteHandler: ClientEvents['ServerDelete'] = ({ id }) => {
-			setServers((servers) => servers.filter(([{ _id }]) => id != _id));
+			servers.delete(id);
 		};
 
 		const serverUpdateHandler: ClientEvents['ServerUpdate'] = (m) => {
-			const server = servers().find(([{ _id }]) => _id == m.id);
+			const server = servers.get(m.id);
 			if (server == undefined) {
 				return;
 			}
@@ -78,7 +71,7 @@ export default function ServerCollectionProvider(props: Props) {
 		};
 
 		const serverRoleUpdateHandler: ClientEvents['ServerRoleUpdate'] = (m) => {
-			const server = servers().find(([{ _id }]) => _id == m.id);
+			const server = servers.get(m.id);
 			if (server == undefined) {
 				return;
 			}
@@ -97,7 +90,7 @@ export default function ServerCollectionProvider(props: Props) {
 		};
 
 		const serverRoleDeleteHandler: ClientEvents['ServerRoleDelete'] = (m) => {
-			const server = servers().find(([{ _id }]) => _id == m.id);
+			const server = servers.get(m.id);
 			if (server == undefined) {
 				return;
 			}

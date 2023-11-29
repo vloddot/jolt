@@ -1,42 +1,38 @@
 import {
 	createContext,
-	createSignal,
 	useContext,
 	type JSX,
 	batch,
-	type Accessor,
 	onMount,
 	onCleanup
 } from 'solid-js';
 import ClientContext from '@lib/context/client';
 import { createStore } from 'solid-js/store';
 import type { ClientEvents } from '@lib/client';
+import { ReactiveMap } from '@solid-primitives/map';
 
-export type UserCollection = Map<User['_id'], CollectionItem<User>>;
-export const UserCollectionContext = createContext<Accessor<UserCollection>>(() => new Map());
+export const UserCollectionContext = createContext(
+	new ReactiveMap<User['_id'], CollectionItem<User>>()
+);
 
 interface Props {
 	children: JSX.Element;
 }
 
 export default function UserCollectionProvider(props: Props) {
-	const [users, setUsers] = createSignal<UserCollection>(UserCollectionContext.defaultValue());
+	const users = UserCollectionContext.defaultValue;
 	const client = useContext(ClientContext);
 
 	onMount(() => {
-		const readyHandler: ClientEvents['Ready'] = ({ users }) => {
-			setUsers(
-				new Map(
-					users.map((user) => {
-						// eslint-disable-next-line solid/reactivity
-						return [user._id, createStore(user)];
-					})
-				)
-			);
+		const readyHandler: ClientEvents['Ready'] = ({ users: usersArray }) => {
+			for (const user of usersArray) {
+				const [store, setStore] = createStore(user);
+				users.set(user._id, [store, setStore]);
+			}
 		};
 
 		const userUpdateHandler: ClientEvents['UserUpdate'] = (m) => {
-			const u = users().get(m.id);
+			const u = users.get(m.id);
 			if (u == undefined) {
 				return;
 			}
@@ -81,22 +77,19 @@ export default function UserCollectionProvider(props: Props) {
 			});
 		};
 
-		const userRelationshipHandler: ClientEvents['UserRelationship'] = (message) => {
-			const user = users().get(message.user._id);
+		const userRelationshipHandler: ClientEvents['UserRelationship'] = (m) => {
+			const user = users.get(m.user._id);
 			if (user == undefined) {
-				setUsers((users) => {
-					const [store, setStore] = createStore(message.user);
-					users.set(message.user._id, [store, setStore]);
-					return users;
-				});
+				const [store, setStore] = createStore(m.user);
+				users.set(m.user._id, [store, setStore]);
 			} else {
 				const [, setUser] = user;
-				setUser('relationship', message.user.relationship);
+				setUser('relationship', m.user.relationship);
 			}
 		};
 
 		const userPresenceHandler: ClientEvents['UserPresence'] = (m) => {
-			const user = users().get(m.id);
+			const user = users.get(m.id);
 			if (user == undefined) {
 				return;
 			}
@@ -106,7 +99,7 @@ export default function UserCollectionProvider(props: Props) {
 		};
 
 		const userPlatformWipeHandler: ClientEvents['UserPlatformWipe'] = (m) => {
-			const user = users().get(m.user_id);
+			const user = users.get(m.user_id);
 			if (user == undefined) {
 				return;
 			}
