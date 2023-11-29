@@ -9,12 +9,14 @@ import {
 	type JSX,
 	createComputed,
 	createMemo,
+	onMount,
+	onCleanup
 } from 'solid-js';
 import styles from './index.module.scss';
 import api from '@lib/api';
 import { MessageComponent } from './Message';
-import RepliesProvider from './context/replies';
-import TextAreaBase from './TextAreaBase';
+import { RepliesContext } from './context/replies';
+import TextArea from './TextArea';
 import { SelectedChannelContext } from './context/channel';
 import util from '@lib/util';
 import { MessageInputContext } from './context/messageInput';
@@ -24,6 +26,7 @@ import { SelectedServerIdContext } from '@lib/context/selectedServerId';
 import AttachmentPreviewItem from './AttachmentPreviewItem';
 import { AiFillFileText, AiOutlinePlus } from 'solid-icons/ai';
 import { FiXCircle } from 'solid-icons/fi';
+import SendableReplyComponent from './SendableReply';
 
 export interface Props {
 	channel: Exclude<Channel, { channel_type: 'VoiceChannel' }>;
@@ -46,13 +49,9 @@ export default function TextChannel(props: Props) {
 			<Match when={messageCollection.state == 'ready' && messageCollection()}>
 				{(collection) => {
 					return (
-						<MessageInputContext.Provider value={MessageInputContext.defaultValue}>
-							<SelectedChannelContext.Provider value={props.channel}>
-								<RepliesProvider>
-									<TextChannelMeta collection={collection()} />
-								</RepliesProvider>
-							</SelectedChannelContext.Provider>
-						</MessageInputContext.Provider>
+						<SelectedChannelContext.Provider value={props.channel}>
+							<TextChannelMeta collection={collection()} />
+						</SelectedChannelContext.Provider>
 					);
 				}}
 			</Match>
@@ -65,9 +64,34 @@ interface MetaProps {
 }
 
 function TextChannelMeta(props: MetaProps) {
-	let textbox: HTMLTextAreaElement;
 	const server = useContext(SelectedServerIdContext);
 	const channel = useContext(SelectedChannelContext)!;
+	const [messageInput, setMessageInput] = useContext(MessageInputContext);
+	const [replies, setReplies] = useContext(RepliesContext)!;
+
+	let messageTextarea: HTMLTextAreaElement;
+
+	function focus() {
+		messageTextarea.focus();
+	}
+
+	const onPaste: GlobalEventHandlers['onpaste'] = (event) => {
+		if (event.clipboardData?.files != null && event.clipboardData.files.length != 0) {
+			event.preventDefault();
+			const clipboardAttachments = Array.from(event.clipboardData.files);
+			setAttachments((attachments) => [...attachments, ...(clipboardAttachments ?? [])]);
+		}
+	};
+
+	onMount(() => {
+		focus();
+		document.addEventListener('keydown', focus);
+		document.addEventListener('paste', onPaste);
+		onCleanup(() => {
+			document.removeEventListener('keydown', focus);
+			document.removeEventListener('paste', onPaste);
+		});
+	});
 
 	const [attachments, setAttachments] = createSignal<File[]>([]);
 	const [channelName, setChannelName] = createSignal('<Unknown Channel>');
@@ -108,16 +132,29 @@ function TextChannelMeta(props: MetaProps) {
 			data.attachments = await Promise.all(
 				attachments().map((attachment) => api.uploadAttachment(attachment))
 			);
+			setAttachments([]);
 		}
 
-		const content = textbox.value.trim();
+		const content = messageInput();
 		if (content != '') {
 			data.content = content;
+			setMessageInput('');
+			messageTextarea.value = '';
+		}
+
+		if (replies().length > 0) {
+			data.replies = replies().map(([reply]) => ({
+				id: reply.message._id,
+				mention: reply.mention
+			}));
+			setReplies([]);
+		}
+
+		if (Object.keys(data).length == 0) {
+			return;
 		}
 
 		await api.sendMessage(channel._id, data);
-		textbox.value = '';
-		setAttachments([]);
 	};
 
 	function pushFile() {
@@ -222,36 +259,72 @@ function TextChannelMeta(props: MetaProps) {
 			</div>
 
 			<Show when={attachments().length != 0 && attachments()}>
-				{(attachments) => (
-					<div class={styles.attachmentPreviewBase}>
-						<div class={styles.attachmentPreview}>
-							<For each={attachments()}>
-								{(attachment, index) => (
-									<AttachmentPreviewItem
-										overlay={<FiXCircle size={30} />}
-										metadata={{ name: attachment.name, size: attachment.size }}
-										action={() => {
-											setAttachments((attachments) => attachments.filter((_, i) => i != index()));
-										}}
-									>
-										<Show
-											when={attachment.type.startsWith('image/')}
-											fallback={<AiFillFileText size={30} />}
-										>
-											<img src={URL.createObjectURL(attachment)} />
-										</Show>
-									</AttachmentPreviewItem>
-								)}
-							</For>
-							<AttachmentPreviewItem action={pushFile}>
-								<AiOutlinePlus size={24} />
-							</AttachmentPreviewItem>
+				{(attachments) => {
+					const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {
+						if (event.key != 'Escape') {
+							return;
+						}
+
+						setAttachments((attachments) => attachments.slice(0, attachments.length - 1));
+					};
+
+					onMount(() => {
+						document.addEventListener('keydown', onKeyDown);
+						onCleanup(() => document.removeEventListener('keydown', onKeyDown));
+					});
+
+					return (
+						<div class={styles.attachmentPreviewBase}>
+							<div class={styles.attachmentPreview}>
+								<For each={attachments()}>
+									{(attachment, index) => {
+										return (
+											<AttachmentPreviewItem
+												overlay={<FiXCircle size={30} />}
+												metadata={{ name: attachment.name, size: attachment.size }}
+												action={() => {
+													setAttachments((attachments) =>
+														attachments.filter((_, i) => i != index())
+													);
+												}}
+											>
+												<Show
+													when={attachment.type.startsWith('image/')}
+													fallback={<AiFillFileText size={30} />}
+												>
+													<img src={URL.createObjectURL(attachment)} />
+												</Show>
+											</AttachmentPreviewItem>
+										);
+									}}
+								</For>
+								<AttachmentPreviewItem action={pushFile}>
+									<AiOutlinePlus size={24} />
+								</AttachmentPreviewItem>
+							</div>
+							<hr />
 						</div>
-						<hr />
-					</div>
-				)}
+					);
+				}}
 			</Show>
 			<div class={styles.messageFormBase}>
+				<For each={replies()}>
+					{([reply, setReply]) => {
+						const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {
+							if (event.key != 'Escape') {
+								return;
+							}
+
+							setReplies((replies) => replies.slice(0, replies.length - 1));
+						};
+
+						onMount(() => {
+							document.addEventListener('keydown', onKeyDown);
+							onCleanup(() => document.removeEventListener('keydown', onKeyDown));
+						});
+						return <SendableReplyComponent reply={reply} setReply={setReply} />;
+					}}
+				</For>
 				<form id="send-message-form" class={styles.messageForm} onSubmit={sendMessage}>
 					<button onClick={() => (attachments().length == 0 ? pushFile() : setAttachments([]))}>
 						<AiOutlinePlus
@@ -262,14 +335,15 @@ function TextChannelMeta(props: MetaProps) {
 							}}
 						/>
 					</button>
-					<TextAreaBase
+					<TextArea
 						placeholder={
 							channel?.channel_type == 'DirectMessage'
 								? `Send message to ${channelName()}`
 								: `Send message in ${channelName()}`
 						}
 						sendTypingIndicators
-						ref={textbox!}
+						ref={messageTextarea!}
+						onInput={(event) => setMessageInput(event.currentTarget.value)}
 						onKeyDown={(event) => {
 							if (event.shiftKey || event.key != 'Enter') {
 								return;
@@ -317,16 +391,15 @@ function TextChannelMeta(props: MetaProps) {
 									})
 								);
 
-								const namesExceptLast = createMemo(() =>
-									names()
-										.slice(0, names().length - 1)
-										.join(', ')
-								);
-								const lastName = createMemo(() => names()[names().length - 1]);
+								const formattedNames = createMemo(() => {
+									const namesExceptLast = names();
+									const lastName = namesExceptLast.pop();
+									return { namesExceptLast: namesExceptLast.join(', '), lastName };
+								});
 
 								return (
 									<>
-										{namesExceptLast()} and {lastName()} are typing...
+										{formattedNames().namesExceptLast} and {formattedNames().lastName} are typing...
 									</>
 								);
 							}}

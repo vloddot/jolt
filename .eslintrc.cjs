@@ -24,7 +24,7 @@ module.exports = {
 		ecmaVersion: 'latest',
 		sourceType: 'module'
 	},
-	plugins: ['@typescript-eslint', 'solid'],
+	plugins: ['@typescript-eslint', 'solid', 'jsx-a11y'],
 	rules: {
 		indent: ['warn', 'tab', { SwitchCase: 1 }],
 		'no-mixed-spaces-and-tabs': 'off',

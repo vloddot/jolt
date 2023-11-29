@@ -37,10 +37,6 @@ function getDisplayAvatar(
 		return `${getAutumnURL(member.avatar, { max_side: '256' })}`;
 	}
 
-	if (user == undefined || message?.system != undefined) {
-		return;
-	}
-
 	if (user.avatar == undefined) {
 		return getDefaultUserAvatar(user._id);
 	}
@@ -93,6 +89,7 @@ export default {
 	getAutumnURL,
 	getDisplayName,
 	getDisplayAvatar,
+	getDefaultUserAvatar,
 	getOtherRecipient,
 	hashMemberId,
 	formatSize

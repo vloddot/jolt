@@ -77,11 +77,12 @@ function ServerSidebar() {
 		const {
 			ordering: { servers: ordering }
 		} = settings();
-		if (ordering == undefined) {
-			return Array.from(servers().values());
+
+		if (ordering == undefined || Object.keys(ordering).length == 0) {
+			return servers();
 		}
 
-		return Array.from(servers().values()).sort(([a], [b]) => {
+		return servers().sort(([a], [b]) => {
 			const aIndex = ordering.indexOf(a._id);
 			const bIndex = ordering.indexOf(b._id);
 
@@ -128,7 +129,14 @@ function ServerSidebar() {
 							selected={serverIsSelected(server._id)}
 							tooltip={server.name}
 						>
-							<Show when={server.icon}>
+							<Show
+								when={server.icon}
+								fallback={server.name
+									.split(' ')
+									.map((s) => s[0])
+									.slice(0, 5)
+									.join('')}
+							>
 								{(icon) => (
 									<img class={styles.cover} src={util.getAutumnURL(icon())} alt={server.name} />
 								)}

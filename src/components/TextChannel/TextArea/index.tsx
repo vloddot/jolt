@@ -4,13 +4,15 @@ import { SelectedChannelContext } from '../context/channel';
 import styles from './index.module.scss';
 
 export interface Props {
+	initialValue?: string;
 	placeholder?: string;
 	sendTypingIndicators: boolean;
 	onKeyDown?: JSX.EventHandler<HTMLTextAreaElement, KeyboardEvent>;
-	ref: HTMLTextAreaElement;
+	onInput?: JSX.EventHandler<HTMLTextAreaElement, InputEvent>;
+	ref?: HTMLTextAreaElement | ((e: HTMLTextAreaElement) => void);
 }
 
-export default function TextAreaBase(props: Props) {
+export default function TextArea(props: Props) {
 	const channel = useContext(SelectedChannelContext)!;
 	const client = useContext(ClientContext);
 	let value = '';
@@ -44,11 +46,14 @@ export default function TextAreaBase(props: Props) {
 			onInput={(event) => {
 				beginTyping();
 				value = event.currentTarget.value;
+				props.onInput?.(event);
 			}}
 			onKeyDown={(event) => {
 				props.onKeyDown?.(event);
 				endTyping();
 			}}
+			autofocus
+			value={props.initialValue ?? ''}
 			maxLength="2000"
 			placeholder={props.placeholder}
 		/>

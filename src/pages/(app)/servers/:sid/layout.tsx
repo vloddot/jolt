@@ -1,4 +1,3 @@
-import ServerLoader from '@components/ServerLoader';
 import { SelectedServerIdContext } from '@lib/context/selectedServerId';
 import { Outlet } from '@solidjs/router';
 import {
@@ -18,6 +17,7 @@ import { HiOutlineSpeakerWave } from 'solid-icons/hi';
 import { OcHash3 } from 'solid-icons/oc';
 import { SelectedChannelIdContext } from '@lib/context/selectedChannelId';
 import api from '@lib/api';
+import { ServerCollectionContext } from '@lib/context/collections/servers';
 
 export default function ServerWrapper() {
 	const selectedServerId = useContext(SelectedServerIdContext);
@@ -25,84 +25,83 @@ export default function ServerWrapper() {
 	const channelIsSelected = createSelector(selectedChannelId);
 
 	return (
-		<Show
-			when={
-				selectedServerId() != undefined &&
-				selectedServerId()
-			}
-		>
-			{(id) => (
-				<ServerLoader id={id()}>
-					{(server) => {
-						function createChannelResource(id: string) {
-							return createResource(() => id, api.fetchChannel);
-						}
+		<Show when={selectedServerId() != undefined && selectedServerId()}>
+			{(id) => {
+				const servers = useContext(ServerCollectionContext);
+				const server = createMemo(() => servers().find(([{ _id }]) => _id == id())?.[0]);
+				return (
+					<Show when={server()} fallback={<p>Unresolved server</p>}>
+						{(server) => {
+							function createChannelResource(id: string) {
+								return createResource(() => id, api.fetchChannel);
+							}
 
-						const channels = createMemo(() => {
-							return {
-								unsorted: server().channels.flatMap((channel) => {
-									if (
-										server().categories != undefined &&
-										server().categories?.some((category) => category.channels.includes(channel))
-									) {
-										return [];
-									}
+							const channels = createMemo(() => {
+								return {
+									unsorted: server().channels.flatMap((channel) => {
+										if (
+											server().categories != undefined &&
+											server().categories?.some((category) => category.channels.includes(channel))
+										) {
+											return [];
+										}
 
-									return [createChannelResource(channel)];
-								}),
-								categorized: server().categories?.flatMap((category) => {
-									if (category.channels.length == 0) {
-										return [];
-									}
-									return {
-										...category,
-										channels: category.channels.map(createChannelResource)
-									};
-								})
-							};
-						});
+										return [createChannelResource(channel)];
+									}),
+									categorized: server().categories?.flatMap((category) => {
+										if (category.channels.length == 0) {
+											return [];
+										}
+										return {
+											...category,
+											channels: category.channels.map(createChannelResource)
+										};
+									})
+								};
+							});
 
-						return (
-							<SelectedServerContext.Provider value={server()}>
-								<div class="channel-bar-container">
-									<For each={channels().unsorted}>
-										{([channel]) => (
-											<Show when={channel.state == 'ready' && channel()}>
-												{(channel) => (
-													<Channel
-														channel={channel()}
-														selected={channelIsSelected(channel()._id)}
-													/>
-												)}
-											</Show>
-										)}
-									</For>
-									<For each={channels().categorized}>
-										{(category) => (
-											<details open>
-												<summary>{category.title}</summary>
-												<For each={category.channels}>
-													{([channel]) => (
-														<Show when={channel.state == 'ready' && channel()}>
-															{(channel) => (
-																<Channel
-																	channel={channel()}
-																	selected={channelIsSelected(channel()._id)}
-																/>
-															)}
-														</Show>
+							return (
+								<SelectedServerContext.Provider value={server()}>
+									<div class="channel-bar-container">
+										<For each={channels().unsorted}>
+											{([channel]) => (
+												<Show when={channel.state == 'ready' && channel()}>
+													{(channel) => (
+														<Channel
+															channel={channel()}
+															selected={channelIsSelected(channel()._id)}
+														/>
 													)}
-												</For>
-											</details>
-										)}
-									</For>
-								</div>
-								<Outlet />
-							</SelectedServerContext.Provider>
-						);
-					}}
-				</ServerLoader>
-			)}
+												</Show>
+											)}
+										</For>
+										<For each={channels().categorized}>
+											{(category) => (
+												<details open>
+													<summary>{category.title}</summary>
+													<For each={category.channels}>
+														{([channel]) => (
+															<Show when={channel.state == 'ready' && channel()}>
+																{(channel) => (
+																	<Channel
+																		channel={channel()}
+																		selected={channelIsSelected(channel()._id)}
+																	/>
+																)}
+															</Show>
+														)}
+													</For>
+												</details>
+											)}
+										</For>
+									</div>
+									<Outlet />
+								</SelectedServerContext.Provider>
+							);
+						}}
+					</Show>
+				);
+			}}
 		</Show>
 	);
 }

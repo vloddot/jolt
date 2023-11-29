@@ -4,7 +4,6 @@ import { UserCollectionContext } from './context/collections/users';
 import { createStore, type Store } from 'solid-js/store';
 import { ChannelCollectionContext } from './context/collections/channels';
 import { MemberCollectionContext } from './context/collections/members';
-import { ServerCollectionContext } from './context/collections/servers';
 import util from './util';
 
 function req(
@@ -147,21 +146,6 @@ async function deleteMessage(target: string, msg: string): Promise<void> {
 	await req('DELETE', `/channels/${target}/messages/${msg}`);
 }
 
-async function fetchServer(target: string): Promise<Server> {
-	const servers = useContext(ServerCollectionContext)();
-	const server = servers.get(target);
-
-	if (server == undefined) {
-		const [store, setStore] = createStore<Server>(
-			await req('GET', `/servers/${target}`).then((response) => response.json())
-		);
-		servers.set(target, [store, setStore]);
-		return store;
-	}
-
-	return server[0];
-}
-
 async function uploadAttachment(file: File, tag = 'attachments'): Promise<string> {
 	const form = new FormData();
 
@@ -175,6 +159,16 @@ async function uploadAttachment(file: File, tag = 'attachments'): Promise<string
 	return id;
 }
 
+async function editMessage(
+	channel_id: string,
+	message_id: string,
+	data: DataEditMessage
+): Promise<Message> {
+	return req('PATCH', `/channels/${channel_id}/messages/${message_id}`, JSON.stringify(data)).then(
+		(response) => response.json()
+	);
+}
+
 export default {
 	req,
 	login,
@@ -182,10 +176,10 @@ export default {
 	fetchSettings,
 	fetchDMs,
 	fetchChannel,
-	fetchServer,
 	queryMessages,
 	sendMessage,
 	fetchMember,
 	deleteMessage,
-	uploadAttachment
+	uploadAttachment,
+	editMessage
 };

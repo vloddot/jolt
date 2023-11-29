@@ -36,6 +36,7 @@
 	.messageBase {
 		display: flex;
 		flex-direction: column;
+		width: 100%;
 
 		.messageMeta {
 			font-size: 0.75rem;
@@ -69,5 +70,21 @@
 				opacity: 0.5;
 			}
 		}
+	}
+}
+
+.messageEditFormBase {
+	display: flex;
+	flex-direction: column;
+
+	.messageEditForm {
+		background-color: var(--message-box);
+		border-radius: 6px;
+		padding-left: 12px;
+	}
+	
+	.caption {
+		font-size: 0.7em;
+		color: var(--secondary-foreground);
 	}
 }

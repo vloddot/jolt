@@ -13,6 +13,7 @@
 		border-right: 1px solid var(--secondary-header);
 		background-color: var(--background);
 		overflow-y: scroll;
+		overflow-x: hidden;
 	}
 
 	.channel-bar-container {

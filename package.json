@@ -9,13 +9,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@solid-primitives/map": "^0.4.8",
     "@solid-primitives/set": "^0.4.8",
+    "@solidjs/router": "^0.9.0",
     "dayjs": "^1.11.10",
+    "eventemitter3": "^5.0.1",
     "localforage": "^1.10.0",
-    "solid-js": "^1.7.8"
+    "solid-icons": "^1.1.0",
+    "solid-js": "^1.7.8",
+    "tippy.js": "^6.3.7",
+    "ulid": "^2.3.0"
   },
   "devDependencies": {
-    "@solidjs/router": "^0.9.0",
     "@types/node": "^20.9.0",
     "@typescript-eslint/eslint-plugin": "^6.11.0",
     "@typescript-eslint/parser": "^6.11.0",
@@ -23,13 +28,8 @@
     "eslint": "^8.54.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-solid": "^0.13.0",
-    "eventemitter3": "^5.0.1",
     "sass": "^1.69.5",
-    "solid-icons": "^1.1.0",
-    "solid-tippy": "^0.2.1",
-    "tippy.js": "^6.3.7",
     "typescript": "^5.0.2",
-    "ulid": "^2.3.0",
     "vite": "^4.4.5",
     "vite-plugin-solid": "^2.7.0"
   }
