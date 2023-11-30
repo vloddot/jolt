@@ -20,8 +20,6 @@ export default function SelectedChannelProvider(props: Props) {
 				return;
 			}
 
-			console.log(session);
-
 			return api.fetchChannel(target);
 		}
 	);

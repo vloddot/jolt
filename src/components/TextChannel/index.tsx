@@ -13,6 +13,7 @@ import {
 	onCleanup
 } from 'solid-js';
 import styles from './index.module.scss';
+import utilStyles from '@lib/util.module.scss';
 import api from '@lib/api';
 import { MessageComponent } from './Message';
 import { RepliesContext } from './context/replies';
@@ -27,6 +28,7 @@ import { AiFillFileText, AiOutlinePlus } from 'solid-icons/ai';
 import { FiXCircle } from 'solid-icons/fi';
 import SendableReplyComponent from './SendableReply';
 import { SelectedChannelContext } from '@lib/context/selectedChannel';
+import { FaSolidUserSecret } from 'solid-icons/fa';
 
 export interface Props {
 	channel: Exclude<Channel, { channel_type: 'VoiceChannel' }>;
@@ -65,10 +67,19 @@ function TextChannelMeta(props: MetaProps) {
 	const [messageInput, setMessageInput] = useContext(MessageInputContext);
 	const [replies, setReplies] = useContext(RepliesContext)!;
 
+	const [showMasqueradeControls, setShowMasqueradeControls] = createSignal(false);
+
+	// does not need reactivity
+	let masqueradeName = '';
+	let masqueradeAvatar = '';
+
 	let messageTextarea: HTMLTextAreaElement;
 
 	function focus() {
-		messageTextarea.focus();
+		// if any other input element is active, do *not* focus
+		if (!['TEXTAREA', 'INPUT'].includes(document.activeElement?.nodeName ?? '')) {
+			messageTextarea.focus();
+		}
 	}
 
 	const onPaste: GlobalEventHandlers['onpaste'] = (event) => {
@@ -115,12 +126,14 @@ function TextChannelMeta(props: MetaProps) {
 			return;
 		}
 
-		setChannelName(`#${channel.name}`);
+		setChannelName(`#${c.name}`);
 	});
 
 	const sendMessage: JSX.EventHandler<HTMLFormElement, SubmitEvent> = async (event) => {
 		event.preventDefault();
-		if (channel == undefined) {
+
+		const c = channel();
+		if (c == undefined) {
 			return;
 		}
 
@@ -148,8 +161,11 @@ function TextChannelMeta(props: MetaProps) {
 			setReplies([]);
 		}
 
-		const c = channel();
-		if (Object.keys(data).length == 0 || c == undefined) {
+		if (masqueradeName != '' || masqueradeAvatar != '') {
+			data.masquerade = { name: masqueradeName, avatar: masqueradeAvatar };
+		}
+
+		if (Object.keys(data).length == 0) {
 			return;
 		}
 
@@ -322,6 +338,7 @@ function TextChannelMeta(props: MetaProps) {
 								return;
 							}
 
+							event.preventDefault();
 							setReplies((replies) => replies.slice(0, replies.length - 1));
 						};
 
@@ -360,6 +377,27 @@ function TextChannelMeta(props: MetaProps) {
 							event.currentTarget.form?.requestSubmit();
 						}}
 					/>
+					<div class={utilStyles.flexDivider} />
+					<Show when={showMasqueradeControls()}>
+						{/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
+						{(_s) => (
+							<>
+								<input
+									type="text"
+									onInput={(event) => (masqueradeName = event.currentTarget.value)}
+									placeholder="Masquerade Name"
+								/>
+								<input
+									type="text"
+									onInput={(event) => (masqueradeAvatar = event.currentTarget.value)}
+									placeholder="Masquerade Avatar"
+								/>
+							</>
+						)}
+					</Show>
+					<button onClick={() => setShowMasqueradeControls((v) => !v)}>
+						<FaSolidUserSecret />
+					</button>
 				</form>
 
 				<div class={styles.typingIndicators}>
