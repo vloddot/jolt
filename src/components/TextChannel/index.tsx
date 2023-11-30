@@ -86,12 +86,24 @@ function TextChannelMeta(props: MetaProps) {
 
 	let messageTextarea: HTMLTextAreaElement;
 
-	function focus() {
-		// if any other input element is active, do *not* focus
+	const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {
+		if (
+			// control keys (except for ctrl+v)
+			(event.ctrlKey && event.key != 'v') ||
+			// alt key and meta key
+			event.altKey ||
+			event.metaKey ||
+			event.key.length != 1 ||
+			// if any other input element is active, do *not* focus
+			util.inputSelected()
+		) {
+			return;
+		}
+
 		if (!util.inputSelected()) {
 			messageTextarea.focus();
 		}
-	}
+	};
 
 	const onPaste: GlobalEventHandlers['onpaste'] = (event) => {
 		if (event.clipboardData?.files != null && event.clipboardData.files.length != 0) {
@@ -102,11 +114,10 @@ function TextChannelMeta(props: MetaProps) {
 	};
 
 	onMount(() => {
-		focus();
-		document.addEventListener('keydown', focus);
+		document.addEventListener('keydown', onKeyDown);
 		document.addEventListener('paste', onPaste);
 		onCleanup(() => {
-			document.removeEventListener('keydown', focus);
+			document.removeEventListener('keydown', onKeyDown);
 			document.removeEventListener('paste', onPaste);
 		});
 	});
