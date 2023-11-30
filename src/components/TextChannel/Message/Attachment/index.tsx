@@ -8,13 +8,36 @@ export default function Attachment(attachment: AutumnFile) {
 
 	return (
 		<Switch>
-			<Match when={attachment.metadata.type == 'Image'}>
-				<img class={styles.mediaAttachment} src={href()} alt={attachment.filename} />
+			<Match
+				when={
+					attachment.metadata.type == 'Image' && {
+						filename: attachment.filename,
+						metadata: attachment.metadata
+					}
+				}
+			>
+				{(attachment) => (
+					<img
+						class={styles.mediaAttachment}
+						src={href()}
+						alt={attachment().filename}
+						style={{
+							'--width': `${attachment().metadata.width}px`,
+							'--height': `${attachment().metadata.width}px`
+						}}
+					/>
+				)}
 			</Match>
-			<Match when={attachment.metadata.type == 'Video'}>
-				<video class={styles.mediaAttachment} controls>
-					<source src={href()} />
-				</video>
+			<Match when={attachment.metadata.type == 'Video' && attachment.metadata}>
+				{(metadata) => (
+					<video
+						style={{ '--width': `${metadata().width}px`, '--height': `${metadata().height}px` }}
+						class={styles.mediaAttachment}
+						controls
+					>
+						<source src={href()} />
+					</video>
+				)}
 			</Match>
 			<Match when={attachment.metadata.type == 'Audio'}>
 				<audio class={styles.mediaAttachment} controls>
