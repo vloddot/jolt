@@ -79,18 +79,22 @@ export function MessageComponent(props: Props) {
 		util.getDisplayName(props.author, props.member, props.message)
 	);
 
+	const time = createMemo(() => dayjs(decodeTime(props.message._id)));
+
 	return (
 		<div id={`MESSAGE-${props.message._id}`}>
 			<Show when={props.message.replies?.length != 0 && props.message.replies}>
 				{(replies) => (
-					<For each={replies()}>
-						{(message_id) => <MessageReply to_id={message_id} from={props.message} />}
-					</For>
+					<div class={styles.replyBar}>
+						<For each={replies()}>
+							{(message_id) => <MessageReply to_id={message_id} from={props.message} />}
+						</For>
+					</div>
 				)}
 			</Show>
 			<div class={styles.messageContainer}>
-				<span style={{ width: '28px' }}>
-					<Show when={props.isHead}>
+				<span class={styles.messageInfo}>
+					<Show when={props.isHead} fallback={<time>{time().format('hh:mm')}</time>}>
 						<img
 							class={utilStyles.cover}
 							src={util.getDisplayAvatar(props.author, props.member, props.message)}
@@ -123,9 +127,7 @@ export function MessageComponent(props: Props) {
 									@{props.author.username}#{props.author.discriminator}
 								</span>
 							</Show>
-							<time class={styles.timestamp}>
-								{dayjs(decodeTime(props.message._id)).calendar()}
-							</time>
+							<time class={styles.timestamp}>{time().calendar()}</time>
 						</span>
 					</Show>
 
