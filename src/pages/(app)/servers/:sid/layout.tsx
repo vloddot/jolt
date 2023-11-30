@@ -1,4 +1,4 @@
-import { SelectedServerContext } from '@lib/context/selectedServer';
+import { SelectedServerIdContext } from '@lib/context/SelectedServerId';
 import { Outlet } from '@solidjs/router';
 import {
 	For,
@@ -14,22 +14,26 @@ import ChannelItem from '@components/ChannelItem';
 import util from '@lib/util';
 import { HiOutlineSpeakerWave } from 'solid-icons/hi';
 import { OcHash3 } from 'solid-icons/oc';
-import { SelectedChannelContext } from '@lib/context/selectedChannel';
+import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
 import api from '@lib/api';
+import { ServerCollectionContext } from '@lib/context/collections/Servers';
+import { SelectedServerContext } from '@lib/context/SelectedServer';
 
 export default function ServerWrapper() {
-	const selectedServer = useContext(SelectedServerContext);
-	const selectedChannel = useContext(SelectedChannelContext)!;
-	const channelIsSelected = createSelector(() => selectedChannel()?._id);
+	const selectedServer = useContext(SelectedServerIdContext);
+	const selectedChannelId = useContext(SelectedChannelIdContext);
+	const channelIsSelected = createSelector(selectedChannelId);
 
 	return (
 		<Show when={selectedServer() != undefined && selectedServer()}>
-			{(serverAccessor) => {
-				const server = () => serverAccessor();
+			{(id) => {
+				const servers = useContext(ServerCollectionContext);
+				const server = createMemo(() => servers.get(id()));
 
 				return (
 					<Show when={server()} fallback={<p>Unresolved server</p>}>
-						{(server) => {
+						{(serverAccesor) => {
+							const server = () => serverAccesor()[0];
 							function createChannelResource(id: string) {
 								return createResource(() => id, api.fetchChannel);
 							}
@@ -59,7 +63,7 @@ export default function ServerWrapper() {
 							});
 
 							return (
-								<>
+								<SelectedServerContext.Provider value={server}>
 									<div class="channel-bar-container">
 										<For each={channels().unsorted}>
 											{([channel]) => (
@@ -96,7 +100,7 @@ export default function ServerWrapper() {
 										</For>
 									</div>
 									<Outlet />
-								</>
+								</SelectedServerContext.Provider>
 							);
 						}}
 					</Show>
@@ -112,7 +116,7 @@ interface ChannelComponentProps {
 }
 
 function ChannelComponent(props: ChannelComponentProps) {
-	const server = useContext(SelectedServerContext)!;
+	const selectedServerId = useContext(SelectedServerIdContext)!;
 	const unread = createMemo(() => util.isUnread(props.channel));
 
 	return (
@@ -125,7 +129,7 @@ function ChannelComponent(props: ChannelComponentProps) {
 		>
 			{(channel) => (
 				<ChannelItem
-					href={`/servers/${server()!._id}/channels/${channel()._id}`}
+					href={`/servers/${selectedServerId()}/channels/${channel()._id}`}
 					selected={props.selected}
 					unread={unread()}
 				>

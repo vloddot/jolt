@@ -1,9 +1,9 @@
 import api from './api';
 import { batch, onCleanup, onMount, useContext, createRoot } from 'solid-js';
-import ClientContext from './context/client';
+import ClientContext from './context/Client';
 import { createStore } from 'solid-js/store';
-import { SessionContext } from './context/session';
-import type { ClientEvents } from './client';
+import { SessionContext } from './context/Session';
+import type { ClientEvents } from './Client';
 import { ReactiveSet } from '@solid-primitives/set';
 
 export interface MessageCollection {

@@ -15,14 +15,14 @@ import {
 	onCleanup
 } from 'solid-js';
 import { decodeTime } from 'ulid';
-import { RepliesContext, type SendableReply } from '../context/replies';
+import { RepliesContext, type SendableReply } from '../context/Replies';
 import 'tippy.js/animations/scale-subtle.css';
 import Tooltip from '@components/Tooltip';
 import api from '@lib/api';
 import Attachment from './Attachment';
 import Embed from './Embed';
 import TextArea from '../TextArea';
-import { SessionContext } from '@lib/context/session';
+import { SessionContext } from '@lib/context/Session';
 import { createStore } from 'solid-js/store';
 import MessageReply from './Reply';
 
@@ -83,7 +83,9 @@ export function MessageComponent(props: Props) {
 		<div id={`MESSAGE-${props.message._id}`}>
 			<Show when={props.message.replies?.length != 0 && props.message.replies}>
 				{(replies) => (
-					<For each={replies()}>{(message_id) => <MessageReply message_id={message_id} />}</For>
+					<For each={replies()}>
+						{(message_id) => <MessageReply to_id={message_id} from={props.message} />}
+					</For>
 				)}
 			</Show>
 			<div class={styles.messageContainer}>

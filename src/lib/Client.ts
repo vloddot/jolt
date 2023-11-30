@@ -217,8 +217,6 @@ export class Client extends EventEmitter<ClientEvents> {
 				return;
 			}
 			case 'NotFound': {
-				// localforage.removeItem('session');
-
 				this.emit('NotFound', message);
 				return;
 			}

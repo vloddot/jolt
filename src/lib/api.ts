@@ -1,9 +1,9 @@
 import { useContext } from 'solid-js';
-import { SessionContext } from './context/session';
-import { UserCollectionContext } from './context/collections/users';
+import { SessionContext } from './context/Session';
+import { UserCollectionContext } from './context/collections/Users';
 import { createStore, type Store } from 'solid-js/store';
-import { ChannelCollectionContext } from './context/collections/channels';
-import { MemberCollectionContext } from './context/collections/members';
+import { ChannelCollectionContext } from './context/collections/Channels';
+import { MemberCollectionContext } from './context/collections/Members';
 import util from './util';
 
 function req(

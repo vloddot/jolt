@@ -16,17 +16,19 @@ import {
 import { Outlet, useLocation } from '@solidjs/router';
 import ServerCollectionProvider, {
 	ServerCollectionContext
-} from '@lib/context/collections/servers';
-import SettingsProvider, { SettingsContext } from '@lib/context/settings';
-import SelectedServerProvider, { SelectedServerContext } from '@lib/context/selectedServer';
-import UserCollectionProvider from '@lib/context/collections/users';
-import ChannelCollectionProvider from '@lib/context/collections/channels';
-import MemberCollectionProvider from '@lib/context/collections/members';
-import EmojiCollectionProvider from '@lib/context/collections/emojis';
-import SelectedChannelProvider, { SelectedChannelContext } from '@lib/context/selectedChannel';
-import ClientContext from '@lib/context/client';
+} from '@lib/context/collections/Servers';
+import SettingsProvider, { SettingsContext } from '@lib/context/Settings';
+import SelectedServerIdProvider, { SelectedServerIdContext } from '@lib/context/SelectedServerId';
+import UserCollectionProvider from '@lib/context/collections/Users';
+import ChannelCollectionProvider from '@lib/context/collections/Channels';
+import MemberCollectionProvider from '@lib/context/collections/Members';
+import EmojiCollectionProvider from '@lib/context/collections/Emojis';
+import SelectedChannelIdProvider, {
+	SelectedChannelIdContext
+} from '@lib/context/SelectedChannelId';
+import ClientContext from '@lib/context/Client';
+import UnreadsCollectionProvider from '@lib/context/collections/Unreads';
 import { FaSolidHouse } from 'solid-icons/fa';
-import UnreadsCollectionProvider from '@lib/context/collections/unreads';
 import api from '@lib/api';
 
 export default function AppWrapper() {
@@ -50,8 +52,8 @@ export default function AppWrapper() {
 					<MemberCollectionProvider>
 						<EmojiCollectionProvider>
 							<UnreadsCollectionProvider>
-								<SelectedServerProvider>
-									<SelectedChannelProvider>
+								<SelectedServerIdProvider>
+									<SelectedChannelIdProvider>
 										<SettingsProvider>
 											<Show when={showContent()} fallback={<p>Loading client...</p>}>
 												<ServerSidebar />
@@ -59,8 +61,8 @@ export default function AppWrapper() {
 												<Outlet />
 											</Show>
 										</SettingsProvider>
-									</SelectedChannelProvider>
-								</SelectedServerProvider>
+									</SelectedChannelIdProvider>
+								</SelectedServerIdProvider>
 							</UnreadsCollectionProvider>
 						</EmojiCollectionProvider>
 					</MemberCollectionProvider>
@@ -73,9 +75,9 @@ export default function AppWrapper() {
 function ServerSidebar() {
 	const settings = useContext(SettingsContext);
 	const servers = useContext(ServerCollectionContext);
-	const selectedServer = useContext(SelectedServerContext);
-	const selectedChannel = useContext(SelectedChannelContext);
-	const serverIsSelected = createSelector(() => selectedServer()?._id);
+	const selectedServerId = useContext(SelectedServerIdContext);
+	const selectedChannelId = useContext(SelectedChannelIdContext);
+	const serverIsSelected = createSelector(selectedServerId);
 	const location = useLocation();
 
 	const sortedServers = createMemo(() => {
@@ -117,7 +119,7 @@ function ServerSidebar() {
 				href="/"
 				selected={
 					['/', '/friends'].includes(location.pathname) ||
-					(selectedServer() == undefined && selectedChannel() != undefined)
+					(selectedServerId() == undefined && selectedChannelId() != undefined)
 				}
 				tooltip="Home"
 				unread={false}

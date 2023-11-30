@@ -16,41 +16,55 @@ import styles from './index.module.scss';
 import utilStyles from '@lib/util.module.scss';
 import api from '@lib/api';
 import { MessageComponent } from './Message';
-import { RepliesContext } from './context/replies';
+import { RepliesContext } from './context/Replies';
 import TextArea from './TextArea';
 import util from '@lib/util';
-import { MessageInputContext } from './context/messageInput';
+import { MessageInputContext } from './context/MessageInput';
 import { getMessageCollection, type MessageCollection } from '@lib/messageCollections';
 import { decodeTime } from 'ulid';
-import { SelectedServerContext } from '@lib/context/selectedServer';
+import { SelectedServerContext } from '@lib/context/SelectedServer';
 import AttachmentPreviewItem from './AttachmentPreviewItem';
 import { AiFillFileText, AiOutlinePlus } from 'solid-icons/ai';
 import { FiXCircle } from 'solid-icons/fi';
 import SendableReplyComponent from './SendableReply';
-import { SelectedChannelContext } from '@lib/context/selectedChannel';
+import { SelectedChannelContext } from '@lib/context/SelectedChannel';
 import { FaSolidUserSecret } from 'solid-icons/fa';
+import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
+import MessageCollectionContext from './context/MessageCollection';
 
-export interface Props {
-	channel: Exclude<Channel, { channel_type: 'VoiceChannel' }>;
-	server?: Server;
-}
-
-export default function TextChannel(props: Props) {
-	const [messageCollection] = createResource(
-		// eslint-disable-next-line solid/reactivity
-		() => props.channel._id,
-		getMessageCollection
-	);
+export default function TextChannel() {
+	const selectedChannelId = useContext(SelectedChannelIdContext);
+	const [channel] = createResource(selectedChannelId, api.fetchChannel);
+	const [messageCollection] = createResource(selectedChannelId, getMessageCollection);
 
 	return (
 		<Switch>
-			<Match when={messageCollection.state == 'errored'}>Error loading messages</Match>
-			<Match when={messageCollection.state == 'pending'}>Loading messages...</Match>
-			<Match when={messageCollection.state == 'refreshing'}>Reloading messages...</Match>
-			<Match when={messageCollection.state == 'unresolved'}>Unresolved channel.</Match>
-			<Match when={messageCollection.state == 'ready' && messageCollection()}>
-				{(collection) => {
-					return <TextChannelMeta collection={collection()} />;
+			<Match when={messageCollection.state == 'errored' || channel.state == 'errored'}>
+				Error loading messages
+			</Match>
+			<Match when={messageCollection.state == 'pending' || channel.state == 'pending'}>
+				Loading messages...
+			</Match>
+			<Match when={messageCollection.state == 'refreshing' || channel.state == 'refreshing'}>
+				Reloading messages...
+			</Match>
+			<Match when={messageCollection.state == 'unresolved' || channel.state == 'unresolved'}>
+				Unresolved channel.
+			</Match>
+			<Match
+				when={
+					messageCollection.state == 'ready' &&
+					channel.state == 'ready' && { channel: channel(), collection: messageCollection() }
+				}
+			>
+				{(accessor) => {
+					return (
+						<MessageCollectionContext.Provider value={messageCollection}>
+							<SelectedChannelContext.Provider value={channel}>
+								<TextChannelMeta collection={accessor().collection} />
+							</SelectedChannelContext.Provider>
+						</MessageCollectionContext.Provider>
+					);
 				}}
 			</Match>
 		</Switch>
@@ -209,7 +223,7 @@ function TextChannelMeta(props: MetaProps) {
 
 	const messages = createMemo(() => Object.values(props.collection.messages));
 	return (
-		<>
+		<main class="main-content-container">
 			<div class={styles.messageList}>
 				<For each={messages()}>
 					{(message, messageIndex) => {
@@ -453,6 +467,6 @@ function TextChannelMeta(props: MetaProps) {
 					</Switch>
 				</div>
 			</div>
-		</>
+		</main>
 	);
 }

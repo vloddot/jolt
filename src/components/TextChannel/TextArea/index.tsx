@@ -1,7 +1,7 @@
-import ClientContext from '@lib/context/client';
+import ClientContext from '@lib/context/Client';
 import { useContext, type JSX } from 'solid-js';
 import styles from './index.module.scss';
-import { SelectedChannelContext } from '@lib/context/selectedChannel';
+import { SelectedChannelContext } from '@lib/context/SelectedChannel';
 
 export interface Props {
 	initialValue?: string;

@@ -1,5 +1,5 @@
 import { createContext, createEffect, createSignal, useContext, type JSX, onMount } from 'solid-js';
-import ClientContext from './client';
+import ClientContext from './Client';
 import localforage from 'localforage';
 
 // eslint-disable-next-line solid/reactivity

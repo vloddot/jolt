@@ -9,10 +9,10 @@ import {
 	createEffect
 } from 'solid-js';
 import api from '@lib/api';
-import { SessionContext } from './session';
+import { SessionContext } from './Session';
 import localforage from 'localforage';
-import ClientContext from './client';
-import type { ClientEvents } from '@lib/client';
+import ClientContext from './Client';
+import type { ClientEvents } from '@lib/Client';
 
 export const DEFAULT_SETTINGS: Settings = {
 	ordering: {}

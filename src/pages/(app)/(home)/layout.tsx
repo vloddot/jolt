@@ -19,8 +19,8 @@ import {
 import styles from '@lib/util.module.scss';
 import util from '@lib/util';
 import api from '@lib/api';
-import { SelectedChannelContext } from '@lib/context/selectedChannel';
-import { ChannelCollectionContext } from '@lib/context/collections/channels';
+import { SelectedChannelContext } from '@lib/context/SelectedChannel';
+import { ChannelCollectionContext } from '@lib/context/collections/Channels';
 
 export default function HomeWrapper() {
 	const location = useLocation();

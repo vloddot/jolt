@@ -1,6 +1,6 @@
 import { useContext } from 'solid-js';
-import { SessionContext } from './context/session';
-import { UnreadsCollectionContext } from './context/collections/unreads';
+import { SessionContext } from './context/Session';
+import { UnreadsCollectionContext } from './context/collections/Unreads';
 
 function getAutumnURL(
 	file: { _id: string; tag: string },

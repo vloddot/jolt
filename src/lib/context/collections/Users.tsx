@@ -6,9 +6,9 @@ import {
 	onMount,
 	onCleanup
 } from 'solid-js';
-import ClientContext from '@lib/context/client';
+import ClientContext from '@lib/context/Client';
 import { createStore } from 'solid-js/store';
-import type { ClientEvents } from '@lib/client';
+import type { ClientEvents } from '@lib/Client';
 import { ReactiveMap } from '@solid-primitives/map';
 
 export const UserCollectionContext = createContext(

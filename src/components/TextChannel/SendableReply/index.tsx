@@ -1,7 +1,7 @@
 import styles from './index.module.scss';
 import utilStyles from '@lib/util.module.scss';
 import { Show, createMemo, createResource, useContext } from 'solid-js';
-import { RepliesContext, type SendableReply } from '../context/replies';
+import { RepliesContext, type SendableReply } from '../context/Replies';
 import api from '@lib/api';
 import util from '@lib/util';
 import { HiSolidAtSymbol } from 'solid-icons/hi';

@@ -6,7 +6,7 @@ import detect from 'browser-detect';
 import { useNavigate } from '@solidjs/router';
 import { createStore } from 'solid-js/store';
 import localforage from 'localforage';
-import { SessionContext } from '@lib/context/session';
+import { SessionContext } from '@lib/context/Session';
 
 const displayMethods: Record<MFAMethod, string> = {
 	Totp: 'TOTP Code',

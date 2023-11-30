@@ -1,23 +1,25 @@
 import api from '@lib/api';
-import { getMessageCollection, type MessageCollection } from '@lib/messageCollections';
+import { type MessageCollection } from '@lib/messageCollections';
 import { A } from '@solidjs/router';
-import { Match, Switch, createMemo, createResource, useContext } from 'solid-js';
+import { Match, Show, Switch, createMemo, createResource, useContext } from 'solid-js';
 import styles from './index.module.scss';
 import utilStyles from '@lib/util.module.scss';
 import util from '@lib/util';
-import { SelectedChannelContext } from '@lib/context/selectedChannel';
+import { SelectedChannelContext } from '@lib/context/SelectedChannel';
+import MessageCollectionContext from '@components/TextChannel/context/MessageCollection';
 
 export interface Props {
-	message_id: string;
+	to_id: string;
+	from: Message;
 }
 
 export default function MessageReply(props: Props) {
 	const selectedChannel = useContext(SelectedChannelContext)!;
-	const [collection] = createResource(() => selectedChannel()?._id, getMessageCollection);
+	const collection = useContext(MessageCollectionContext);
 
 	const [message] = createResource(
 		() =>
-			[selectedChannel()?._id, props.message_id, collection()?.messages[props.message_id]] as [
+			[selectedChannel()?._id, props.to_id, collection()?.messages] as [
 				string,
 				string,
 				MessageCollection['messages'] | undefined
@@ -71,7 +73,9 @@ export default function MessageReply(props: Props) {
 												}
 											);
 
-											const displayName = createMemo(() => util.getDisplayName(user(), member(), message()));
+											const displayName = createMemo(() =>
+												util.getDisplayName(user(), member(), message())
+											);
 											const displayAvatar = createMemo(() =>
 												util.getDisplayAvatar(user(), member(), message())
 											);
@@ -84,7 +88,10 @@ export default function MessageReply(props: Props) {
 														src={displayAvatar()}
 														alt={displayName()}
 													/>
-													<span>{displayName()}</span>
+													<span>
+														<Show when={props.from.mentions?.includes(user()._id)}>@</Show>
+														{displayName()}
+													</span>
 												</>
 											);
 										}}

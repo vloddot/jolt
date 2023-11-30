@@ -1,10 +1,10 @@
 import { createContext, type JSX, useContext, createComputed, onMount, onCleanup } from 'solid-js';
-import ClientContext from '../client';
-import { SessionContext } from '../session';
+import ClientContext from '@lib/context/Client';
+import { SessionContext } from '@lib/context/Session';
 import api from '@lib/api';
 import { createStore } from 'solid-js/store';
 import { ReactiveMap } from '@solid-primitives/map';
-import type { ClientEvents } from '@lib/client';
+import type { ClientEvents } from '@lib/Client';
 
 export const UnreadsCollectionContext = createContext(
 	new ReactiveMap<ChannelUnread['_id']['channel'], CollectionItem<ChannelUnread>>()
