@@ -407,7 +407,7 @@ function TextChannelMeta(props: MetaProps) {
 						)}
 					</Show>
 					<button onClick={() => setShowMasqueradeControls((v) => !v)}>
-						<FaSolidUserSecret />
+						<FaSolidUserSecret size={24} />
 					</button>
 				</form>
 
