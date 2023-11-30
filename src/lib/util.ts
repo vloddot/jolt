@@ -111,6 +111,9 @@ function isUnread(channel: Channel) {
 
 	return (unread.last_id?.localeCompare(channel.last_message_id ?? '0') ?? 0) == -1;
 }
+function inputSelected() {
+	return ['TEXTAREA', 'INPUT'].includes(document.activeElement?.nodeName ?? '');
+}
 
 export default {
 	getAutumnURL,
@@ -120,5 +123,6 @@ export default {
 	getOtherRecipient,
 	hashMemberId,
 	formatSize,
-	isUnread
+	isUnread,
+	inputSelected
 };

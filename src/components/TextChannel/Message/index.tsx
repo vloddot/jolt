@@ -158,7 +158,9 @@ export function MessageComponent(props: Props) {
 							let textarea: HTMLTextAreaElement;
 
 							function focus() {
-								textarea.focus();
+								if (!util.inputSelected()) {
+									textarea.focus();
+								}
 							}
 
 							onMount(() => {

@@ -1,7 +1,7 @@
 import api from '@lib/api';
 import { useParams } from '@solidjs/router';
 import { createContext, type Accessor, type JSX, createResource, useContext } from 'solid-js';
-import { SessionContext } from './session';
+import ClientContext from './client';
 
 export const SelectedChannelContext = createContext<Accessor<Channel | undefined>>(() => undefined);
 
@@ -10,18 +10,12 @@ export interface Props {
 }
 
 export default function SelectedChannelProvider(props: Props) {
-	const [session] = useContext(SessionContext);
+	const client = useContext(ClientContext);
 
 	const params = useParams();
 	const [selectedChannel] = createResource(
-		() => [session(), params.cid] as const,
-		([session, target]) => {
-			if (session == undefined) {
-				return;
-			}
-
-			return api.fetchChannel(target);
-		}
+		() => client.connectionState() == 'connected' && params.cid,
+		api.fetchChannel
 	);
 
 	return (

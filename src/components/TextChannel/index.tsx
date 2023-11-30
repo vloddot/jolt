@@ -77,7 +77,7 @@ function TextChannelMeta(props: MetaProps) {
 
 	function focus() {
 		// if any other input element is active, do *not* focus
-		if (!['TEXTAREA', 'INPUT'].includes(document.activeElement?.nodeName ?? '')) {
+		if (!util.inputSelected()) {
 			messageTextarea.focus();
 		}
 	}
