@@ -71,9 +71,9 @@ export default function MessageReply(props: Props) {
 												}
 											);
 
-											const displayName = createMemo(() => util.getDisplayName(user(), member()));
+											const displayName = createMemo(() => util.getDisplayName(user(), member(), message()));
 											const displayAvatar = createMemo(() =>
-												util.getDisplayAvatar(user(), member())
+												util.getDisplayAvatar(user(), member(), message())
 											);
 
 											return (
