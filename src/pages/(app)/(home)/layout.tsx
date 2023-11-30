@@ -19,14 +19,14 @@ import {
 import styles from '@lib/util.module.scss';
 import util from '@lib/util';
 import api from '@lib/api';
-import { SelectedChannelIdContext } from '@lib/context/selectedChannelId';
+import { SelectedChannelContext } from '@lib/context/selectedChannel';
 import { ChannelCollectionContext } from '@lib/context/collections/channels';
 
 export default function HomeWrapper() {
 	const location = useLocation();
 	const channelCollection = useContext(ChannelCollectionContext);
-	const selectedChannelId = useContext(SelectedChannelIdContext);
-	const channelIsSelected = createSelector(selectedChannelId);
+	const selectedChannel = useContext(SelectedChannelContext);
+	const channelIsSelected = createSelector(() => selectedChannel()?._id);
 
 	const channels = createMemo(() => {
 		const list = Array.from(channelCollection.values());

@@ -1,4 +1,4 @@
-import { SelectedServerIdContext } from '@lib/context/selectedServerId';
+import { SelectedServerContext } from '@lib/context/selectedServer';
 import { Outlet } from '@solidjs/router';
 import {
 	For,
@@ -10,26 +10,23 @@ import {
 	createSelector,
 	useContext
 } from 'solid-js';
-import { SelectedServerContext } from './context';
 import ChannelItem from '@components/ChannelItem';
 import util from '@lib/util';
 import { HiOutlineSpeakerWave } from 'solid-icons/hi';
 import { OcHash3 } from 'solid-icons/oc';
-import { SelectedChannelIdContext } from '@lib/context/selectedChannelId';
+import { SelectedChannelContext } from '@lib/context/selectedChannel';
 import api from '@lib/api';
-import { ServerCollectionContext } from '@lib/context/collections/servers';
-import { UnreadsCollectionContext } from '@lib/context/collections/unreads';
 
 export default function ServerWrapper() {
-	const selectedServerId = useContext(SelectedServerIdContext);
-	const selectedChannelId = useContext(SelectedChannelIdContext)!;
-	const channelIsSelected = createSelector(selectedChannelId);
+	const selectedServer = useContext(SelectedServerContext);
+	const selectedChannel = useContext(SelectedChannelContext)!;
+	const channelIsSelected = createSelector(() => selectedChannel()?._id);
 
 	return (
-		<Show when={selectedServerId() != undefined && selectedServerId()}>
-			{(id) => {
-				const servers = useContext(ServerCollectionContext);
-				const server = createMemo(() => servers.get(id())?.[0]);
+		<Show when={selectedServer() != undefined && selectedServer()}>
+			{(serverAccessor) => {
+				const server = () => serverAccessor();
+
 				return (
 					<Show when={server()} fallback={<p>Unresolved server</p>}>
 						{(server) => {
@@ -62,7 +59,7 @@ export default function ServerWrapper() {
 							});
 
 							return (
-								<SelectedServerContext.Provider value={server()}>
+								<>
 									<div class="channel-bar-container">
 										<For each={channels().unsorted}>
 											{([channel]) => (
@@ -87,7 +84,8 @@ export default function ServerWrapper() {
 																	return (
 																		<ChannelComponent
 																			channel={channel()}
-																			selected={channelIsSelected(channel()._id)} />
+																			selected={channelIsSelected(channel()._id)}
+																		/>
 																	);
 																}}
 															</Show>
@@ -98,7 +96,7 @@ export default function ServerWrapper() {
 										</For>
 									</div>
 									<Outlet />
-								</SelectedServerContext.Provider>
+								</>
 							);
 						}}
 					</Show>
@@ -115,34 +113,7 @@ interface ChannelComponentProps {
 
 function ChannelComponent(props: ChannelComponentProps) {
 	const server = useContext(SelectedServerContext)!;
-	const unreads = useContext(UnreadsCollectionContext);
-	const unreadObject = createMemo(() => {
-		const item = unreads.get(props.channel._id);
-
-		if (item == undefined) {
-			return;
-		}
-
-		const [unread] = item;
-
-		return unread;
-	});
-
-	const unread = createMemo(() => {
-		if (
-			props.channel.channel_type == 'SavedMessages' ||
-			props.channel.channel_type == 'VoiceChannel'
-		) {
-			return false;
-		}
-
-		const unread = unreadObject();
-		if (unread == undefined) {
-			return false;
-		}
-
-		return (unread.last_id?.localeCompare(props.channel.last_message_id ?? '0') ?? 0) == -1;
-	});
+	const unread = createMemo(() => util.isUnread(props.channel));
 
 	return (
 		<Show
@@ -154,7 +125,7 @@ function ChannelComponent(props: ChannelComponentProps) {
 		>
 			{(channel) => (
 				<ChannelItem
-					href={`/servers/${server._id}/channels/${channel()._id}`}
+					href={`/servers/${server()!._id}/channels/${channel()._id}`}
 					selected={props.selected}
 					unread={unread()}
 				>

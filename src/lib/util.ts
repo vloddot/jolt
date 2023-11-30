@@ -1,5 +1,6 @@
 import { useContext } from 'solid-js';
 import { SessionContext } from './context/session';
+import { UnreadsCollectionContext } from './context/collections/unreads';
 
 function getAutumnURL(
 	file: { _id: string; tag: string },
@@ -85,6 +86,32 @@ function formatSize(bytes: number, dp = 2, si = true) {
 	return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
+/**
+ * Determines if a given channel is unread.
+ * @param channel The channel
+ */
+function isUnread(channel: Channel) {
+	const unreads = useContext(UnreadsCollectionContext);
+
+	if (channel.channel_type == 'SavedMessages' || channel.channel_type == 'VoiceChannel') {
+		return false;
+	}
+
+	const item = unreads.get(channel._id);
+
+	if (item == undefined) {
+		return false;
+	}
+
+	const [unread] = item;
+
+	if (unread == undefined) {
+		return false;
+	}
+
+	return (unread.last_id?.localeCompare(channel.last_message_id ?? '0') ?? 0) == -1;
+}
+
 export default {
 	getAutumnURL,
 	getDisplayName,
@@ -92,5 +119,6 @@ export default {
 	getDefaultUserAvatar,
 	getOtherRecipient,
 	hashMemberId,
-	formatSize
+	formatSize,
+	isUnread
 };

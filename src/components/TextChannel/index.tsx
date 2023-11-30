@@ -17,16 +17,16 @@ import api from '@lib/api';
 import { MessageComponent } from './Message';
 import { RepliesContext } from './context/replies';
 import TextArea from './TextArea';
-import { SelectedChannelContext } from './context/channel';
 import util from '@lib/util';
 import { MessageInputContext } from './context/messageInput';
 import { getMessageCollection, type MessageCollection } from '@lib/messageCollections';
 import { decodeTime } from 'ulid';
-import { SelectedServerIdContext } from '@lib/context/selectedServerId';
+import { SelectedServerContext } from '@lib/context/selectedServer';
 import AttachmentPreviewItem from './AttachmentPreviewItem';
 import { AiFillFileText, AiOutlinePlus } from 'solid-icons/ai';
 import { FiXCircle } from 'solid-icons/fi';
 import SendableReplyComponent from './SendableReply';
+import { SelectedChannelContext } from '@lib/context/selectedChannel';
 
 export interface Props {
 	channel: Exclude<Channel, { channel_type: 'VoiceChannel' }>;
@@ -48,11 +48,7 @@ export default function TextChannel(props: Props) {
 			<Match when={messageCollection.state == 'unresolved'}>Unresolved channel.</Match>
 			<Match when={messageCollection.state == 'ready' && messageCollection()}>
 				{(collection) => {
-					return (
-						<SelectedChannelContext.Provider value={props.channel}>
-							<TextChannelMeta collection={collection()} />
-						</SelectedChannelContext.Provider>
-					);
+					return <TextChannelMeta collection={collection()} />;
 				}}
 			</Match>
 		</Switch>
@@ -64,7 +60,7 @@ interface MetaProps {
 }
 
 function TextChannelMeta(props: MetaProps) {
-	const server = useContext(SelectedServerIdContext);
+	const server = useContext(SelectedServerContext);
 	const channel = useContext(SelectedChannelContext)!;
 	const [messageInput, setMessageInput] = useContext(MessageInputContext);
 	const [replies, setReplies] = useContext(RepliesContext)!;
@@ -97,18 +93,19 @@ function TextChannelMeta(props: MetaProps) {
 	const [channelName, setChannelName] = createSignal('<Unknown Channel>');
 
 	createComputed(() => {
-		if (channel == undefined) {
+		const c = channel();
+		if (c == undefined) {
 			setChannelName('<Unknown Channel>');
 			return;
 		}
 
-		if (channel.channel_type == 'SavedMessages') {
+		if (c.channel_type == 'SavedMessages') {
 			setChannelName('Saved Notes');
 			return;
 		}
 
-		if (channel.channel_type == 'DirectMessage') {
-			const recipient = util.getOtherRecipient(channel.recipients);
+		if (c.channel_type == 'DirectMessage') {
+			const recipient = util.getOtherRecipient(c!.recipients);
 			if (recipient == undefined) {
 				setChannelName('DM');
 				return;
@@ -151,11 +148,12 @@ function TextChannelMeta(props: MetaProps) {
 			setReplies([]);
 		}
 
-		if (Object.keys(data).length == 0) {
+		const c = channel();
+		if (Object.keys(data).length == 0 || c == undefined) {
 			return;
 		}
 
-		await api.sendMessage(channel._id, data);
+		await api.sendMessage(c._id, data);
 	};
 
 	function pushFile() {
@@ -180,8 +178,15 @@ function TextChannelMeta(props: MetaProps) {
 			member: createResource(
 				() => user,
 				// eslint-disable-next-line solid/reactivity
-				async (user) =>
-					props.collection.members[user] ?? (await api.fetchMember({ server: server()!, user }))
+				async (user) => {
+					const member = props.collection.members[user];
+					const s = server()?._id;
+					if (member == undefined && s != undefined) {
+						return await api.fetchMember({ server: s, user });
+					}
+
+					return member;
+				}
 			)[0]
 		}));
 	});
@@ -213,8 +218,9 @@ function TextChannelMeta(props: MetaProps) {
 										// eslint-disable-next-line solid/reactivity
 										(author) => {
 											const member = props.collection.members[author] as Member | undefined;
-											if (member == undefined && server() != undefined) {
-												return api.fetchMember({ server: server()!, user: author });
+											const s = server()?._id;
+											if (member == undefined && s != undefined) {
+												return api.fetchMember({ server: s, user: author });
 											}
 
 											return member;
@@ -338,7 +344,7 @@ function TextChannelMeta(props: MetaProps) {
 					</button>
 					<TextArea
 						placeholder={
-							channel?.channel_type == 'DirectMessage'
+							channel()?.channel_type == 'DirectMessage'
 								? `Send message to ${channelName()}`
 								: `Send message in ${channelName()}`
 						}

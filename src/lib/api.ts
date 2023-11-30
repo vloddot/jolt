@@ -27,6 +27,7 @@ function req(
 							setTimeout(() => req(method, path, body).then(resolve).catch(reject), retry_after)
 						)
 						.catch(reject);
+					return;
 				}
 
 				resolve(response);

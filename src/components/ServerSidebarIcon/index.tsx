@@ -1,4 +1,4 @@
-import { type JSX, createSignal, mergeProps, children } from 'solid-js';
+import { type JSX, createSignal, children } from 'solid-js';
 import styles from './index.module.scss';
 import type { Content } from 'tippy.js';
 import { A } from '@solidjs/router';
@@ -10,12 +10,11 @@ interface Props {
 	href: string;
 	tooltip: Content;
 	selected: boolean;
-	unread?: boolean;
+	unread: boolean;
 	children: JSX.Element;
 }
 
-function ServerSidebarIcon(_props: Props) {
-	const props = mergeProps({ unread: false }, _props);
+function ServerSidebarIcon(props: Props) {
 	const [focused, setFocused] = createSignal(false);
 
 	const c = children(() => props.children);

@@ -1,4 +1,3 @@
-import { SelectedChannelContext } from '@components/TextChannel/context/channel';
 import api from '@lib/api';
 import { getMessageCollection, type MessageCollection } from '@lib/messageCollections';
 import { A } from '@solidjs/router';
@@ -6,6 +5,7 @@ import { Match, Switch, createMemo, createResource, useContext } from 'solid-js'
 import styles from './index.module.scss';
 import utilStyles from '@lib/util.module.scss';
 import util from '@lib/util';
+import { SelectedChannelContext } from '@lib/context/selectedChannel';
 
 export interface Props {
 	message_id: string;
@@ -13,11 +13,11 @@ export interface Props {
 
 export default function MessageReply(props: Props) {
 	const selectedChannel = useContext(SelectedChannelContext)!;
-	const [collection] = createResource(() => selectedChannel._id, getMessageCollection);
+	const [collection] = createResource(() => selectedChannel()?._id, getMessageCollection);
 
 	const [message] = createResource(
 		() =>
-			[selectedChannel._id, props.message_id, collection()?.messages[props.message_id]] as [
+			[selectedChannel()?._id, props.message_id, collection()?.messages[props.message_id]] as [
 				string,
 				string,
 				MessageCollection['messages'] | undefined
@@ -56,16 +56,17 @@ export default function MessageReply(props: Props) {
 														MessageCollection['members']
 													],
 												async ([user_id, members]) => {
+													const c = selectedChannel();
 													if (
-														selectedChannel.channel_type != 'TextChannel' &&
-														selectedChannel.channel_type != 'VoiceChannel'
+														c == undefined ||
+														(c.channel_type != 'TextChannel' && c.channel_type != 'VoiceChannel')
 													) {
-														return;
+														return members?.[user_id];
 													}
 
 													return (
 														members?.[user_id] ??
-														api.fetchMember({ server: selectedChannel.server, user: user_id })
+														api.fetchMember({ server: c.server, user: user_id })
 													);
 												}
 											);

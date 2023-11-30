@@ -1,7 +1,7 @@
 import ClientContext from '@lib/context/client';
 import { useContext, type JSX } from 'solid-js';
-import { SelectedChannelContext } from '../context/channel';
 import styles from './index.module.scss';
+import { SelectedChannelContext } from '@lib/context/selectedChannel';
 
 export interface Props {
 	initialValue?: string;
@@ -18,15 +18,17 @@ export default function TextArea(props: Props) {
 	let value = '';
 
 	function endTyping() {
-		if (!props.sendTypingIndicators || channel == undefined) {
+		const c = channel()?._id;
+		if (!props.sendTypingIndicators || c == undefined) {
 			return;
 		}
 
-		client.send({ type: 'EndTyping', channel: channel._id });
+		client.send({ type: 'EndTyping', channel: c });
 	}
 
 	function beginTyping() {
-		if (!props.sendTypingIndicators || channel == undefined) {
+		const c = channel()?._id;
+		if (!props.sendTypingIndicators || c == undefined) {
 			return;
 		}
 
@@ -35,7 +37,7 @@ export default function TextArea(props: Props) {
 			return;
 		}
 
-		client.send({ type: 'BeginTyping', channel: channel._id });
+		client.send({ type: 'BeginTyping', channel: c });
 	}
 
 	return (

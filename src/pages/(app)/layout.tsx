@@ -6,6 +6,7 @@ import {
 	For,
 	Show,
 	createMemo,
+	createResource,
 	createSelector,
 	createSignal,
 	onCleanup,
@@ -17,15 +18,16 @@ import ServerCollectionProvider, {
 	ServerCollectionContext
 } from '@lib/context/collections/servers';
 import SettingsProvider, { SettingsContext } from '@lib/context/settings';
-import SelectedServerIdProvider, { SelectedServerIdContext } from '@lib/context/selectedServerId';
+import SelectedServerProvider, { SelectedServerContext } from '@lib/context/selectedServer';
 import UserCollectionProvider from '@lib/context/collections/users';
 import ChannelCollectionProvider from '@lib/context/collections/channels';
 import MemberCollectionProvider from '@lib/context/collections/members';
 import EmojiCollectionProvider from '@lib/context/collections/emojis';
-import SelectedChannelProvider, { SelectedChannelIdContext } from '@lib/context/selectedChannelId';
+import SelectedChannelProvider, { SelectedChannelContext } from '@lib/context/selectedChannel';
 import ClientContext from '@lib/context/client';
 import { FaSolidHouse } from 'solid-icons/fa';
 import UnreadsCollectionProvider from '@lib/context/collections/unreads';
+import api from '@lib/api';
 
 export default function AppWrapper() {
 	const client = useContext(ClientContext);
@@ -48,7 +50,7 @@ export default function AppWrapper() {
 					<MemberCollectionProvider>
 						<EmojiCollectionProvider>
 							<UnreadsCollectionProvider>
-								<SelectedServerIdProvider>
+								<SelectedServerProvider>
 									<SelectedChannelProvider>
 										<SettingsProvider>
 											<Show when={showContent()} fallback={<p>Loading client...</p>}>
@@ -58,7 +60,7 @@ export default function AppWrapper() {
 											</Show>
 										</SettingsProvider>
 									</SelectedChannelProvider>
-								</SelectedServerIdProvider>
+								</SelectedServerProvider>
 							</UnreadsCollectionProvider>
 						</EmojiCollectionProvider>
 					</MemberCollectionProvider>
@@ -71,9 +73,9 @@ export default function AppWrapper() {
 function ServerSidebar() {
 	const settings = useContext(SettingsContext);
 	const servers = useContext(ServerCollectionContext);
-	const selectedServerId = useContext(SelectedServerIdContext);
-	const selectedChannelId = useContext(SelectedChannelIdContext);
-	const serverIsSelected = createSelector(selectedServerId);
+	const selectedServer = useContext(SelectedServerContext);
+	const selectedChannel = useContext(SelectedChannelContext);
+	const serverIsSelected = createSelector(() => selectedServer()?._id);
 	const location = useLocation();
 
 	const sortedServers = createMemo(() => {
@@ -115,9 +117,10 @@ function ServerSidebar() {
 				href="/"
 				selected={
 					['/', '/friends'].includes(location.pathname) ||
-					(selectedServerId() == undefined && selectedChannelId() != undefined)
+					(selectedServer() == undefined && selectedChannel() != undefined)
 				}
 				tooltip="Home"
+				unread={false}
 			>
 				<FaSolidHouse />
 			</ServerSidebarIcon>
@@ -126,11 +129,21 @@ function ServerSidebar() {
 
 			<For each={sortedServers()}>
 				{([server]) => {
+					const [channels] = createResource(
+						() => server.channels,
+						async (channels) => await Promise.all(channels.map(api.fetchChannel))
+					);
+
+					const isUnread = createMemo(
+						() => channels()?.some((channel) => util.isUnread(channel)) ?? false
+					);
+
 					return (
 						<ServerSidebarIcon
 							href={`/servers/${server._id}/channels/${server.channels[0]}`}
 							selected={serverIsSelected(server._id)}
 							tooltip={server.name}
+							unread={isUnread()}
 						>
 							<Show
 								when={server.icon}
