@@ -6,7 +6,6 @@ import {
 	For,
 	Show,
 	createMemo,
-	createResource,
 	createSelector,
 	createSignal,
 	onCleanup,
@@ -20,7 +19,9 @@ import ServerCollectionProvider, {
 import SettingsProvider, { SettingsContext } from '@lib/context/Settings';
 import SelectedServerIdProvider, { SelectedServerIdContext } from '@lib/context/SelectedServerId';
 import UserCollectionProvider from '@lib/context/collections/Users';
-import ChannelCollectionProvider from '@lib/context/collections/Channels';
+import ChannelCollectionProvider, {
+	ChannelCollectionContext
+} from '@lib/context/collections/Channels';
 import MemberCollectionProvider from '@lib/context/collections/Members';
 import EmojiCollectionProvider from '@lib/context/collections/Emojis';
 import SelectedChannelIdProvider, {
@@ -29,7 +30,6 @@ import SelectedChannelIdProvider, {
 import ClientContext from '@lib/context/Client';
 import UnreadsCollectionProvider from '@lib/context/collections/Unreads';
 import { FaSolidHouse } from 'solid-icons/fa';
-import api from '@lib/api';
 
 export default function AppWrapper() {
 	const client = useContext(ClientContext);
@@ -131,9 +131,9 @@ function ServerSidebar() {
 
 			<For each={sortedServers()}>
 				{([server]) => {
-					const [channels] = createResource(
-						() => server.channels,
-						async (channels) => await Promise.all(channels.map(api.fetchChannel))
+					const channelCollection = useContext(ChannelCollectionContext);
+					const channels = createMemo(() =>
+						server.channels.flatMap((channel) => channelCollection.get(channel)?.[0] ?? [])
 					);
 
 					const isUnread = createMemo(

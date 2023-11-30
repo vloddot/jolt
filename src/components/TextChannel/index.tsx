@@ -31,30 +31,27 @@ import { SelectedChannelContext } from '@lib/context/SelectedChannel';
 import { FaSolidUserSecret } from 'solid-icons/fa';
 import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
 import MessageCollectionContext from './context/MessageCollection';
+import { ChannelCollectionContext } from '@lib/context/collections/Channels';
 
 export default function TextChannel() {
 	const selectedChannelId = useContext(SelectedChannelIdContext);
-	const [channel] = createResource(selectedChannelId, api.fetchChannel);
+	const channelCollection = useContext(ChannelCollectionContext);
+	const channel = createMemo(() => channelCollection.get(selectedChannelId() ?? '')?.[0]);
+
 	const [messageCollection] = createResource(selectedChannelId, getMessageCollection);
 
 	return (
 		<Switch>
-			<Match when={messageCollection.state == 'errored' || channel.state == 'errored'}>
-				Error loading messages
-			</Match>
-			<Match when={messageCollection.state == 'pending' || channel.state == 'pending'}>
-				Loading messages...
-			</Match>
-			<Match when={messageCollection.state == 'refreshing' || channel.state == 'refreshing'}>
-				Reloading messages...
-			</Match>
-			<Match when={messageCollection.state == 'unresolved' || channel.state == 'unresolved'}>
+			<Match when={messageCollection.state == 'errored'}>Error loading messages</Match>
+			<Match when={messageCollection.state == 'pending'}>Loading messages...</Match>
+			<Match when={messageCollection.state == 'refreshing'}>Reloading messages...</Match>
+			<Match when={messageCollection.state == 'unresolved' || channel() == undefined}>
 				Unresolved channel.
 			</Match>
 			<Match
 				when={
 					messageCollection.state == 'ready' &&
-					channel.state == 'ready' && { channel: channel(), collection: messageCollection() }
+					channel() != undefined && { channel: channel(), collection: messageCollection() }
 				}
 			>
 				{(accessor) => {

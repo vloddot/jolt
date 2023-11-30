@@ -6,7 +6,6 @@ import {
 	Show,
 	Switch,
 	createMemo,
-	createResource,
 	createSelector,
 	useContext
 } from 'solid-js';
@@ -15,9 +14,9 @@ import util from '@lib/util';
 import { HiOutlineSpeakerWave } from 'solid-icons/hi';
 import { OcHash3 } from 'solid-icons/oc';
 import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
-import api from '@lib/api';
 import { ServerCollectionContext } from '@lib/context/collections/Servers';
 import { SelectedServerContext } from '@lib/context/SelectedServer';
+import { ChannelCollectionContext } from '@lib/context/collections/Channels';
 
 export default function ServerWrapper() {
 	const selectedServer = useContext(SelectedServerIdContext);
@@ -33,31 +32,42 @@ export default function ServerWrapper() {
 				return (
 					<Show when={server()} fallback={<p>Unresolved server</p>}>
 						{(serverAccesor) => {
-							const server = () => serverAccesor()[0];
-							function createChannelResource(id: string) {
-								return createResource(() => id, api.fetchChannel);
+							function getChannel(id: string) {
+								const channel = channelCollection.get(id);
+								if (channel == undefined) {
+									return [];
+								}
+
+								return [channel[0]];
 							}
 
+							const server = () => serverAccesor()[0];
+							const channelCollection = useContext(ChannelCollectionContext);
 							const channels = createMemo(() => {
 								return {
-									unsorted: server().channels.flatMap((channel) => {
+									unsorted: server().channels.flatMap((channel_id) => {
 										if (
 											server().categories != undefined &&
-											server().categories?.some((category) => category.channels.includes(channel))
+											server().categories?.some((category) =>
+												category.channels.includes(channel_id)
+											)
 										) {
 											return [];
 										}
 
-										return [createChannelResource(channel)];
+										return getChannel(channel_id);
 									}),
 									categorized: server().categories?.flatMap((category) => {
 										if (category.channels.length == 0) {
 											return [];
 										}
-										return {
-											...category,
-											channels: category.channels.map(createChannelResource)
-										};
+
+										return [
+											{
+												...category,
+												channels: category.channels.flatMap(getChannel)
+											}
+										];
 									})
 								};
 							});
@@ -66,15 +76,11 @@ export default function ServerWrapper() {
 								<SelectedServerContext.Provider value={server}>
 									<div class="channel-bar-container">
 										<For each={channels().unsorted}>
-											{([channel]) => (
-												<Show when={channel.state == 'ready' && channel()}>
-													{(channel) => (
-														<ChannelComponent
-															channel={channel()}
-															selected={channelIsSelected(channel()._id)}
-														/>
-													)}
-												</Show>
+											{(channel) => (
+												<ChannelComponent
+													channel={channel}
+													selected={channelIsSelected(channel._id)}
+												/>
 											)}
 										</For>
 										<For each={channels().categorized}>
@@ -82,17 +88,11 @@ export default function ServerWrapper() {
 												<details open>
 													<summary>{category.title}</summary>
 													<For each={category.channels}>
-														{([channel]) => (
-															<Show when={channel.state == 'ready' && channel()}>
-																{(channel) => {
-																	return (
-																		<ChannelComponent
-																			channel={channel()}
-																			selected={channelIsSelected(channel()._id)}
-																		/>
-																	);
-																}}
-															</Show>
+														{(channel) => (
+															<ChannelComponent
+																channel={channel}
+																selected={channelIsSelected(channel._id)}
+															/>
 														)}
 													</For>
 												</details>
