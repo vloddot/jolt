@@ -5,7 +5,6 @@ import {
 	type JSX,
 	createMemo,
 	useContext,
-	createEffect
 } from 'solid-js';
 import { ServerCollectionContext } from './collections/servers';
 import ClientContext from './client';
@@ -23,10 +22,6 @@ export default function SelectedServerProvider(props: Props) {
 	const selectedServer = createMemo(() =>
 		client.connectionState() == 'connected' ? servers.get(params.sid)?.[0] : undefined
 	);
-
-	createEffect(() => {
-		console.log(params.sid, selectedServer());
-	});
 
 	return (
 		<SelectedServerContext.Provider value={selectedServer}>
