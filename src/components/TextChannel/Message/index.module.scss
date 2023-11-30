@@ -1,6 +1,6 @@
 .messageContainer {
 	display: flex;
-	padding: 4px 12px;
+	padding: 4px 16px;
 	position: relative;
 	gap: 8px;
 
@@ -56,6 +56,7 @@
 		display: flex;
 		flex-direction: column;
 		width: 100%;
+		align-items: start;
 
 		.messageMeta {
 			font-size: 0.75rem;
