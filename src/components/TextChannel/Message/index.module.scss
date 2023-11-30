@@ -1,6 +1,10 @@
+.replyBar {
+	margin-top: 6px;
+}
+
 .messageContainer {
 	display: flex;
-	padding: 4px 16px;
+	padding: 2px 16px;
 	position: relative;
 	gap: 8px;
 
@@ -19,9 +23,10 @@
 	}
 
 	.messageInfo {
-		width: 36px;
+		width: 32px;
 		display: flex;
 		justify-content: center;
+		align-items: center;
 		font-size: 0.7em;
 
 		time {

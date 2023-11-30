@@ -99,7 +99,7 @@ export function MessageComponent(props: Props) {
 							class={utilStyles.cover}
 							src={util.getDisplayAvatar(props.author, props.member, props.message)}
 							alt={displayName()}
-							style={{ width: '28px', height: '28px' }}
+							style={{ width: '32px', height: '32px' }}
 						/>
 					</Show>
 				</span>
