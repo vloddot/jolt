@@ -8,6 +8,10 @@
 	position: relative;
 	gap: 8px;
 
+	&.messageHead {
+		margin-top: 6px;
+	}
+
 	&:hover {
 		background-color: var(--hover);
 
@@ -24,6 +28,7 @@
 
 	.messageInfo {
 		width: 32px;
+		height: 32px;
 		display: flex;
 		justify-content: center;
 		align-items: center;

@@ -92,7 +92,7 @@ export function MessageComponent(props: Props) {
 					</div>
 				)}
 			</Show>
-			<div class={styles.messageContainer}>
+			<div class={styles.messageContainer} classList={{ [styles.messageHead]: props.isHead }}>
 				<span class={styles.messageInfo}>
 					<Show when={props.isHead} fallback={<time>{time().format('hh:mm')}</time>}>
 						<img
