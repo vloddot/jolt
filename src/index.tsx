@@ -15,7 +15,7 @@ import TextChannel from '@components/TextChannel';
 render(
 	() => (
 		<SessionProvider>
-			<Router>
+			<Router base={import.meta.env.BASE_URL}>
 				<Routes>
 					<Route path="/" component={AppWrapper}>
 						<Route path="/servers/:sid" component={ServerWrapper}>

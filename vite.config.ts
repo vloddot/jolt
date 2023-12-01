@@ -4,7 +4,7 @@ import path from 'path';
 
 export default defineConfig({
 	plugins: [solid()],
-	base: process.env.NODE_ENV == 'production' ? '/dist' : '',
+	base: process.env.NODE_ENV == 'production' ? '/jolt' : '',
 
 	css: {
 		modules: {
