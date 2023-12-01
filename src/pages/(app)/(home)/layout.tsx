@@ -86,7 +86,7 @@ export default function HomeWrapper() {
 										<ChannelItem
 											href={`/conversations/${channel()._id}`}
 											selected={channelIsSelected(channel()._id)}
-											unread={false}
+											unread={util.isUnread(channel())}
 										>
 											<Show when={channel().icon} fallback={<FaSolidUserGroup />}>
 												{(icon) => <img src={util.getAutumnURL(icon())} alt={channel().name} />}
@@ -106,7 +106,7 @@ export default function HomeWrapper() {
 											<ChannelItem
 												href={`/conversations/${channel()._id}`}
 												selected={channelIsSelected(channel()._id)}
-												unread={false}
+												unread={util.isUnread(channel())}
 											>
 												<Switch>
 													<Match when={recipient.state == 'pending'}>Loading user...</Match>

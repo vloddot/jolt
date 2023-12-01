@@ -25,7 +25,7 @@ function getDisplayAvatar(
 	user: { _id: string; avatar?: { _id: string; tag: string } },
 	member?: Member,
 	message?: Message
-): string | undefined {
+): string {
 	if (message?.webhook?.avatar != undefined) {
 		return message.webhook.avatar;
 	}

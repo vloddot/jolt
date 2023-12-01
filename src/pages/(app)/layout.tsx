@@ -6,6 +6,7 @@ import {
 	For,
 	Show,
 	createMemo,
+	createResource,
 	createSelector,
 	createSignal,
 	onCleanup,
@@ -30,6 +31,7 @@ import SelectedChannelIdProvider, {
 import ClientContext from '@lib/context/Client';
 import UnreadsCollectionProvider from '@lib/context/collections/Unreads';
 import { FaSolidHouse } from 'solid-icons/fa';
+import api from '@lib/api';
 
 export default function AppWrapper() {
 	const client = useContext(ClientContext);
@@ -75,10 +77,24 @@ export default function AppWrapper() {
 function ServerSidebar() {
 	const settings = useContext(SettingsContext);
 	const servers = useContext(ServerCollectionContext);
+	const channels = useContext(ChannelCollectionContext);
 	const selectedServerId = useContext(SelectedServerIdContext);
 	const selectedChannelId = useContext(SelectedChannelIdContext);
 	const serverIsSelected = createSelector(selectedServerId);
 	const location = useLocation();
+	const unreadDms = createMemo(() =>
+		Array.from(channels.values()).flatMap(([channel]) => {
+			if (
+				((channel.channel_type == 'DirectMessage' && channel.active) ||
+					channel.channel_type == 'Group') &&
+				util.isUnread(channel)
+			) {
+				return [channel];
+			}
+
+			return [];
+		})
+	);
 
 	const sortedServers = createMemo(() => {
 		const {
@@ -126,6 +142,35 @@ function ServerSidebar() {
 			>
 				<FaSolidHouse />
 			</ServerSidebarIcon>
+
+			<For each={unreadDms()}>
+				{(dm) => {
+					const [recipient] = createResource(
+						() => util.getOtherRecipient(dm.recipients),
+						api.fetchUser
+					);
+
+					return (
+						<Show when={recipient.state == 'ready' && recipient()}>
+							{(recipient) => {
+								const displayName = createMemo(() => util.getDisplayName(recipient()));
+								const displayAvatar = createMemo(() => util.getDisplayAvatar(recipient()));
+
+								return (
+									<ServerSidebarIcon
+										href={`/conversations/${dm._id}`}
+										selected={false}
+										tooltip={displayName()}
+										unread={true}
+									>
+										<img class={styles.cover} src={displayAvatar()} alt={displayName()} />
+									</ServerSidebarIcon>
+								);
+							}}
+						</Show>
+					);
+				}}
+			</For>
 
 			<hr />
 
