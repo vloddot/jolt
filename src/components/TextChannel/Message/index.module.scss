@@ -115,6 +115,12 @@
 				list-style-position: inside;
 			}
 
+			code {
+				background-color: var(--block);
+				padding: 1px 4px;
+				border-radius: 6px;
+			}
+
 			.editedText {
 				margin-left: 2px;
 				font-size: 0.7em;
