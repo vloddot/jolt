@@ -2,7 +2,7 @@ on:
   - push
 
 jobs:
-  build-project:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
