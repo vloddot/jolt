@@ -49,18 +49,10 @@ export default function SendableReplyComponent(props: Props) {
 			</label>
 			<button
 				class={styles.replyButton}
-				onClick={() =>
-					// eslint-disable-next-line solid/reactivity
-					setReplies((replies) =>
-						replies.filter(
-							([
-								{
-									message: { _id }
-								}
-							]) => _id != props.reply.message._id
-						)
-					)
-				}
+				onClick={() => {
+					const message_id = props.reply.message._id;
+					setReplies((replies) => replies.filter(([reply]) => reply.message._id != message_id));
+				}}
 			>
 				<BiSolidXCircle size={20} />
 			</button>

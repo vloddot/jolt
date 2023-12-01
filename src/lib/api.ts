@@ -50,8 +50,7 @@ async function fetchUser(target: string): Promise<Store<User>> {
 		const [store, setStore] = createStore<User>(
 			await req('GET', `/users/${target}`).then((response) => response.json())
 		);
-		// eslint-disable-next-line solid/reactivity
-		users.set(store._id, [store, setStore]);
+		users.set(target, [store, setStore]);
 		return store;
 	}
 

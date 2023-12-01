@@ -92,6 +92,28 @@
 		.messageContent {
 			word-wrap: break-word;
 			white-space: pre-wrap;
+			width: 100%;
+
+			* {
+				margin: 0;
+			}
+
+			table {
+				border-collapse: collapse;
+				th, td {
+					padding: 6px;
+					border: 1px solid var(--tertiary-foreground);
+				}
+			}
+
+			ul,
+			ol {
+				display: flex;
+				flex-direction: column;
+				gap: 0px;
+				padding-inline-start: 10px;
+				list-style-position: inside;
+			}
 
 			.editedText {
 				margin-left: 2px;
@@ -111,7 +133,7 @@
 		border-radius: 6px;
 		padding-left: 12px;
 	}
-	
+
 	.caption {
 		font-size: 0.7em;
 		color: var(--secondary-foreground);

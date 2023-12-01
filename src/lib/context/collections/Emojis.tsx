@@ -18,7 +18,6 @@ export default function EmojiCollectionProvider(props: Props) {
 
 	onMount(() => {
 		const readyHandler: ClientEvents['Ready'] = ({ emojis: emojisArray }) => {
-			// eslint-disable-next-line solid/reactivity
 			for (const emoji of emojisArray) {
 				const [store, setStore] = createStore(emoji);
 				emojis.set(emoji._id, [store, setStore]);

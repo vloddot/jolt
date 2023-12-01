@@ -89,24 +89,36 @@ function TextChannelMeta(props: MetaProps) {
 	let messageTextarea: HTMLTextAreaElement;
 	let messageListElement: HTMLDivElement;
 
-	const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {
-		if (
-			// control keys (except for ctrl+v)
-			(event.ctrlKey && event.key != 'v') ||
-			// alt key and meta key
-			event.altKey ||
-			event.metaKey ||
-			event.key.length != 1 ||
-			// if any other input element is active, do *not* focus
-			util.inputSelected()
-		) {
-			return;
-		}
+	function createUserResource(target: string) {
+		return createResource(
+			() => [target, props.collection.users[target] as User | undefined] as const,
+			([user_id, user]) => {
+				if (user == undefined) {
+					return api.fetchUser(user_id);
+				}
 
-		if (!util.inputSelected()) {
-			messageTextarea.focus();
-		}
-	};
+				return user;
+			}
+		);
+	}
+
+	function createMemberResource(target: string) {
+		return createResource(
+			() => [target, props.collection.members[target] as Member | undefined] as const,
+			([author, member]) => {
+				const s = server()?._id;
+				if (member != undefined) {
+					return member;
+				}
+
+				if (s == undefined) {
+					return;
+				}
+
+				return api.fetchMember({ server: s, user: author });
+			}
+		);
+	}
 
 	const onPaste: GlobalEventHandlers['onpaste'] = (event) => {
 		if (event.clipboardData?.files != null && event.clipboardData.files.length != 0) {
@@ -117,10 +129,8 @@ function TextChannelMeta(props: MetaProps) {
 	};
 
 	onMount(() => {
-		document.addEventListener('keydown', onKeyDown);
 		document.addEventListener('paste', onPaste);
 		onCleanup(() => {
-			document.removeEventListener('keydown', onKeyDown);
 			document.removeEventListener('paste', onPaste);
 		});
 	});
@@ -211,24 +221,8 @@ function TextChannelMeta(props: MetaProps) {
 
 	const typing = createMemo(() => {
 		return Array.from(props.collection.typing.values()).map((user) => ({
-			user: createResource(
-				() => user,
-				// eslint-disable-next-line solid/reactivity
-				async (user) => props.collection.users[user] ?? (await api.fetchUser(user))
-			)[0],
-			member: createResource(
-				() => user,
-				// eslint-disable-next-line solid/reactivity
-				async (user) => {
-					const member = props.collection.members[user];
-					const s = server()?._id;
-					if (member == undefined && s != undefined) {
-						return await api.fetchMember({ server: s, user });
-					}
-
-					return member;
-				}
-			)[0]
+			user: createUserResource(user)[0],
+			member: createMemberResource(user)[0]
 		}));
 	});
 
@@ -254,32 +248,8 @@ function TextChannelMeta(props: MetaProps) {
 						return (
 							<Show when={message != undefined && message}>
 								{(message) => {
-									const [author] = createResource(
-										() => message().author,
-										// eslint-disable-next-line solid/reactivity
-										(author) => {
-											const user = props.collection.users[author];
-											if (user == undefined) {
-												return api.fetchUser(author);
-											}
-
-											return user;
-										}
-									);
-
-									const [member] = createResource(
-										() => message().author,
-										// eslint-disable-next-line solid/reactivity
-										(author) => {
-											const member = props.collection.members[author] as Member | undefined;
-											const s = server()?._id;
-											if (member == undefined && s != undefined) {
-												return api.fetchMember({ server: s, user: author });
-											}
-
-											return member;
-										}
-									);
+									const [author] = createUserResource(message().author);
+									const [member] = createMemberResource(message().author);
 
 									return (
 										<Show when={author.state == 'ready' && { author: author(), member: member() }}>
@@ -403,8 +373,8 @@ function TextChannelMeta(props: MetaProps) {
 								? `Send message to ${channelName()}`
 								: `Send message in ${channelName()}`
 						}
+						ref={(r) => (messageTextarea = r)}
 						sendTypingIndicators
-						ref={messageTextarea!}
 						onInput={(event) => setMessageInput(event.currentTarget.value)}
 						onKeyDown={(event) => {
 							if (event.shiftKey || event.key != 'Enter') {

@@ -1,21 +1,48 @@
 import ClientContext from '@lib/context/Client';
-import { useContext, type JSX } from 'solid-js';
+import { useContext, type JSX, onMount, onCleanup } from 'solid-js';
 import styles from './index.module.scss';
 import { SelectedChannelContext } from '@lib/context/SelectedChannel';
+import util from '@lib/util';
 
 export interface Props {
 	initialValue?: string;
 	placeholder?: string;
 	sendTypingIndicators: boolean;
+	ref?: (el: HTMLTextAreaElement) => void;
 	onKeyDown?: JSX.EventHandler<HTMLTextAreaElement, KeyboardEvent>;
 	onInput?: JSX.EventHandler<HTMLTextAreaElement, InputEvent>;
-	ref?: HTMLTextAreaElement | ((e: HTMLTextAreaElement) => void);
 }
 
 export default function TextArea(props: Props) {
 	const channel = useContext(SelectedChannelContext)!;
 	const client = useContext(ClientContext);
 	let value = '';
+
+	let ref: HTMLTextAreaElement;
+
+	const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {
+		if (
+			(event.ctrlKey && event.key != 'v') ||
+			// alt key and meta key
+			event.altKey ||
+			event.metaKey ||
+			event.key.length != 1 ||
+			// if any other input element is active, do *not* focus
+			util.inputSelected()
+		) {
+			return;
+		}
+
+		ref.focus();
+	};
+
+	onMount(() => {
+		document.addEventListener('keydown', onKeyDown);
+
+		onCleanup(() => {
+			document.removeEventListener('keydown', onKeyDown);
+		});
+	});
 
 	function endTyping() {
 		const c = channel()?._id;
@@ -44,7 +71,10 @@ export default function TextArea(props: Props) {
 		<textarea
 			class={styles.textareaBase}
 			onBlur={endTyping}
-			ref={props.ref}
+			ref={(r) => {
+				props.ref?.(r);
+				ref = r;
+			}}
 			onInput={(event) => {
 				beginTyping();
 				value = event.currentTarget.value;

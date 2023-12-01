@@ -111,8 +111,13 @@ function isUnread(channel: Channel) {
 
 	return (unread.last_id?.localeCompare(channel.last_message_id ?? '0') ?? 0) == -1;
 }
+
 function inputSelected() {
 	return ['TEXTAREA', 'INPUT'].includes(document.activeElement?.nodeName ?? '');
+}
+
+function sanitizeHtml(content: string) {
+	return content.replace('<', '&lt;').replace('>', '&gt;').replace('/', '&#8725;');
 }
 
 export default {
@@ -124,5 +129,6 @@ export default {
 	hashMemberId,
 	formatSize,
 	isUnread,
-	inputSelected
+	inputSelected,
+	sanitizeHtml
 };

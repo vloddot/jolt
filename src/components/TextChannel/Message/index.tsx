@@ -4,16 +4,7 @@ import utilStyles from '@lib/util.module.scss';
 import dayjs from '@lib/dayjs';
 import { HiOutlinePencilSquare } from 'solid-icons/hi';
 import { BsReply, BsTrash } from 'solid-icons/bs';
-import {
-	For,
-	Show,
-	type JSX,
-	useContext,
-	createMemo,
-	createSignal,
-	onMount,
-	onCleanup
-} from 'solid-js';
+import { For, Show, type JSX, useContext, createMemo, createSignal } from 'solid-js';
 import { decodeTime } from 'ulid';
 import { RepliesContext, type SendableReply } from '../context/Replies';
 import 'tippy.js/animations/scale-subtle.css';
@@ -25,6 +16,8 @@ import TextArea from '../TextArea';
 import { SessionContext } from '@lib/context/Session';
 import { createStore } from 'solid-js/store';
 import MessageReply from './Reply';
+import DOMPurify from 'dompurify';
+import converter from '@lib/showdown';
 
 export interface Props {
 	message: Message;
@@ -54,12 +47,11 @@ export function MessageComponent(props: Props) {
 					return;
 				}
 
-				// eslint-disable-next-line solid/reactivity
-				setReplies((replies) => [
-					...replies,
-					// eslint-disable-next-line solid/reactivity
-					createStore<SendableReply>({ message: props.message, mention: true })
-				]);
+				const [store, setStore] = createStore<SendableReply>({
+					message: props.message,
+					mention: true
+				});
+				setReplies((replies) => [...replies, [store, setStore]]);
 			}
 		},
 		{
@@ -81,8 +73,22 @@ export function MessageComponent(props: Props) {
 
 	const time = createMemo(() => dayjs(decodeTime(props.message._id)));
 
+	const content = createMemo(() => {
+		if (props.message.content == undefined) {
+			return;
+		}
+
+		const html = converter.makeHtml(
+			// https://github.com/markedjs/marked/issues/2139
+			// eslint-disable-next-line no-misleading-character-class
+			props.message.content.replace(/^[\u200B\u200C\u200D\u200E\u200F\uFEFF]/, '')
+		);
+
+		return DOMPurify.sanitize(html);
+	});
+
 	return (
-		<div id={`MESSAGE-${props.message._id}`}>
+		<div id={`MESSAGE-${props.message._id}`} classList={{ [styles.messageHead]: props.isHead }}>
 			<Show when={props.message.replies?.length != 0 && props.message.replies}>
 				{(replies) => (
 					<div class={styles.replyBar}>
@@ -92,7 +98,7 @@ export function MessageComponent(props: Props) {
 					</div>
 				)}
 			</Show>
-			<div class={styles.messageContainer} classList={{ [styles.messageHead]: props.isHead }}>
+			<div class={styles.messageContainer}>
 				<span class={styles.messageInfo}>
 					<Show when={props.isHead} fallback={<time>{time().format('hh:mm')}</time>}>
 						<img
@@ -135,7 +141,8 @@ export function MessageComponent(props: Props) {
 						when={editingMessage()}
 						fallback={
 							<span class={styles.messageContent}>
-								<span>{props.message.content}</span>
+								{/* eslint-disable-next-line solid/no-innerhtml */}
+								<Show when={content()}>{(content) => <span innerHTML={content()} />}</Show>
 								<Show when={props.message.edited}>
 									{(time) => {
 										return (
@@ -159,20 +166,6 @@ export function MessageComponent(props: Props) {
 								props.message.content ?? ''
 							);
 
-							let textarea: HTMLTextAreaElement;
-
-							function focus() {
-								if (!util.inputSelected()) {
-									textarea.focus();
-								}
-							}
-
-							onMount(() => {
-								focus();
-								document.addEventListener('keydown', focus);
-								onCleanup(() => document.removeEventListener('keydown', focus));
-							});
-
 							function editMessage() {
 								api.editMessage(props.message.channel, props.message._id, {
 									content: editedMessageInput()
@@ -195,7 +188,6 @@ export function MessageComponent(props: Props) {
 											placeholder="Edit message"
 											initialValue={props.message.content}
 											sendTypingIndicators={false}
-											ref={textarea!}
 											onInput={(event) => setEditedMessageInput(event.currentTarget.value)}
 											onKeyDown={(event) => {
 												if (event.key == 'Escape') {
