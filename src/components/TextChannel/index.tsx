@@ -242,7 +242,6 @@ function TextChannelMeta(props: MetaProps) {
 				return;
 			}
 
-			console.log(message.content);
 			api.ackMessage(message.channel, message._id);
 		})
 	);
