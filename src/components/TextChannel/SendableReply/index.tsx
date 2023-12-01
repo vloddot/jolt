@@ -7,6 +7,7 @@ import util from '@lib/util';
 import { HiSolidAtSymbol } from 'solid-icons/hi';
 import { BiSolidXCircle } from 'solid-icons/bi';
 import type { SetStoreFunction } from 'solid-js/store';
+import { SelectedServerIdContext } from '@lib/context/SelectedServerId';
 
 export interface Props {
 	reply: SendableReply;
@@ -15,20 +16,29 @@ export interface Props {
 
 export default function SendableReplyComponent(props: Props) {
 	const [, setReplies] = useContext(RepliesContext);
+	const selectedServerId = useContext(SelectedServerIdContext);
 	const [author] = createResource(() => props.reply.message.author, api.fetchUser);
+	const [member] = createResource(() => {
+		const server = selectedServerId();
+		return server != undefined && { user: props.reply.message.author, server };
+	}, api.fetchMember);
+
 	const displayName = createMemo(() =>
-		author.state == 'ready' ? util.getDisplayName(author()) : '<Unknown User>'
+		author.state == 'ready'
+			? util.getDisplayName(author(), member(), props.reply.message)
+			: '<Unknown User>'
 	);
+
 	const displayAvatar = createMemo(() =>
 		author.state == 'ready'
-			? util.getDisplayAvatar(author())
+			? util.getDisplayAvatar(author(), member(), props.reply.message)
 			: util.getDefaultUserAvatar(props.reply.message.author)
 	);
 
 	return (
 		<div class={styles.replyContainer}>
-			Replying to <img class={utilStyles.cover} src={displayAvatar()} width="16px" height="16px" />{' '}
-			{displayName()}
+			Replying to <img class={utilStyles.cover} src={displayAvatar()} width="16px" height="16px" />
+			<span>{displayName()}</span>
 			<Show when={props.reply.message.content}>
 				{(content) => <span class={styles.messageContent}>{content()}</span>}
 			</Show>
