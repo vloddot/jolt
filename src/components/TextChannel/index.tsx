@@ -89,8 +89,6 @@ function TextChannelMeta(props: MetaProps) {
 	let messageTextarea: HTMLTextAreaElement;
 	let messageListElement: HTMLDivElement;
 
-	onMount(() => (messageListElement.scrollTop = messageListElement.scrollHeight));
-
 	const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {
 		if (
 			// control keys (except for ctrl+v)
@@ -237,8 +235,15 @@ function TextChannelMeta(props: MetaProps) {
 	const messages = createMemo(() => Object.values(props.collection.messages));
 
 	createEffect(
-		on(messages, () => {
+		on(messages, (messages) => {
 			messageListElement.scrollTop = messageListElement.scrollHeight;
+			const message = messages.pop();
+			if (message == undefined) {
+				return;
+			}
+
+			console.log(message.content);
+			api.ackMessage(message.channel, message._id);
 		})
 	);
 

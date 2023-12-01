@@ -182,6 +182,10 @@ async function fetchUnreads(): Promise<ChannelUnread[]> {
 	return req('GET', '/sync/unreads').then((response) => response.json());
 }
 
+async function ackMessage(target: string, message: string): Promise<void> {
+	await req('PUT', `/channels/${target}/ack/${message}`);
+}
+
 export default {
 	req,
 	login,
@@ -196,5 +200,6 @@ export default {
 	fetchMember,
 	deleteMessage,
 	uploadAttachment,
-	editMessage
+	editMessage,
+	ackMessage
 };
