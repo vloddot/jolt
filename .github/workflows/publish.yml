@@ -14,6 +14,8 @@ jobs:
 
       - name: Build Project
         run: pnpm build
+      - name: Copy index.html to 404.html
+        run: cp dist/index.html dist/404.html # needed because of dynamic routes
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v2
         with:
