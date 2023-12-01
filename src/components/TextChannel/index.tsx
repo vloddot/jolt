@@ -34,6 +34,8 @@ import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
 import MessageCollectionContext from './context/MessageCollection';
 import { ChannelCollectionContext } from '@lib/context/collections/Channels';
 import { on } from 'solid-js';
+import { SessionContext } from '@lib/context/Session';
+import EditingMessageIdContext from './context/EditingMessageId';
 
 export default function TextChannel() {
 	const selectedChannelId = useContext(SelectedChannelIdContext);
@@ -79,6 +81,8 @@ function TextChannelMeta(props: MetaProps) {
 	const channel = useContext(SelectedChannelContext)!;
 	const [messageInput, setMessageInput] = useContext(MessageInputContext);
 	const [replies, setReplies] = useContext(RepliesContext)!;
+	const [session] = useContext(SessionContext);
+	const [, setEditingMessageId] = useContext(EditingMessageIdContext);
 
 	const [showMasqueradeControls, setShowMasqueradeControls] = createSignal(false);
 
@@ -377,6 +381,22 @@ function TextChannelMeta(props: MetaProps) {
 						sendTypingIndicators
 						onInput={(event) => setMessageInput(event.currentTarget.value)}
 						onKeyDown={(event) => {
+							if (event.key == 'ArrowUp') {
+								// the question of the day, why can you not use `messages` at the top?
+								// don't ask me it just doesn't work and does weird things
+								for (const message of Object.values(props.collection.messages).reverse()) {
+									if (message == undefined) {
+										return;
+									}
+
+									if (message?.author == session()?.user_id) {
+										setEditingMessageId(message._id);
+										break;
+									}
+								}
+								return;
+							}
+
 							if (event.shiftKey || event.key != 'Enter') {
 								return;
 							}

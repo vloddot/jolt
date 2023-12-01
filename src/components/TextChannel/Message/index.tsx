@@ -18,6 +18,7 @@ import { createStore } from 'solid-js/store';
 import MessageReply from './Reply';
 import DOMPurify from 'dompurify';
 import converter from '@lib/showdown';
+import EditingMessageIdContext from '../context/EditingMessageId';
 
 export interface Props {
 	message: Message;
@@ -36,7 +37,7 @@ interface MessageControls {
 export function MessageComponent(props: Props) {
 	const [replies, setReplies] = useContext(RepliesContext)!;
 	const [session] = useContext(SessionContext);
-	const [editingMessage, setEditingMessage] = createSignal(false);
+	const [editingMessageId, setEditingMessageId] = useContext(EditingMessageIdContext);
 
 	const messageControls: MessageControls[] = [
 		{
@@ -58,7 +59,9 @@ export function MessageComponent(props: Props) {
 			children: <HiOutlinePencilSquare size="18px" />,
 			name: 'Edit',
 			showIf: () => session()?.user_id == props.message.author,
-			onclick: () => setEditingMessage((editing) => !editing)
+			onclick: () => {
+				return setEditingMessageId(editingMessageId() == props.message._id ? undefined : props.message._id);
+			}
 		},
 		{
 			children: <BsTrash size="18px" />,
@@ -138,7 +141,7 @@ export function MessageComponent(props: Props) {
 					</Show>
 
 					<Show
-						when={editingMessage()}
+						when={editingMessageId() == props.message._id}
 						fallback={
 							<span class={styles.messageContent}>
 								{/* eslint-disable-next-line solid/no-innerhtml */}
@@ -171,7 +174,7 @@ export function MessageComponent(props: Props) {
 									content: editedMessageInput()
 								});
 
-								setEditingMessage(false);
+								setEditingMessageId(undefined);
 							}
 
 							return (
@@ -191,7 +194,7 @@ export function MessageComponent(props: Props) {
 											onInput={(event) => setEditedMessageInput(event.currentTarget.value)}
 											onKeyDown={(event) => {
 												if (event.key == 'Escape') {
-													setEditingMessage(false);
+													setEditingMessageId(undefined);
 													return;
 												}
 
@@ -209,7 +212,7 @@ export function MessageComponent(props: Props) {
 										<a
 											style={{ cursor: 'pointer' }}
 											role="button"
-											onClick={() => setEditingMessage(false)}
+											onClick={() => setEditingMessageId(undefined)}
 										>
 											cancel
 										</a>

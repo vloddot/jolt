@@ -20,6 +20,13 @@ export default function TextArea(props: Props) {
 
 	let ref: HTMLTextAreaElement;
 
+	function focus() {
+		ref.focus();
+
+		// don't ask me my code is weird
+		setTimeout(() => ref.selectionStart = ref.selectionEnd = ref.value.length, 1);
+	}
+
 	const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {
 		if (
 			(event.ctrlKey && event.key != 'v') ||
@@ -33,10 +40,11 @@ export default function TextArea(props: Props) {
 			return;
 		}
 
-		ref.focus();
+		focus();
 	};
 
 	onMount(() => {
+		focus();
 		document.addEventListener('keydown', onKeyDown);
 
 		onCleanup(() => {
