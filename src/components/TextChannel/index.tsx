@@ -10,7 +10,8 @@ import {
 	createComputed,
 	createMemo,
 	onMount,
-	onCleanup
+	onCleanup,
+	createEffect
 } from 'solid-js';
 import styles from './index.module.scss';
 import utilStyles from '@lib/util.module.scss';
@@ -32,6 +33,7 @@ import { FaSolidUserSecret } from 'solid-icons/fa';
 import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
 import MessageCollectionContext from './context/MessageCollection';
 import { ChannelCollectionContext } from '@lib/context/collections/Channels';
+import { on } from 'solid-js';
 
 export default function TextChannel() {
 	const selectedChannelId = useContext(SelectedChannelIdContext);
@@ -85,6 +87,9 @@ function TextChannelMeta(props: MetaProps) {
 	let masqueradeAvatar = '';
 
 	let messageTextarea: HTMLTextAreaElement;
+	let messageListElement: HTMLDivElement;
+
+	onMount(() => (messageListElement.scrollTop = messageListElement.scrollHeight));
 
 	const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {
 		if (
@@ -230,9 +235,16 @@ function TextChannelMeta(props: MetaProps) {
 	});
 
 	const messages = createMemo(() => Object.values(props.collection.messages));
+
+	createEffect(
+		on(messages, () => {
+			messageListElement.scrollTop = messageListElement.scrollHeight;
+		})
+	);
+
 	return (
 		<main class="main-content-container">
-			<div class={styles.messageList}>
+			<div class={styles.messageList} ref={messageListElement!}>
 				<For each={messages()}>
 					{(message, messageIndex) => {
 						return (
