@@ -98,7 +98,7 @@ async function queryMessages([target, options]: [string, OptionsQueryMessages]):
 	Extract<BulkMessageResponse, { messages: Message[] }>
 > {
 	const params =
-		'?' +
+	'?' +
 		new URLSearchParams(
 			Object.entries(options).flatMap(([key, value]) =>
 				value == undefined ? [] : [[key, value.toString()]]
@@ -118,6 +118,10 @@ async function queryMessages([target, options]: [string, OptionsQueryMessages]):
 	} else {
 		return response;
 	}
+}
+
+async function fetchMembers(target: string): Promise<AllMemberResponse> {
+	return req('GET', `/servers/${target}/members`).then((response) => response.json());
 }
 
 async function fetchMember(target: MemberCompositeKey): Promise<Member> {
@@ -192,6 +196,7 @@ export default {
 	fetchSettings,
 	fetchDMs,
 	fetchChannel,
+	fetchMembers,
 	fetchMessage,
 	fetchUnreads,
 	queryMessages,

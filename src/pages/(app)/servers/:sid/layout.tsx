@@ -1,6 +1,15 @@
 import { SelectedServerIdContext } from '@lib/context/SelectedServerId';
 import { Outlet } from '@solidjs/router';
-import { For, Match, Show, Switch, createMemo, createSelector, useContext } from 'solid-js';
+import {
+	For,
+	Match,
+	Show,
+	Switch,
+	createMemo,
+	createResource,
+	createSelector,
+	useContext
+} from 'solid-js';
 import ChannelItem from '@components/ChannelItem';
 import util from '@lib/util';
 import { HiOutlineSpeakerWave } from 'solid-icons/hi';
@@ -9,6 +18,8 @@ import { ServerCollectionContext } from '@lib/context/collections/Servers';
 import { SelectedServerContext } from '@lib/context/SelectedServer';
 import { ChannelCollectionContext } from '@lib/context/collections/Channels';
 import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
+import api from '@lib/api';
+import UserButton from '@components/User/UserButton';
 
 export default function ServerWrapper() {
 	const selectedServer = useContext(SelectedServerIdContext);
@@ -25,7 +36,10 @@ export default function ServerWrapper() {
 							return (
 								<SelectedServerContext.Provider value={() => server()[0]}>
 									<ChannelBar />
-									<Outlet />
+									<main class="main-content-container">
+										<Outlet />
+									</main>
+									<MembersList />
 								</SelectedServerContext.Provider>
 							);
 						}}
@@ -148,6 +162,50 @@ function ChannelComponent(props: ChannelComponentProps) {
 					<span>{channel().name}</span>
 				</ChannelItem>
 			)}
+		</Show>
+	);
+}
+
+function MembersList() {
+	const server = useContext(SelectedServerContext);
+	return (
+		<Show when={server()}>
+			{(server) => {
+				const [response] = createResource(() => server()._id, api.fetchMembers);
+
+				return (
+					<div class="members-list-container">
+						<Switch>
+							<Match when={response.state == 'errored'}>Error fetching members</Match>
+							<Match when={response.state == 'pending' || response.state == 'refreshing'}>
+								Loading members...
+							</Match>
+							<Match when={response.state == 'unresolved'}>Unresolved server</Match>
+							<Match when={response.state == 'ready' && response()}>
+								{(response) => {
+									const users = createMemo(
+										() => new Map(response().users.map((user) => [user._id, user]))
+									);
+
+									return (
+										<For each={response().members}>
+											{(member) => {
+												const user = createMemo(() => users().get(member._id.user));
+
+												return (
+													<Show when={user()}>
+														{(user) => <UserButton user={user()} member={member} />}
+													</Show>
+												);
+											}}
+										</For>
+									);
+								}}
+							</Match>
+						</Switch>
+					</div>
+				);
+			}}
 		</Show>
 	);
 }

@@ -140,7 +140,9 @@ export default function HomeWrapper() {
 				</For>
 			</div>
 
-			<Outlet />
+			<main class="main-content-container">
+				<Outlet />
+			</main>
 		</>
 	);
 }

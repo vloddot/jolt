@@ -245,7 +245,7 @@ function TextChannelMeta(props: MetaProps) {
 	);
 
 	return (
-		<main class="main-content-container">
+		<>
 			<div class={styles.messageList} ref={messageListElement!}>
 				<For each={messages()}>
 					{(message, messageIndex) => {
@@ -481,6 +481,6 @@ function TextChannelMeta(props: MetaProps) {
 					</Switch>
 				</div>
 			</div>
-		</main>
+		</>
 	);
 }
