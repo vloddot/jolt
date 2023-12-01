@@ -31,6 +31,12 @@
 		display: flex;
 		justify-content: center;
 		font-size: 0.7em;
+		
+		.editedIndicator {
+			user-select: none;
+			margin-left: 2px;
+			opacity: 0.5;
+		}
 
 		time {
 			user-select: none;
@@ -87,11 +93,19 @@
 				font-size: 0.7em;
 				opacity: 0.5;
 			}
+
+			.editedIndicator {
+				font-size: 0.7em;
+				margin-left: 2px;
+				opacity: 0.5;
+			}
 		}
 
 		.messageContent {
 			word-wrap: break-word;
 			white-space: pre-wrap;
+			display: flex;
+			flex-direction: column;
 			width: 100%;
 
 			* {
@@ -100,7 +114,8 @@
 
 			table {
 				border-collapse: collapse;
-				th, td {
+				th,
+				td {
 					padding: 6px;
 					border: 1px solid var(--tertiary-foreground);
 				}
@@ -115,16 +130,19 @@
 				list-style-position: inside;
 			}
 
+			blockquote {
+				display: flex;
+				margin: 2px 0px;
+				padding: 2px 0px;
+				background-color: var(--hover);
+				border-radius: 6px;
+				border-inline-start: 4px solid var(--tertiary-background);
+			}
+
 			code {
 				background-color: var(--block);
 				padding: 1px 4px;
 				border-radius: 6px;
-			}
-
-			.editedText {
-				margin-left: 2px;
-				font-size: 0.7em;
-				opacity: 0.5;
 			}
 		}
 	}

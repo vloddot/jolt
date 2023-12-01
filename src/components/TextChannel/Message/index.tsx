@@ -4,7 +4,7 @@ import utilStyles from '@lib/util.module.scss';
 import dayjs from '@lib/dayjs';
 import { HiOutlinePencilSquare } from 'solid-icons/hi';
 import { BsReply, BsTrash } from 'solid-icons/bs';
-import { For, Show, type JSX, useContext, createMemo, createSignal } from 'solid-js';
+import { For, Show, type JSX, useContext, createMemo, createSignal, Match, Switch } from 'solid-js';
 import { decodeTime } from 'ulid';
 import { RepliesContext, type SendableReply } from '../context/Replies';
 import 'tippy.js/animations/scale-subtle.css';
@@ -60,7 +60,9 @@ export function MessageComponent(props: Props) {
 			name: 'Edit',
 			showIf: () => session()?.user_id == props.message.author,
 			onclick: () => {
-				return setEditingMessageId(editingMessageId() == props.message._id ? undefined : props.message._id);
+				return setEditingMessageId(
+					editingMessageId() == props.message._id ? undefined : props.message._id
+				);
 			}
 		},
 		{
@@ -103,14 +105,19 @@ export function MessageComponent(props: Props) {
 			</Show>
 			<div class={styles.messageContainer}>
 				<span class={styles.messageInfo}>
-					<Show when={props.isHead} fallback={<time>{time().format('hh:mm')}</time>}>
-						<img
-							class={utilStyles.cover}
-							src={util.getDisplayAvatar(props.author, props.member, props.message)}
-							alt={displayName()}
-							style={{ width: '32px', height: '32px' }}
-						/>
-					</Show>
+					<Switch fallback={<time>{time().format('HH:mm')}</time>}>
+						<Match when={!props.isHead && props.message.edited}>
+							{(time) => <EditedIndicator time={time()} />}
+						</Match>
+						<Match when={props.isHead}>
+							<img
+								class={utilStyles.cover}
+								src={util.getDisplayAvatar(props.author, props.member, props.message)}
+								alt={displayName()}
+								style={{ width: '32px', height: '32px' }}
+							/>
+						</Match>
+					</Switch>
 				</span>
 				<span class={styles.messageControls}>
 					<For each={messageControls}>
@@ -136,31 +143,22 @@ export function MessageComponent(props: Props) {
 									@{props.author.username}#{props.author.discriminator}
 								</span>
 							</Show>
-							<time class={styles.timestamp}>{time().calendar()}</time>
+							<span>
+								<time class={styles.timestamp}>{time().calendar()}</time>
+								<Show when={props.message.edited}>
+									{(time) => <EditedIndicator time={time()} />}
+								</Show>
+							</span>
 						</span>
 					</Show>
 
 					<Show
 						when={editingMessageId() == props.message._id}
 						fallback={
-							<span class={styles.messageContent}>
+							<Show when={content()}>
 								{/* eslint-disable-next-line solid/no-innerhtml */}
-								<Show when={content()}>{(content) => <span innerHTML={content()} />}</Show>
-								<Show when={props.message.edited}>
-									{(time) => {
-										return (
-											<Tooltip
-												placement="top"
-												content={dayjs(time()).format('LLLL')}
-												animation="scale-subtle"
-												duration={100}
-											>
-												<span class={styles.editedText}>(edited)</span>
-											</Tooltip>
-										);
-									}}
-								</Show>
-							</span>
+								{(content) => <span class={styles.messageContent} innerHTML={content()} />}
+							</Show>
 						}
 					>
 						{/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
@@ -238,5 +236,18 @@ export function MessageComponent(props: Props) {
 				</span>
 			</div>
 		</div>
+	);
+}
+
+function EditedIndicator(props: { time: string }) {
+	return (
+		<Tooltip
+			placement="top"
+			content={dayjs(props.time).format('LLLL')}
+			animation="scale-subtle"
+			duration={100}
+		>
+			<span class={styles.editedIndicator}>(edited)</span>
+		</Tooltip>
 	);
 }
