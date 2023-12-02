@@ -24,28 +24,29 @@ export default function SessionProvider(props: Props) {
 	const client = useContext(ClientContext);
 	const navigate = useNavigate();
 
-	createEffect(() => {
-		const s = session();
-		if (s != undefined) {
-			client.authenticate(s.token);
-		}
-	});
-
 	onMount(async () => {
-		const session: Session | null = await localforage.getItem('session');
-		if (session != undefined) {
-			setSession(session);
+		const storageSession: Session | null = await localforage.getItem('session');
+		if (storageSession != undefined) {
+			setSession(storageSession);
 		}
 
 		const notFoundHandler: ClientEvents['NotFound'] = async () => {
 			setSession(undefined);
 			await localforage.removeItem('session');
-			navigate('/login', { replace: true });
 		};
 
 		client.on('NotFound', notFoundHandler);
 		onCleanup(() => {
 			client.removeListener('NotFound', notFoundHandler);
+		});
+
+		createEffect(() => {
+			const s = session();
+			if (s == undefined) {
+				navigate('/login', { replace: true });
+			} else {
+				client.authenticate(s.token);
+			}
 		});
 	});
 
