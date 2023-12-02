@@ -41,6 +41,7 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 					if (channel != channel_id) {
 						return;
 					}
+
 					setMessages(id, undefined);
 				};
 
@@ -175,6 +176,10 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 				client.on('ChannelStopTyping', channelStopTypingHandler);
 
 				onCleanup(() => {
+					for (const timeout of typingTimeouts.values()) {
+						clearTimeout(timeout);
+					}
+
 					client.removeListener('Message', messageHandler);
 					client.removeListener('MessageDelete', messageDeleteHandler);
 					client.removeListener('BulkMessageDelete', bulkMessageDeleteHandler);
