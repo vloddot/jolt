@@ -14,8 +14,8 @@ import TextChannel from '@components/TextChannel';
 
 render(
 	() => (
-		<SessionProvider>
-			<Router base={import.meta.env.BASE_URL}>
+		<Router base={import.meta.env.BASE_URL}>
+			<SessionProvider>
 				<Routes>
 					<Route path="/" component={AppWrapper}>
 						<Route path="/servers/:sid" component={ServerWrapper}>
@@ -30,8 +30,8 @@ render(
 					</Route>
 					<Route path="/login" component={Login} />
 				</Routes>
-			</Router>
-		</SessionProvider>
+			</SessionProvider>
+		</Router>
 	),
 	document.getElementById('root')!
 );

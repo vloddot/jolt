@@ -1,6 +1,16 @@
-import { createContext, createEffect, createSignal, useContext, type JSX, onMount } from 'solid-js';
+import {
+	createContext,
+	createEffect,
+	createSignal,
+	useContext,
+	type JSX,
+	onMount,
+	onCleanup
+} from 'solid-js';
 import ClientContext from './Client';
 import localforage from 'localforage';
+import type { ClientEvents } from '@lib/Client';
+import { useNavigate } from '@solidjs/router';
 
 // eslint-disable-next-line solid/reactivity
 export const SessionContext = createContext(createSignal<Session | undefined>());
@@ -12,6 +22,7 @@ export interface Props {
 export default function SessionProvider(props: Props) {
 	const [session, setSession] = SessionContext.defaultValue;
 	const client = useContext(ClientContext);
+	const navigate = useNavigate();
 
 	createEffect(() => {
 		const s = session();
@@ -25,6 +36,17 @@ export default function SessionProvider(props: Props) {
 		if (session != undefined) {
 			setSession(session);
 		}
+
+		const notFoundHandler: ClientEvents['NotFound'] = async () => {
+			setSession(undefined);
+			await localforage.removeItem('session');
+			navigate('/login', { replace: true });
+		};
+
+		client.on('NotFound', notFoundHandler);
+		onCleanup(() => {
+			client.removeListener('NotFound', notFoundHandler);
+		});
 	});
 
 	return (
