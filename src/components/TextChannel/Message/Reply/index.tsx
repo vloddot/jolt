@@ -37,7 +37,7 @@ export default function MessageReply(props: Props) {
 				<Match when={message.state == 'ready' && message()}>
 					{(message) => {
 						return (
-							<>
+							<A class={styles.replyMeta} href={`#MESSAGE-${message()._id}`}>
 								<Switch>
 									<Match when={user.state == 'errored'}>Error loading user</Match>
 									<Match when={user.state == 'pending' || user.state == 'refreshing'}>
@@ -73,7 +73,7 @@ export default function MessageReply(props: Props) {
 											);
 
 											return (
-												<A class={styles.replyMeta} href={`#MESSAGE-${message()._id}`}>
+												<>
 													<img
 														class={utilStyles.cover}
 														style={{ width: '14px', height: '14px' }}
@@ -84,7 +84,7 @@ export default function MessageReply(props: Props) {
 														<Show when={props.from.mentions?.includes(user()._id)}>@</Show>
 														{displayName()}
 													</span>
-												</A>
+												</>
 											);
 										}}
 									</Match>
@@ -97,14 +97,26 @@ export default function MessageReply(props: Props) {
 											<span>
 												<Switch>
 													<Match when={attachments().length == 1}>Sent an attachment</Match>
-													<Match when={attachments().length > 1}>Sent multiple attachments</Match>
+													<Match when={attachments().length > 1 && attachments().length}>
+														{(len) => <>Sent {len()} attachments</>}
+													</Match>
 												</Switch>
 											</span>
 										</>
 									)}
 								</Show>
+								<Show when={message().embeds}>
+									{(embeds) => (
+										<Switch>
+											<Match when={embeds().length == 1}>Sent an embed</Match>
+											<Match when={embeds().length > 1 && embeds().length}>
+												{(len) => <>Sent {len()} embeds</>}
+											</Match>
+										</Switch>
+									)}
+								</Show>
 								<span>{message().content}</span>
-							</>
+							</A>
 						);
 					}}
 				</Match>
