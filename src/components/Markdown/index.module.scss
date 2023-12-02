@@ -8,6 +8,19 @@
 	.emoji {
 		width: var(--emoji-size);
 		height: var(--emoji-size);
+		object-fit: contain;
+		margin: 0px 0.05em 0px 0.1em;
+		vertical-align: -0.2em;
+	}
+
+	.mention {
+		background-color: var(--secondary-background);
+		display: flex;
+		gap: 4px;
+		max-width: fit-content;
+		padding-left: 2px;
+		padding-right: 6px;
+		border-radius: 12px;
 	}
 
 	* {
