@@ -1,3 +1,4 @@
+import Markdown from '@components/Markdown';
 import styles from './index.module.scss';
 import { Match, Show, Switch } from 'solid-js';
 
@@ -30,7 +31,7 @@ export default function Embed(embed: Embed) {
 							</Show>
 						</div>
 						<Show when={embed().description}>
-							{(description) => <p class={styles.description}>{description()}</p>}
+							{(description) => <Markdown content={description()} />}
 						</Show>
 					</div>
 				)}

@@ -1,0 +1,44 @@
+.markdownBase {
+	word-wrap: break-word;
+	white-space: pre-wrap;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+
+	* {
+		margin: 0;
+	}
+
+	table {
+		border-collapse: collapse;
+		th,
+		td {
+			padding: 6px;
+			border: 1px solid var(--tertiary-foreground);
+		}
+	}
+
+	ul,
+	ol {
+		display: flex;
+		flex-direction: column;
+		gap: 0px;
+		padding-inline-start: 10px;
+		list-style-position: inside;
+	}
+
+	blockquote {
+		display: flex;
+		margin: 2px 0px;
+		padding: 2px 0px;
+		background-color: var(--hover);
+		border-radius: 6px;
+		border-inline-start: 4px solid var(--tertiary-background);
+	}
+
+	code {
+		background-color: var(--block);
+		padding: 1px 4px;
+		border-radius: 6px;
+	}
+}

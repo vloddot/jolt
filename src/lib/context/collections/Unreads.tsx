@@ -35,7 +35,6 @@ export default function UnreadsCollectionProvider(props: Props) {
 	onMount(() => {
 		const messageHandler: ClientEvents['Message'] = (message) => {
 			const messageMentions = message.mentions?.filter((mention) => mention == session()?.user_id);
-			console.log(messageMentions, message.mentions);
 			const item = unreads.get(message.channel);
 			if (item == undefined) {
 				const [store, setStore] = createStore<ChannelUnread>({

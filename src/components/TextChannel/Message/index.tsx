@@ -16,9 +16,8 @@ import TextArea from '../TextArea';
 import { SessionContext } from '@lib/context/Session';
 import { createStore } from 'solid-js/store';
 import MessageReply from './Reply';
-import DOMPurify from 'dompurify';
-import converter from '@lib/showdown';
 import EditingMessageIdContext from '../context/EditingMessageId';
+import Markdown from '@components/Markdown';
 
 export interface Props {
 	message: Message;
@@ -77,20 +76,6 @@ export function MessageComponent(props: Props) {
 	);
 
 	const time = createMemo(() => dayjs(decodeTime(props.message._id)));
-
-	const content = createMemo(() => {
-		if (props.message.content == undefined) {
-			return;
-		}
-
-		const html = converter.makeHtml(
-			// https://github.com/markedjs/marked/issues/2139
-			// eslint-disable-next-line no-misleading-character-class
-			props.message.content.replace(/^[\u200B\u200C\u200D\u200E\u200F\uFEFF]/, '')
-		);
-
-		return DOMPurify.sanitize(html);
-	});
 
 	return (
 		<div id={`MESSAGE-${props.message._id}`} classList={{ [styles.messageHead]: props.isHead }}>
@@ -152,77 +137,74 @@ export function MessageComponent(props: Props) {
 						</span>
 					</Show>
 
-					<Show
-						when={editingMessageId() == props.message._id}
-						fallback={
-							<Show when={content()}>
-								{/* eslint-disable-next-line solid/no-innerhtml */}
-								{(content) => <span class={styles.messageContent} innerHTML={content()} />}
-							</Show>
-						}
-					>
-						{/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
-						{(_s) => {
-							const [editedMessageInput, setEditedMessageInput] = createSignal<string>(
-								props.message.content ?? ''
-							);
+					<Switch>
+						<Match when={editingMessageId() == props.message._id}>
+							{/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
+							{(_s) => {
+								const [editedMessageInput, setEditedMessageInput] = createSignal<string>(
+									props.message.content ?? ''
+								);
 
-							function editMessage() {
-								api.editMessage(props.message.channel, props.message._id, {
-									content: editedMessageInput()
-								});
+								function editMessage() {
+									api.editMessage(props.message.channel, props.message._id, {
+										content: editedMessageInput()
+									});
 
-								setEditingMessageId(undefined);
-							}
+									setEditingMessageId(undefined);
+								}
 
-							return (
-								<div class={styles.messageEditFormBase}>
-									<form
-										class={styles.messageEditForm}
-										id="message-edit-form"
-										onSubmit={(event) => {
-											event.preventDefault();
-											editMessage();
-										}}
-									>
-										<TextArea
-											placeholder="Edit message"
-											initialValue={props.message.content}
-											sendTypingIndicators={false}
-											onInput={(event) => setEditedMessageInput(event.currentTarget.value)}
-											onKeyDown={(event) => {
-												if (event.key == 'Escape') {
-													setEditingMessageId(undefined);
-													return;
-												}
-
-												if (event.shiftKey || event.key != 'Enter') {
-													return;
-												}
-
+								return (
+									<div class={styles.messageEditFormBase}>
+										<form
+											class={styles.messageEditForm}
+											id="message-edit-form"
+											onSubmit={(event) => {
 												event.preventDefault();
-												event.currentTarget.form?.requestSubmit();
+												editMessage();
 											}}
-										/>
-									</form>
-									<span class={styles.caption}>
-										{'escape to '}
-										<a
-											style={{ cursor: 'pointer' }}
-											role="button"
-											onClick={() => setEditingMessageId(undefined)}
 										>
-											cancel
-										</a>
-										{' · enter to '}
-										<a style={{ cursor: 'pointer' }} role="button" onClick={editMessage}>
-											save
-										</a>
-									</span>
-								</div>
-							);
-						}}
-					</Show>
+											<TextArea
+												placeholder="Edit message"
+												initialValue={props.message.content}
+												sendTypingIndicators={false}
+												onInput={(event) => setEditedMessageInput(event.currentTarget.value)}
+												onKeyDown={(event) => {
+													if (event.key == 'Escape') {
+														setEditingMessageId(undefined);
+														return;
+													}
+
+													if (event.shiftKey || event.key != 'Enter') {
+														return;
+													}
+
+													event.preventDefault();
+													event.currentTarget.form?.requestSubmit();
+												}}
+											/>
+										</form>
+										<span class={styles.caption}>
+											{'escape to '}
+											<a
+												style={{ cursor: 'pointer' }}
+												role="button"
+												onClick={() => setEditingMessageId(undefined)}
+											>
+												cancel
+											</a>
+											{' · enter to '}
+											<a style={{ cursor: 'pointer' }} role="button" onClick={editMessage}>
+												save
+											</a>
+										</span>
+									</div>
+								);
+							}}
+						</Match>
+						<Match when={props.message.content}>
+							{(content) => <Markdown content={content()} />}
+						</Match>
+					</Switch>
 
 					<Show when={props.message.attachments}>
 						{(attachments) => (
