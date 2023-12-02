@@ -20,7 +20,6 @@
 		"paths": {
 			"@lib/*": ["./src/lib/*"],
 			"@components/*": ["./src/components/*"],
-			"@pages/*": ["./src/pages/*"]
 		},
 
 		"verbatimModuleSyntax": true,

@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import solid from 'vite-plugin-solid';
 import path from 'path';
-
 export default defineConfig({
 	plugins: [solid()],
 	base: process.env.NODE_ENV == 'production' ? '/jolt-solidjs' : '',
@@ -17,7 +16,6 @@ export default defineConfig({
 		alias: [
 			{ find: '@lib', replacement: path.resolve(__dirname, 'src', 'lib') },
 			{ find: '@components', replacement: path.resolve(__dirname, 'src', 'components') },
-			{ find: '@pages', replacement: path.resolve(__dirname, 'src', 'pages') }
 		]
 	},
 	// prevent vite from obscuring rust errors
