@@ -5,6 +5,11 @@
 	flex-direction: column;
 	width: 100%;
 
+	.emoji {
+		width: var(--emoji-size);
+		height: var(--emoji-size);
+	}
+
 	* {
 		margin: 0;
 	}
