@@ -15,9 +15,7 @@ export interface MessageCollection {
 
 const collections: Record<string, MessageCollection> = {};
 
-export async function getMessageCollection(
-	channel_id: string,
-): Promise<MessageCollection> {
+export async function getMessageCollection(channel_id: string): Promise<MessageCollection> {
 	let collection = collections[channel_id];
 	if (!collection) {
 		const response = await api.queryMessages([channel_id, { sort: 'Latest', include_users: true }]);
@@ -129,20 +127,29 @@ export async function getMessageCollection(
 					setMessages(id, 'reactions', emoji_id, undefined);
 				};
 
-				let typingTimeout: NodeJS.Timeout;
+				// map for typing event timeouts
+				const typingTimeouts: Map<User['_id'], NodeJS.Timeout> = new Map();
+
 				const channelStartTypingHandler: ClientEvents['ChannelStartTyping'] = ({ id, user }) => {
 					if (channel_id != id || user == session()?.user_id) {
 						return;
 					}
 
-					if (typing.has(user)) {
-						return;
+					// check if the user was already typing recently
+					const typingTimeout = typingTimeouts.get(user);
+					
+					// if they were, clear their timeout because they sent another `ChannelStartTyping` event
+					if (typingTimeout != undefined) {
+						clearTimeout(typingTimeout);
 					}
 
-					clearTimeout(typingTimeout);
-					typingTimeout = setTimeout(
-						() => channelStopTypingHandler({ id, user, type: 'ChannelStopTyping' }),
-						3000
+					// ...and set a new timeout
+					typingTimeouts.set(
+						user,
+						setTimeout(
+							() => channelStopTypingHandler({ id, user, type: 'ChannelStopTyping' }),
+							3000
+						)
 					);
 
 					typing.add(user);
