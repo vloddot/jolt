@@ -21,12 +21,14 @@ import util from '@lib/util';
 import api from '@lib/api';
 import { ChannelCollectionContext } from '@lib/context/collections/Channels';
 import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
+import { UnreadsCollectionContext } from '@lib/context/collections/Unreads';
 
 export default function HomeWrapper() {
 	const location = useLocation();
 	const channelCollection = useContext(ChannelCollectionContext);
 	const selectedChannelId = useContext(SelectedChannelIdContext);
 	const channelIsSelected = createSelector(selectedChannelId);
+	const unreads = useContext(UnreadsCollectionContext);
 
 	const channels = createMemo(() => {
 		const list = Array.from(channelCollection.values());
@@ -65,6 +67,13 @@ export default function HomeWrapper() {
 					})}
 				>
 					{([channel]) => {
+						const unreadObject = createMemo(() => unreads.get(channel._id)?.[0]);
+						const isUnread = createMemo(() => {
+							const unread = unreadObject();
+
+							return unread != undefined && util.isUnread(channel, unread);
+						});
+
 						return (
 							<Switch>
 								<Match when={channel.channel_type == 'SavedMessages'}>
@@ -82,18 +91,21 @@ export default function HomeWrapper() {
 									</>
 								</Match>
 								<Match when={channel.channel_type == 'Group' && channel}>
-									{(channel) => (
-										<ChannelItem
-											href={`/conversations/${channel()._id}`}
-											selected={channelIsSelected(channel()._id)}
-											unread={util.isUnread(channel())}
-										>
-											<Show when={channel().icon} fallback={<FaSolidUserGroup />}>
-												{(icon) => <img src={util.getAutumnURL(icon())} alt={channel().name} />}
-											</Show>
-											<span>{channel().name}</span>
-										</ChannelItem>
-									)}
+									{(channel) => {
+										return (
+											<ChannelItem
+												href={`/conversations/${channel()._id}`}
+												selected={channelIsSelected(channel()._id)}
+												unread={isUnread()}
+												mentions={unreadObject()?.mentions?.length}
+											>
+												<Show when={channel().icon} fallback={<FaSolidUserGroup />}>
+													{(icon) => <img src={util.getAutumnURL(icon())} alt={channel().name} />}
+												</Show>
+												<span>{channel().name}</span>
+											</ChannelItem>
+										);
+									}}
 								</Match>
 								<Match when={channel.channel_type == 'DirectMessage' && channel.active && channel}>
 									{(channel) => {
@@ -106,7 +118,8 @@ export default function HomeWrapper() {
 											<ChannelItem
 												href={`/conversations/${channel()._id}`}
 												selected={channelIsSelected(channel()._id)}
-												unread={util.isUnread(channel())}
+												unread={isUnread()}
+												mentions={unreadObject()?.mentions?.length}
 											>
 												<Switch>
 													<Match when={recipient.state == 'pending'}>Loading user...</Match>

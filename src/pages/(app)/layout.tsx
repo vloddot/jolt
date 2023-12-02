@@ -29,7 +29,9 @@ import SelectedChannelIdProvider, {
 	SelectedChannelIdContext
 } from '@lib/context/SelectedChannelId';
 import ClientContext from '@lib/context/Client';
-import UnreadsCollectionProvider from '@lib/context/collections/Unreads';
+import UnreadsCollectionProvider, {
+	UnreadsCollectionContext
+} from '@lib/context/collections/Unreads';
 import { FaSolidHouse } from 'solid-icons/fa';
 import api from '@lib/api';
 
@@ -81,13 +83,20 @@ function ServerSidebar() {
 	const selectedServerId = useContext(SelectedServerIdContext);
 	const selectedChannelId = useContext(SelectedChannelIdContext);
 	const serverIsSelected = createSelector(selectedServerId);
+	const unreads = useContext(UnreadsCollectionContext);
+
 	const location = useLocation();
 	const unreadDms = createMemo(() =>
 		Array.from(channels.values()).flatMap(([channel]) => {
+			const unreadObject = unreads.get(channel._id)?.[0];
+			if (unreadObject == undefined) {
+				return [];
+			}
+
 			if (
-				((channel.channel_type == 'DirectMessage' && channel.active) ||
-					channel.channel_type == 'Group') &&
-				util.isUnread(channel)
+				(channel.channel_type == 'Group' ||
+					(channel.channel_type == 'DirectMessage' && channel.active)) &&
+				util.isUnread(channel, unreadObject)
 			) {
 				return [channel];
 			}
@@ -145,6 +154,12 @@ function ServerSidebar() {
 
 			<For each={unreadDms()}>
 				{(dm) => {
+					const unreadObject = createMemo(() => unreads.get(dm._id)?.[0]);
+					const isUnread = createMemo(() => {
+						const o = unreadObject();
+						return o == undefined ? false : util.isUnread(dm, o);
+					});
+
 					const [recipient] = createResource(
 						() => util.getOtherRecipient(dm.recipients),
 						api.fetchUser
@@ -161,7 +176,8 @@ function ServerSidebar() {
 										href={`/conversations/${dm._id}`}
 										selected={false}
 										tooltip={displayName()}
-										unread={true}
+										unread={isUnread()}
+										mentions={unreadObject()?.mentions?.length}
 									>
 										<img class={styles.cover} src={displayAvatar()} alt={displayName()} />
 									</ServerSidebarIcon>
@@ -182,7 +198,19 @@ function ServerSidebar() {
 					);
 
 					const isUnread = createMemo(
-						() => channels()?.some((channel) => util.isUnread(channel)) ?? false
+						() =>
+							channels()?.some((channel) => {
+								const unreadObject = unreads.get(channel._id)?.[0];
+								return unreadObject == undefined ? false : util.isUnread(channel, unreadObject);
+							}) ?? false
+					);
+
+					const mentions = createMemo(
+						() =>
+							channels()?.reduce((acc, channel) => {
+								const unreadObject = unreads.get(channel._id)?.[0];
+								return acc + (unreadObject?.mentions?.length ?? 0);
+							}, 0) ?? 0
 					);
 
 					return (
@@ -191,6 +219,7 @@ function ServerSidebar() {
 							selected={serverIsSelected(server._id)}
 							tooltip={server.name}
 							unread={isUnread()}
+							mentions={mentions()}
 						>
 							<Show
 								when={server.icon}

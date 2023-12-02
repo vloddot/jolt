@@ -127,6 +127,7 @@ function Login() {
 			return;
 		}
 
+		console.log('session.', response);
 		await localforage.setItem('session', response);
 		setSession(response);
 

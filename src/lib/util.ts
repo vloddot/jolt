@@ -87,25 +87,16 @@ function formatSize(bytes: number, dp = 2, si = true) {
 }
 
 /**
- * Determines if a given channel is unread.
- * @param channel The channel
+ * Gets the unread object from the unreads collection
+ * @param channel Channel object
  */
-function isUnread(channel: Channel) {
+function unreadObject(channel: Channel): ChannelUnread | undefined {
 	const unreads = useContext(UnreadsCollectionContext);
+	return unreads.get(channel._id)?.[0];
+}
 
+function isUnread(channel: Channel, unread: ChannelUnread) {
 	if (channel.channel_type == 'SavedMessages' || channel.channel_type == 'VoiceChannel') {
-		return false;
-	}
-
-	const item = unreads.get(channel._id);
-
-	if (item == undefined) {
-		return false;
-	}
-
-	const [unread] = item;
-
-	if (unread == undefined) {
 		return false;
 	}
 
@@ -116,10 +107,6 @@ function inputSelected() {
 	return ['TEXTAREA', 'INPUT'].includes(document.activeElement?.nodeName ?? '');
 }
 
-function sanitizeHtml(content: string) {
-	return content.replace('<', '&lt;').replace('>', '&gt;').replace('/', '&#8725;');
-}
-
 export default {
 	getAutumnURL,
 	getDisplayName,
@@ -128,7 +115,7 @@ export default {
 	getOtherRecipient,
 	hashMemberId,
 	formatSize,
+	unreadObject,
 	isUnread,
 	inputSelected,
-	sanitizeHtml
 };

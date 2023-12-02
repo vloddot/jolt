@@ -60,4 +60,16 @@
 	&[data-selected='true']::before {
 		height: 16px;
 	}
+
+	.mentionsBadge {
+		display: flex;
+		width: 16px;
+		height: 16px;
+		justify-content: center;
+		background-color: var(--error);
+		color: var(--foreground);
+		border-radius: 50%;
+		padding: 2px;
+		margin-right: 8px;
+	}
 }

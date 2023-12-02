@@ -20,6 +20,7 @@ import { ChannelCollectionContext } from '@lib/context/collections/Channels';
 import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
 import api from '@lib/api';
 import UserButton from '@components/User/UserButton';
+import { UnreadsCollectionContext } from '@lib/context/collections/Unreads';
 
 export default function ServerWrapper() {
 	const selectedServer = useContext(SelectedServerIdContext);
@@ -128,7 +129,13 @@ interface ChannelComponentProps {
 
 function ChannelComponent(props: ChannelComponentProps) {
 	const selectedServerId = useContext(SelectedServerIdContext)!;
-	const unread = createMemo(() => util.isUnread(props.channel));
+	const unreads = useContext(UnreadsCollectionContext);
+	const unreadObject = createMemo(() => unreads.get(props.channel._id)?.[0]);
+
+	const unread = createMemo(() => {
+		const o = unreadObject();
+		return o == undefined ? false : util.isUnread(props.channel, o);
+	});
 
 	return (
 		<Show
@@ -143,6 +150,7 @@ function ChannelComponent(props: ChannelComponentProps) {
 					href={`/servers/${selectedServerId()}/channels/${channel()._id}`}
 					selected={props.selected}
 					unread={unread()}
+					mentions={unreadObject()?.mentions?.length}
 				>
 					<Show
 						when={channel().icon != undefined && channel().icon}

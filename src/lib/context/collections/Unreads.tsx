@@ -34,6 +34,8 @@ export default function UnreadsCollectionProvider(props: Props) {
 
 	onMount(() => {
 		const messageHandler: ClientEvents['Message'] = (message) => {
+			const messageMentions = message.mentions?.filter((mention) => mention == session()?.user_id);
+			console.log(messageMentions, message.mentions);
 			const item = unreads.get(message.channel);
 			if (item == undefined) {
 				const [store, setStore] = createStore<ChannelUnread>({
@@ -41,14 +43,14 @@ export default function UnreadsCollectionProvider(props: Props) {
 						channel: message.channel,
 						user: session()!.user_id
 					},
-					mentions: message.mentions
+					mentions: messageMentions
 				});
 				unreads.set(message.channel, [store, setStore]);
 				return;
 			}
 			const [, setUnread] = item;
 
-			setUnread('mentions', (mentions) => [...(mentions ?? []), ...(message.mentions ?? [])]);
+			setUnread('mentions', (mentions) => [...(mentions ?? []), ...(messageMentions ?? [])]);
 		};
 
 		const channelAckHandler: ClientEvents['ChannelAck'] = ({ id, message_id, user }) => {
@@ -68,6 +70,7 @@ export default function UnreadsCollectionProvider(props: Props) {
 			const [, setUnread] = item;
 
 			setUnread('last_id', message_id);
+			setUnread('mentions', undefined);
 		};
 
 		client.on('Message', messageHandler);

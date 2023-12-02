@@ -53,4 +53,17 @@
 	&[data-selected='true'] img {
 		border-radius: 15px;
 	}
+
+	.mentionsBadge {
+		display: flex;
+		justify-content: center;
+		position: absolute;
+		border-radius: 50%;
+		top: -2px;
+		right: 8px;
+		outline: 2px solid black;
+		background-color: var(--error);
+		width: 16px;
+		height: 16px;
+	}
 }
