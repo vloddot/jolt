@@ -11,7 +11,8 @@ import {
 	createMemo,
 	onMount,
 	onCleanup,
-	createEffect
+	createEffect,
+	type Accessor
 } from 'solid-js';
 import styles from './index.module.scss';
 import utilStyles from '@lib/util.module.scss';
@@ -93,9 +94,9 @@ function TextChannelMeta(props: MetaProps) {
 	let messageTextarea: HTMLTextAreaElement;
 	let messageListElement: HTMLDivElement;
 
-	function createUserResource(target: string) {
+	function createUserResource(target: Accessor<string>) {
 		return createResource(
-			() => [target, props.collection.users[target] as User | undefined] as const,
+			() => [target(), props.collection.users[target()] as User | undefined] as const,
 			([user_id, user]) => {
 				if (user == undefined) {
 					return api.fetchUser(user_id);
@@ -106,9 +107,9 @@ function TextChannelMeta(props: MetaProps) {
 		);
 	}
 
-	function createMemberResource(target: string) {
+	function createMemberResource(target: Accessor<string>) {
 		return createResource(
-			() => [target, props.collection.members[target] as Member | undefined] as const,
+			() => [target(), props.collection.members[target()] as Member | undefined] as const,
 			([author, member]) => {
 				const s = server()?._id;
 				if (member != undefined) {
@@ -225,8 +226,8 @@ function TextChannelMeta(props: MetaProps) {
 
 	const typing = createMemo(() => {
 		return Array.from(props.collection.typing.values()).map((user) => ({
-			user: createUserResource(user)[0],
-			member: createMemberResource(user)[0]
+			user: createUserResource(() => user)[0],
+			member: createMemberResource(() => user)[0]
 		}));
 	});
 
@@ -252,12 +253,12 @@ function TextChannelMeta(props: MetaProps) {
 						return (
 							<Show when={message != undefined && message}>
 								{(message) => {
-									const [author] = createUserResource(message().author);
-									const [member] = createMemberResource(message().author);
+									const [author] = createUserResource(() => message().author);
+									const [member] = createMemberResource(() => message().author);
 
 									return (
-										<Show when={author.state == 'ready' && { author: author(), member: member() }}>
-											{(messageData) => {
+										<Show when={author.state == 'ready' && author()}>
+											{(author) => {
 												const isHead = createMemo(() => {
 													const lastMessage = messages()[messageIndex() - 1];
 
@@ -275,11 +276,12 @@ function TextChannelMeta(props: MetaProps) {
 														(message().replies?.length ?? 0) != 0
 													);
 												});
+
 												return (
 													<MessageComponent
 														message={message()}
-														author={messageData().author}
-														member={messageData().member}
+														author={author()}
+														member={member()}
 														isHead={isHead()}
 													/>
 												);

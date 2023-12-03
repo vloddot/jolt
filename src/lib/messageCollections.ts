@@ -5,6 +5,10 @@ import { createStore } from 'solid-js/store';
 import { SessionContext } from './context/Session';
 import type { ClientEvents } from './Client';
 import { ReactiveSet } from '@solid-primitives/set';
+import { UserCollectionContext } from './context/collections/Users';
+import { MemberCollectionContext } from './context/collections/Members';
+import util from './util';
+import { SelectedServerIdContext } from './context/SelectedServerId';
 
 export interface MessageCollection {
 	messages: Record<Message['_id'], Message | undefined>;
@@ -21,6 +25,9 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 		const response = await api.queryMessages([channel_id, { sort: 'Latest', include_users: true }]);
 		const client = useContext(ClientContext);
 		const [session] = useContext(SessionContext);
+		const userCollection = useContext(UserCollectionContext);
+		const memberCollection = useContext(MemberCollectionContext);
+		const selectedServerId = useContext(SelectedServerIdContext);
 
 		collection = createRoot(() => {
 			const [messages, setMessages] = createStore<MessageCollection['messages']>(
@@ -49,6 +56,7 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 					if (channel != channel_id) {
 						return;
 					}
+
 					setMessages((messages) => {
 						for (const id of ids) {
 							delete messages[id];
@@ -76,6 +84,7 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 					if (channel != channel_id) {
 						return;
 					}
+
 					batch(() => {
 						setMessages(id, 'embeds', (embeds) => {
 							embeds?.push(...(append.embeds ?? []));
@@ -93,6 +102,7 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 					if (channel != channel_id) {
 						return;
 					}
+
 					setMessages(id, 'reactions', (reactions) => {
 						reactions?.[emoji_id]?.push(user_id);
 						return reactions;
@@ -108,6 +118,7 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 					if (channel != channel_id) {
 						return;
 					}
+
 					setMessages(id, 'reactions', (reactions) => {
 						if (reactions?.[emoji_id] != undefined) {
 							reactions[emoji_id] = reactions[emoji_id]!.filter((user) => user != user_id);
@@ -138,7 +149,7 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 
 					// check if the user was already typing recently
 					const typingTimeout = typingTimeouts.get(user);
-					
+
 					// if they were, clear their timeout because they sent another `ChannelStartTyping` event
 					if (typingTimeout != undefined) {
 						clearTimeout(typingTimeout);
@@ -193,12 +204,43 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 				});
 			});
 
+			const users = Object.fromEntries(
+				response.users.map((user) => {
+					const u = userCollection.get(user._id);
+					if (u == undefined) {
+						const [store, setStore] = createStore(user);
+						userCollection.set(user._id, [store, setStore]);
+						return [user._id, store];
+					}
+
+					return [user._id, u[0]];
+				})
+			);
+
+			let members = {};
+			const server = selectedServerId();
+			if (server != undefined && response.members != undefined) {
+				members = Object.fromEntries(
+					response.members.map((member) => {
+						const m = memberCollection.get(util.hashMemberId(member._id));
+
+						if (m == undefined) {
+							const [store, setStore] = createStore(member);
+							memberCollection.set(util.hashMemberId(member._id), [store, setStore]);
+							return [member._id.user, store];
+						}
+
+						return [member._id.user, m];
+					})
+				);
+			}
+
+			console.log(users, members);
+
 			return {
 				messages,
-				users: Object.fromEntries(response.users.map((user) => [user._id, user])),
-				members: Object.fromEntries(
-					response.members?.map((member) => [member._id.user, member]) ?? []
-				),
+				users,
+				members,
 				typing
 			};
 		});
