@@ -235,8 +235,6 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 				);
 			}
 
-			console.log(users, members);
-
 			return {
 				messages,
 				users,
