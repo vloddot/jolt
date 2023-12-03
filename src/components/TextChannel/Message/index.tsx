@@ -202,7 +202,7 @@ export function MessageComponent(props: Props) {
 							}}
 						</Match>
 						<Match when={props.message.content}>
-							{(content) => <Markdown content={content()} />}
+							{(content) => <Markdown>{content()}</Markdown>}
 						</Match>
 					</Switch>
 

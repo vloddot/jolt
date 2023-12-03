@@ -31,7 +31,7 @@ export default function Embed(embed: Embed) {
 							</Show>
 						</div>
 						<Show when={embed().description}>
-							{(description) => <Markdown content={description()} />}
+							{(description) => <Markdown>{description()}</Markdown>}
 						</Show>
 					</div>
 				)}
