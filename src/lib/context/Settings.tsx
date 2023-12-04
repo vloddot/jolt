@@ -6,7 +6,8 @@ import {
 	createSignal,
 	onMount,
 	onCleanup,
-	createEffect
+	createEffect,
+	on
 } from 'solid-js';
 import api from '@lib/api';
 import { SessionContext } from './Session';
@@ -29,38 +30,40 @@ export default function SettingsProvider(props: Props) {
 	const [settings, setSettings] = createSignal(SettingsContext.defaultValue());
 	const [session] = useContext(SessionContext);
 
-	createEffect(() => {
-		if (session() == undefined) {
-			return;
-		}
+	createEffect(
+		on(session, (session) => {
+			if (session == undefined) {
+				return;
+			}
 
-		api.fetchSettings<keyof Settings>(['ordering']).then((settings) => {
-			batch(() => {
-				for (const [key, [serverRevision, serverValue]] of Object.entries(settings) as [
-					keyof Settings,
-					[number, string]
-				][]) {
-					const revisionKey = `revision:${key}`;
-					localforage.getItem(revisionKey).then((localRevision) => {
-						if (((localRevision as number) ?? 0) < serverRevision) {
-							const valueParsed = JSON.parse(serverValue);
-							localforage.setItem(revisionKey, serverRevision);
-							localforage.setItem(key, valueParsed);
-							setSettings((settings) => ({ ...settings, [key]: valueParsed }));
-						}
-
-						localforage.getItem(key).then((localValue) => {
-							if (localValue == null) {
-								setSettings((settings) => ({ ...settings, [key]: DEFAULT_SETTINGS[key] }));
-							} else {
-								setSettings((settings) => ({ ...settings, [key]: localValue }));
+			api.fetchSettings<keyof Settings>(['ordering']).then((settings) => {
+				batch(() => {
+					for (const [key, [serverRevision, serverValue]] of Object.entries(settings) as [
+						keyof Settings,
+						[number, string]
+					][]) {
+						const revisionKey = `revision:${key}`;
+						localforage.getItem(revisionKey).then((localRevision) => {
+							if (((localRevision as number) ?? 0) < serverRevision) {
+								const valueParsed = JSON.parse(serverValue);
+								localforage.setItem(revisionKey, serverRevision);
+								localforage.setItem(key, valueParsed);
+								setSettings((settings) => ({ ...settings, [key]: valueParsed }));
 							}
+
+							localforage.getItem(key).then((localValue) => {
+								if (localValue == null) {
+									setSettings((settings) => ({ ...settings, [key]: DEFAULT_SETTINGS[key] }));
+								} else {
+									setSettings((settings) => ({ ...settings, [key]: localValue }));
+								}
+							});
 						});
-					});
-				}
+					}
+				});
 			});
-		});
-	});
+		})
+	);
 
 	onMount(() => {
 		const userSettingsUpdateHandler: ClientEvents['UserSettingsUpdate'] = ({ id, update }) => {
