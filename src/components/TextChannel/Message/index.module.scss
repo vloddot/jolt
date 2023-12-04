@@ -2,15 +2,16 @@
 	margin-top: 6px;
 }
 
+.messageHead {
+	margin-top: 6px;
+}
+
 .messageContainer {
 	display: flex;
 	padding: 2px 16px;
 	position: relative;
 	gap: 12px;
 
-	&.messageHead {
-		margin-top: 6px;
-	}
 
 	&:hover {
 		background-color: var(--hover);
