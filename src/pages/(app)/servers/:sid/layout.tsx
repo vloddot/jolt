@@ -21,13 +21,15 @@ import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
 import api from '@lib/api';
 import UserButton from '@components/User/UserButton';
 import { UnreadsCollectionContext } from '@lib/context/collections/Unreads';
+import { ServerMembersListContext } from '@lib/context/collections/ServerMembersList';
 
 export default function ServerWrapper() {
-	const selectedServer = useContext(SelectedServerIdContext);
+	const selectedServerId = useContext(SelectedServerIdContext);
 
 	return (
-		<Show when={selectedServer() != undefined && selectedServer()}>
+		<Show when={selectedServerId() != undefined && selectedServerId()}>
 			{(id) => {
+				const [members] = createResource(id, api.fetchMembers);
 				const servers = useContext(ServerCollectionContext);
 				const server = createMemo(() => servers.get(id()));
 
@@ -36,11 +38,15 @@ export default function ServerWrapper() {
 						{(server) => {
 							return (
 								<SelectedServerContext.Provider value={() => server()[0]}>
-									<ChannelBar />
-									<main class="main-content-container">
-										<Outlet />
-									</main>
-									<MembersList />
+									<Show when={members.state == 'ready'}>
+										<ServerMembersListContext.Provider value={members}>
+											<ChannelBar />
+											<main class="main-content-container">
+												<Outlet />
+											</main>
+											<MembersList />
+										</ServerMembersListContext.Provider>
+									</Show>
 								</SelectedServerContext.Provider>
 							);
 						}}
@@ -175,45 +181,29 @@ function ChannelComponent(props: ChannelComponentProps) {
 }
 
 function MembersList() {
-	const server = useContext(SelectedServerContext);
+	const membersResponse = useContext(ServerMembersListContext);
+
 	return (
-		<Show when={server()}>
-			{(server) => {
-				const [response] = createResource(() => server()._id, api.fetchMembers);
+		<div class="members-list-container">
+			<Show when={membersResponse()}>
+				{(response) => {
+					const membersList = createMemo(() => Array.from(response().members.values()));
 
-				return (
-					<div class="members-list-container">
-						<Switch>
-							<Match when={response.state == 'errored'}>Error fetching members</Match>
-							<Match when={response.state == 'pending' || response.state == 'refreshing'}>
-								Loading members...
-							</Match>
-							<Match when={response.state == 'unresolved'}>Unresolved server</Match>
-							<Match when={response.state == 'ready' && response()}>
-								{(response) => {
-									const users = createMemo(
-										() => new Map(response().users.map((user) => [user._id, user]))
-									);
+					return (
+						<For each={membersList()}>
+							{(member) => {
+								const user = createMemo(() => response().users.get(member._id.user));
 
-									return (
-										<For each={response().members}>
-											{(member) => {
-												const user = createMemo(() => users().get(member._id.user));
-
-												return (
-													<Show when={user()}>
-														{(user) => <UserButton user={user()} member={member} />}
-													</Show>
-												);
-											}}
-										</For>
-									);
-								}}
-							</Match>
-						</Switch>
-					</div>
-				);
-			}}
-		</Show>
+								return (
+									<Show when={user()}>
+										{(user) => <UserButton user={user()} member={member} />}
+									</Show>
+								);
+							}}
+						</For>
+					);
+				}}
+			</Show>
+		</div>
 	);
 }

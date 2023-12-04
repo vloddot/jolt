@@ -12,8 +12,8 @@ import { SelectedServerIdContext } from './context/SelectedServerId';
 
 export interface MessageCollection {
 	messages: Record<Message['_id'], Message | undefined>;
-	users: Record<User['_id'], User>;
-	members: Record<Member['_id']['user'], Member>;
+	users: Record<User['_id'], User | Promise<User>>;
+	members: Record<Member['_id']['user'], Member | Promise<Member>>;
 	typing: ReactiveSet<string>;
 }
 

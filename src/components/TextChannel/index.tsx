@@ -37,6 +37,7 @@ import { ChannelCollectionContext } from '@lib/context/collections/Channels';
 import { on } from 'solid-js';
 import { SessionContext } from '@lib/context/Session';
 import EditingMessageIdContext from './context/EditingMessageId';
+import { ServerMembersListContext } from '@lib/context/collections/ServerMembersList';
 
 export default function TextChannel() {
 	const selectedChannelId = useContext(SelectedChannelIdContext);
@@ -80,6 +81,7 @@ interface MetaProps {
 function TextChannelMeta(props: MetaProps) {
 	const server = useContext(SelectedServerContext);
 	const channel = useContext(SelectedChannelContext)!;
+	const membersList = useContext(ServerMembersListContext);
 	const [messageInput, setMessageInput] = useContext(MessageInputContext);
 	const [replies, setReplies] = useContext(RepliesContext)!;
 	const [session] = useContext(SessionContext);
@@ -97,9 +99,12 @@ function TextChannelMeta(props: MetaProps) {
 	function createUserResource(target: Accessor<string>) {
 		return createResource(
 			() => [target(), props.collection.users[target()] as User | undefined] as const,
-			([user_id, user]) => {
+			([target, user]) => {
 				if (user == undefined) {
-					return api.fetchUser(user_id);
+					// specifically not awaiting here to make the request happen only once (for caching)
+					const u = api.fetchUser(target);
+					props.collection.users[target] = u;
+					return u;
 				}
 
 				return user;
@@ -109,8 +114,12 @@ function TextChannelMeta(props: MetaProps) {
 
 	function createMemberResource(target: Accessor<string>) {
 		return createResource(
-			() => [target(), props.collection.members[target()] as Member | undefined] as const,
-			([author, member]) => {
+			() =>
+				[
+					target(),
+					props.collection.members[target()] ?? membersList()?.members.get(target())
+				] as const,
+			([target, member]) => {
 				const s = server()?._id;
 				if (member != undefined) {
 					return member;
@@ -120,7 +129,10 @@ function TextChannelMeta(props: MetaProps) {
 					return;
 				}
 
-				return api.fetchMember({ server: s, user: author });
+				// specifically not awaiting here to make the request happen only once (for caching)
+				const m = api.fetchMember({ server: s, user: target });
+				props.collection.members[target] = m;
+				return m;
 			}
 		);
 	}
@@ -156,9 +168,11 @@ function TextChannelMeta(props: MetaProps) {
 		}
 
 		if (c.channel_type == 'DirectMessage') {
+			// until the fetch request finishes
+			setChannelName('DM');
+
 			const recipient = util.getOtherRecipient(c!.recipients);
 			if (recipient == undefined) {
-				setChannelName('DM');
 				return;
 			}
 
@@ -186,19 +200,31 @@ function TextChannelMeta(props: MetaProps) {
 			setAttachments([]);
 		}
 
-		const content = messageInput();
-		if (content != '') {
-			data.content = content;
-			setMessageInput('');
-			messageTextarea.value = '';
-		}
-
 		if (replies().length > 0) {
 			data.replies = replies().map(([reply]) => ({
 				id: reply.message._id,
 				mention: reply.mention
 			}));
 			setReplies([]);
+		}
+
+		const content = messageInput().trim();
+		if (content != '') {
+			data.content = content;
+			setMessageInput('');
+			messageTextarea.value = '';
+		}
+
+		const masqname = masqueradeName.trim();
+		if (masqname != '') {
+			data.masquerade = data.masquerade ?? {};
+			data.masquerade.name = masqname;
+		}
+
+		const masqavatar = masqueradeAvatar.trim();
+		if (masqavatar != '') {
+			data.masquerade = data.masquerade ?? {};
+			data.masquerade.avatar = masqavatar;
 		}
 
 		if (masqueradeName != '' || masqueradeAvatar != '') {

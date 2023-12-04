@@ -36,19 +36,25 @@ async function login(data: DataLogin): Promise<ResponseLogin> {
 	);
 }
 
-async function fetchUser(target: string): Promise<Store<User>> {
-	const users = useContext(UserCollectionContext);
-	const user = users.get(target);
+function fetchUser(target: string): Promise<Store<User>> {
+	return new Promise((resolve, reject) => {
+		const users = useContext(UserCollectionContext);
+		const user = users.get(target);
 
-	if (user == undefined) {
-		const [store, setStore] = createStore<User>(
-			await req('GET', `/users/${target}`).then((response) => response.json())
-		);
-		users.set(target, [store, setStore]);
-		return store;
-	}
+		if (user == undefined) {
+			req('GET', `/users/${target}`)
+				.then((response) => response.json())
+				.then((user: User) => {
+					const [store, setStore] = createStore(user);
+					users.set(target, [store, setStore]);
+					resolve(store);
+				})
+				.catch(reject);
+			return;
+		}
 
-	return user[0];
+		resolve(user[0]);
+	});
 }
 
 async function fetchDMs() {
@@ -92,7 +98,7 @@ async function queryMessages([target, options]: [string, OptionsQueryMessages]):
 	Extract<BulkMessageResponse, { messages: Message[] }>
 > {
 	const params =
-	'?' +
+		'?' +
 		new URLSearchParams(
 			Object.entries(options).flatMap(([key, value]) =>
 				value == undefined ? [] : [[key, value.toString()]]
@@ -114,26 +120,44 @@ async function queryMessages([target, options]: [string, OptionsQueryMessages]):
 	}
 }
 
-async function fetchMembers(target: string): Promise<AllMemberResponse> {
-	return req('GET', `/servers/${target}/members`).then((response) => response.json());
+function fetchMembers(target: string): Promise<AllMemberResponseMap> {
+	return new Promise((resolve, reject) => {
+		req('GET', `/servers/${target}/members`)
+			.then((response) => response.json())
+			.then((response: AllMemberResponse) => {
+				resolve({
+					members: new Map(response.members.map((member) => [member._id.user, member])),
+					users: new Map(response.users.map((user) => [user._id, user]))
+				});
+				const members = useContext(MemberCollectionContext);
+				for (const member of response.members) {
+					const [store, setStore] = createStore(member);
+					members.set(util.hashMemberId(member._id), [store, setStore]);
+				}
+			})
+			.catch(reject);
+	});
 }
 
-async function fetchMember(target: MemberCompositeKey): Promise<Member> {
-	const members = useContext(MemberCollectionContext);
-	const member = members.get(util.hashMemberId(target));
+function fetchMember(target: MemberCompositeKey): Promise<Member> {
+	return new Promise((resolve, reject) => {
+		const members = useContext(MemberCollectionContext);
+		const member = members.get(util.hashMemberId(target));
 
-	if (member == undefined) {
-		const [store, setStore] = createStore<Member>(
-			await req('GET', `/servers/${target.server}/members/${target.user}`).then((response) =>
-				response.json()
-			)
-		);
+		if (member == undefined) {
+			req('GET', `/servers/${target.server}/members/${target.user}`)
+				.then((response) => response.json())
+				.then((member: Member) => {
+					const [store, setStore] = createStore(member);
+					members.set(util.hashMemberId(target), [store, setStore]);
+					resolve(store);
+				})
+				.catch(reject);
+			return;
+		}
 
-		members.set(util.hashMemberId(target), [store, setStore]);
-		return store;
-	}
-
-	return member[0];
+		resolve(member?.[0]);
+	});
 }
 
 async function sendMessage(target: string, data: DataMessageSend): Promise<Message> {

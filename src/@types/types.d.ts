@@ -93,7 +93,7 @@ type DataCreateChannel = components['schemas']['DataCreateChannel'];
 type ChannelType = components['schemas']['ChannelType'];
 type AllMemberResponse = components['schemas']['AllMemberResponse'];
 type AllMemberResponseMap = {
-	members: Member[];
+	members: Map<Member['_id']['user'], Member>;
 	users: Map<User['_id'], User>;
 };
 type DataMemberEdit = components['schemas']['DataMemberEdit'];
