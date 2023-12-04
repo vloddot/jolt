@@ -20,17 +20,11 @@ function req(
 			headers: session?.token == undefined ? undefined : { 'x-session-token': session.token }
 		})
 			.then((response) => {
-				if (response.status == 429) {
-					response
-						.json()
-						.then(({ retry_after }) =>
-							setTimeout(() => req(method, path, body).then(resolve).catch(reject), retry_after)
-						)
-						.catch(reject);
-					return;
+				if (response.ok) {
+					resolve(response);
+				} else {
+					reject(response);
 				}
-
-				resolve(response);
 			})
 			.catch(reject);
 	});
