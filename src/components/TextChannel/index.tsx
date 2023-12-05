@@ -48,9 +48,15 @@ export default function TextChannel() {
 
 	return (
 		<Switch>
-			<Match keyed when={messageCollection.state == 'errored'}>Error loading messages</Match>
-			<Match keyed when={messageCollection.state == 'pending'}>Loading messages...</Match>
-			<Match keyed when={messageCollection.state == 'refreshing'}>Reloading messages...</Match>
+			<Match keyed when={messageCollection.state == 'errored'}>
+				Error loading messages
+			</Match>
+			<Match keyed when={messageCollection.state == 'pending'}>
+				Loading messages...
+			</Match>
+			<Match keyed when={messageCollection.state == 'refreshing'}>
+				Reloading messages...
+			</Match>
 			<Match keyed when={messageCollection.state == 'unresolved' || channel() == undefined}>
 				Unresolved channel.
 			</Match>
@@ -146,10 +152,18 @@ function TextChannelMeta(props: MetaProps) {
 		}
 	};
 
+	const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {
+		if (!util.inputSelected() && event.key == 'Escape') {
+			messageTextarea.focus();
+		}
+	};
+
 	onMount(() => {
 		document.addEventListener('paste', onPaste);
+		document.addEventListener('keydown', onKeyDown);
 		onCleanup(() => {
 			document.removeEventListener('paste', onPaste);
+			document.removeEventListener('keydown', onKeyDown);
 		});
 	});
 
