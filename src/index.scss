@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible&display=swap');
+
 :root {
 	--accent: #3399ff;
 	--background: #141414;
@@ -27,7 +29,7 @@
 body {
 	background-color: var(--background);
 	caret-color: var(--accent);
-	font-family: sans-serif;
+	font-family: 'Atkinson Hyperlegible', sans-serif;
 	font-size: 14px;
 	overflow: hidden;
 	margin: 0;
@@ -65,7 +67,9 @@ hr {
 	width: calc(100% - 36px);
 }
 
-input, textarea, button {
+input,
+textarea,
+button {
 	background-color: var(--secondary-background);
 	color: var(--secondary-foreground);
 	font-size: inherit;
@@ -92,7 +96,8 @@ button {
 	}
 }
 
-input:hover, textarea:hover {
+input:hover,
+textarea:hover {
 	background-color: var(--hover);
 }
 
@@ -109,25 +114,26 @@ input:focus {
 	border-radius: 6px !important;
 }
 
-.tippy-box[data-placement='top'] > .tippy-arrow::before {
+.tippy-box[data-placement='top']>.tippy-arrow::before {
 	border-top-color: black !important;
 }
 
-.tippy-box[data-placement='right'] > .tippy-arrow::before {
+.tippy-box[data-placement='right']>.tippy-arrow::before {
 	border-right-color: black !important;
 }
 
-.tippy-box[data-placement='bottom'] > .tippy-arrow::before {
+.tippy-box[data-placement='bottom']>.tippy-arrow::before {
 	border-bottom-color: black !important;
 }
 
-.tippy-box[data-placement='left'] > .tippy-arrow::before {
+.tippy-box[data-placement='left']>.tippy-arrow::before {
 	border-left-color: black !important;
 }
 
 details {
 	margin-top: 8px;
-	> summary {
+
+	>summary {
 		user-select: none;
 		margin-left: 8px;
 		cursor: pointer;
