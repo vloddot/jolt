@@ -76,7 +76,7 @@ export default function HomeWrapper() {
 
 						return (
 							<Switch>
-								<Match when={channel.channel_type == 'SavedMessages'}>
+								<Match keyed when={channel.channel_type == 'SavedMessages'}>
 									<>
 										<ChannelItem
 											href={`/conversations/${channel._id}`}
@@ -90,19 +90,19 @@ export default function HomeWrapper() {
 										<hr />
 									</>
 								</Match>
-								<Match when={channel.channel_type == 'Group' && channel}>
+								<Match keyed when={channel.channel_type == 'Group' && channel}>
 									{(channel) => {
 										return (
 											<ChannelItem
-												href={`/conversations/${channel()._id}`}
-												selected={channelIsSelected(channel()._id)}
+												href={`/conversations/${channel._id}`}
+												selected={channelIsSelected(channel._id)}
 												unread={isUnread()}
 												mentions={unreadObject()?.mentions?.length}
 											>
-												<Show when={channel().icon} fallback={<FaSolidUserGroup />}>
-													{(icon) => <img src={util.getAutumnURL(icon())} alt={channel().name} />}
+												<Show when={channel.icon} fallback={<FaSolidUserGroup />}>
+													{(icon) => <img src={util.getAutumnURL(icon())} alt={channel.name} />}
 												</Show>
-												<span>{channel().name}</span>
+												<span>{channel.name}</span>
 											</ChannelItem>
 										);
 									}}
@@ -122,17 +122,20 @@ export default function HomeWrapper() {
 												mentions={unreadObject()?.mentions?.length}
 											>
 												<Switch>
-													<Match when={recipient.state == 'pending'}>Loading user...</Match>
+													<Match keyed when={recipient.state == 'pending'}>
+														Loading user...
+													</Match>
 													<Match
+														keyed
 														when={recipient.state == 'unresolved' || recipient.state == 'errored'}
 													>
 														Could not resolve user.
 													</Match>
-													<Match when={recipient.state == 'refreshing'}>Reloading user...</Match>
-													<Match when={recipient.state == 'ready' && recipient()}>
+													<Match keyed when={recipient.state == 'refreshing'}>Reloading user...</Match>
+													<Match keyed when={recipient.state == 'ready' && recipient()}>
 														{(recipient) => {
-															const name = createMemo(() => util.getDisplayName(recipient()));
-															const avatar = createMemo(() => util.getDisplayAvatar(recipient()));
+															const name = createMemo(() => util.getDisplayName(recipient));
+															const avatar = createMemo(() => util.getDisplayAvatar(recipient));
 
 															return (
 																<>

@@ -5,32 +5,32 @@ import { Match, Show, Switch } from 'solid-js';
 export default function Embed(embed: Embed) {
 	return (
 		<Switch>
-			<Match when={embed.type == 'Image' && embed}>
-				{(embed) => <img src={embed().url} width={embed().width} height={embed().height} />}
+			<Match keyed when={embed.type == 'Image' && embed}>
+				{(embed) => <img src={embed.url} width={embed.width} height={embed.height} />}
 			</Match>
-			<Match when={embed.type == 'Text' && embed}>
+			<Match keyed when={embed.type == 'Text' && embed}>
 				{(embed) => (
 					<div
 						class={styles.textEmbed}
-						style={{ 'border-left': `solid ${embed().colour ?? 'var(--tertiary-background)'}` }}
+						style={{ 'border-left': `solid ${embed.colour ?? 'var(--tertiary-background)'}` }}
 					>
 						<div class={styles.heading}>
-							<Show when={embed().icon_url}>
+							<Show when={embed.icon_url}>
 								{(url) => (
 									<img
 										class={styles.icon}
 										src={url()}
-										alt={embed().title ?? 'Icon'}
+										alt={embed.title ?? 'Icon'}
 										width="24px"
 										height="24px"
 									/>
 								)}
 							</Show>
-							<Show when={embed().title}>
+							<Show when={embed.title}>
 								{(title) => <div class={styles.title}>{title()}</div>}
 							</Show>
 						</div>
-						<Show when={embed().description}>
+						<Show when={embed.description}>
 							{(description) => <Markdown>{description()}</Markdown>}
 						</Show>
 					</div>

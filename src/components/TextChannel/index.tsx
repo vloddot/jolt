@@ -48,13 +48,14 @@ export default function TextChannel() {
 
 	return (
 		<Switch>
-			<Match when={messageCollection.state == 'errored'}>Error loading messages</Match>
-			<Match when={messageCollection.state == 'pending'}>Loading messages...</Match>
-			<Match when={messageCollection.state == 'refreshing'}>Reloading messages...</Match>
-			<Match when={messageCollection.state == 'unresolved' || channel() == undefined}>
+			<Match keyed when={messageCollection.state == 'errored'}>Error loading messages</Match>
+			<Match keyed when={messageCollection.state == 'pending'}>Loading messages...</Match>
+			<Match keyed when={messageCollection.state == 'refreshing'}>Reloading messages...</Match>
+			<Match keyed when={messageCollection.state == 'unresolved' || channel() == undefined}>
 				Unresolved channel.
 			</Match>
 			<Match
+				keyed
 				when={
 					messageCollection.state == 'ready' &&
 					channel() != undefined && { channel: channel(), collection: messageCollection() }
@@ -64,7 +65,7 @@ export default function TextChannel() {
 					return (
 						<MessageCollectionContext.Provider value={messageCollection}>
 							<SelectedChannelContext.Provider value={channel}>
-								<TextChannelMeta collection={accessor().collection} />
+								<TextChannelMeta collection={accessor.collection} />
 							</SelectedChannelContext.Provider>
 						</MessageCollectionContext.Provider>
 					);
@@ -458,15 +459,15 @@ function TextChannelMeta(props: MetaProps) {
 
 				<div class={styles.typingIndicators}>
 					<Switch>
-						<Match when={typing().length == 1 && typing()}>
-							{(typingAccessor) => {
-								const typingUser = createMemo(() => typingAccessor()[0]);
+						<Match keyed when={typing().length == 1 && typing()}>
+							{(typing) => {
+								const user = () => typing[0];
 								return (
 									<Show
 										when={
-											typingUser().user.state == 'ready' && {
-												user: typingUser().user()!,
-												member: typingUser().member()
+											user().user.state == 'ready' && {
+												user: user().user()!,
+												member: user().member()
 											}
 										}
 									>

@@ -10,6 +10,7 @@ export default function Attachment(attachment: AutumnFile) {
 		<div>
 			<Switch>
 				<Match
+				keyed
 					when={
 						attachment.metadata.type == 'Image' && {
 							filename: attachment.filename,
@@ -21,18 +22,18 @@ export default function Attachment(attachment: AutumnFile) {
 						<img
 							class={styles.mediaAttachment}
 							src={href()}
-							alt={attachment().filename}
+							alt={attachment.filename}
 							style={{
-								'--width': `${attachment().metadata.width}px`,
-								'--height': `${attachment().metadata.width}px`
+								'--width': `${attachment.metadata.width}px`,
+								'--height': `${attachment.metadata.width}px`
 							}}
 						/>
 					)}
 				</Match>
-				<Match when={attachment.metadata.type == 'Video' && attachment.metadata}>
+				<Match keyed when={attachment.metadata.type == 'Video' && attachment.metadata}>
 					{(metadata) => (
 						<video
-							style={{ '--width': `${metadata().width}px`, '--height': `${metadata().height}px` }}
+							style={{ '--width': `${metadata.width}px`, '--height': `${metadata.height}px` }}
 							class={styles.mediaAttachment}
 							controls
 						>
@@ -40,15 +41,15 @@ export default function Attachment(attachment: AutumnFile) {
 						</video>
 					)}
 				</Match>
-				<Match when={attachment.metadata.type == 'Audio'}>
+				<Match keyed when={attachment.metadata.type == 'Audio'}>
 					<audio class={styles.mediaAttachment} controls>
 						<source src={href()} />
 					</audio>
 				</Match>
-				<Match when={attachment.metadata.type == 'File' && attachment}>
-					{(attachment) => <FileAttachment attachment={attachment()} href={href()} />}
+				<Match keyed when={attachment.metadata.type == 'File' && attachment}>
+					{(attachment) => <FileAttachment attachment={attachment} href={href()} />}
 				</Match>
-				<Match when={attachment.metadata.type == 'Text' && attachment}>
+				<Match keyed when={attachment.metadata.type == 'Text' && attachment}>
 					{(attachment) => {
 						const [text] = createResource(href, (href) =>
 							fetch(href).then((response) => response.text())
@@ -57,12 +58,10 @@ export default function Attachment(attachment: AutumnFile) {
 						return (
 							<div class={styles.textAttachment}>
 								<div class={styles.textContent}>
-									<Switch>
-										<Match when={text.state == 'ready' && text()}>{(text) => text()}</Match>
-									</Switch>
+									{text()}
 								</div>
 								<FileAttachment
-									attachment={attachment()}
+									attachment={attachment}
 									showLinkButton
 									href={href()}
 									width="100%"

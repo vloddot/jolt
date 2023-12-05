@@ -21,12 +21,12 @@ export default function UserButton(props: Props) {
 
 				<span class={styles.userPresence}>
 					<Switch fallback="Online">
-						<Match when={!props.user.online || props.user.status?.presence == 'Invisible'}>
+						<Match keyed when={!props.user.online || props.user.status?.presence == 'Invisible'}>
 							Offline
 						</Match>
-						<Match when={props.user.status?.text}>{(text) => text()}</Match>
-						<Match when={props.user.status?.presence == 'Busy'}>Do Not Disturb</Match>
-						<Match when={props.user.status?.presence}>{(presence) => presence()}</Match>
+						<Match keyed when={props.user.status?.text}>{(text) => text}</Match>
+						<Match keyed when={props.user.status?.presence == 'Busy'}>Do Not Disturb</Match>
+						<Match keyed when={props.user.status?.presence}>{(presence) => presence}</Match>
 					</Switch>
 				</span>
 			</div>

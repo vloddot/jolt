@@ -29,25 +29,25 @@ export default function MessageReply(props: Props) {
 	return (
 		<div class={styles.replyBase}>
 			<Switch fallback={<>Unresolved message</>}>
-				<Match when={message.state == 'errored'}>Error loading message</Match>
-				<Match when={message.state == 'pending' || message.state == 'refreshing'}>
+				<Match keyed when={message.state == 'errored'}>Error loading message</Match>
+				<Match keyed when={message.state == 'pending' || message.state == 'refreshing'}>
 					Loading message...
 				</Match>
-				<Match when={message.state == 'unresolved'}>Unresolved message</Match>
-				<Match when={message.state == 'ready' && message()}>
+				<Match keyed when={message.state == 'unresolved'}>Unresolved message</Match>
+				<Match keyed when={message.state == 'ready' && message()}>
 					{(message) => {
 						return (
-							<A class={styles.replyMeta} href={`#MESSAGE-${message()._id}`}>
+							<A class={styles.replyMeta} href={`#MESSAGE-${message._id}`}>
 								<Switch>
-									<Match when={user.state == 'errored'}>Error loading user</Match>
-									<Match when={user.state == 'pending' || user.state == 'refreshing'}>
+									<Match keyed when={user.state == 'errored'}>Error loading user</Match>
+									<Match keyed when={user.state == 'pending' || user.state == 'refreshing'}>
 										Loading user...
 									</Match>
-									<Match when={user.state == 'unresolved'}>Unresolved user</Match>
-									<Match when={user.state == 'ready' && user()}>
+									<Match keyed when={user.state == 'unresolved'}>Unresolved user</Match>
+									<Match keyed when={user.state == 'ready' && user()}>
 										{(user) => {
 											const [member] = createResource(
-												() => [user()._id, collection()?.members] as const,
+												() => [user._id, collection()?.members] as const,
 												async ([user_id, members]) => {
 													const c = selectedChannel();
 													if (
@@ -65,11 +65,11 @@ export default function MessageReply(props: Props) {
 											);
 
 											const displayName = createMemo(() =>
-												util.getDisplayName(user(), member(), message())
+												util.getDisplayName(user, member(), message)
 											);
 
 											const displayAvatar = createMemo(() =>
-												util.getDisplayAvatar(user(), member(), message())
+												util.getDisplayAvatar(user, member(), message)
 											);
 
 											return (
@@ -81,7 +81,7 @@ export default function MessageReply(props: Props) {
 														alt={displayName()}
 													/>
 													<span>
-														<Show when={props.from.mentions?.includes(user()._id)}>@</Show>
+														<Show when={props.from.mentions?.includes(user._id)}>@</Show>
 														{displayName()}
 													</span>
 												</>
@@ -90,32 +90,32 @@ export default function MessageReply(props: Props) {
 									</Match>
 								</Switch>
 
-								<Show when={message().attachments?.length != 0 && message().attachments}>
+								<Show when={message.attachments?.length != 0 && message.attachments}>
 									{(attachments) => (
 										<>
 											<AiFillFileText />
 											<span>
 												<Switch>
-													<Match when={attachments().length == 1}>Sent an attachment</Match>
-													<Match when={attachments().length > 1 && attachments().length}>
-														{(len) => <>Sent {len()} attachments</>}
+													<Match keyed when={attachments().length == 1}>Sent an attachment</Match>
+													<Match keyed when={attachments().length > 1 && attachments().length}>
+														{(len) => <>Sent {len} attachments</>}
 													</Match>
 												</Switch>
 											</span>
 										</>
 									)}
 								</Show>
-								<Show when={message().embeds}>
+								<Show when={message.embeds}>
 									{(embeds) => (
 										<Switch>
-											<Match when={embeds().length == 1}>Sent an embed</Match>
-											<Match when={embeds().length > 1 && embeds().length}>
-												{(len) => <>Sent {len()} embeds</>}
+											<Match keyed when={embeds().length == 1}>Sent an embed</Match>
+											<Match keyed when={embeds().length > 1 && embeds().length}>
+												{(len) => <>Sent {len} embeds</>}
 											</Match>
 										</Switch>
 									)}
 								</Show>
-								<span>{message().content}</span>
+								<span>{message.content}</span>
 							</A>
 						);
 					}}
