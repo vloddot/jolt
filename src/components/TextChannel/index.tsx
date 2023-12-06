@@ -424,7 +424,7 @@ function TextChannelMeta(props: MetaProps) {
 						sendTypingIndicators
 						onInput={(event) => setMessageInput(event.currentTarget.value)}
 						onKeyDown={(event) => {
-							if (event.key == 'ArrowUp') {
+							if (event.key == 'ArrowUp' && messageInput() == '') {
 								// the question of the day, why can you not use `messages` at the top?
 								// don't ask me it just doesn't work and does weird things
 								for (const message of Object.values(props.collection.messages).reverse()) {
