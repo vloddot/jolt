@@ -45,6 +45,11 @@ function fetchUser(target: string): Promise<Store<User>> {
 			req('GET', `/users/${target}`)
 				.then((response) => response.json())
 				.then((user: User) => {
+					const item = users.get(user._id);
+					if (item != undefined) {
+						resolve(item[0]);
+						return;
+					}
 					const [store, setStore] = createStore(user);
 					users.set(target, [store, setStore]);
 					resolve(store);
@@ -62,6 +67,11 @@ async function fetchDMs() {
 	const dms: Channel[] = await req('GET', '/users/dms').then((response) => response.json());
 
 	return dms.map((channel) => {
+		const item = channels.get(channel._id);
+		if (item != undefined) {
+			return item[0];
+		}
+
 		const [store, setStore] = createStore(channel);
 		channels.set(channel._id, [store, setStore]);
 		return store as Store<
@@ -125,15 +135,37 @@ function fetchMembers(target: string): Promise<AllMemberResponseMap> {
 		req('GET', `/servers/${target}/members`)
 			.then((response) => response.json())
 			.then((response: AllMemberResponse) => {
-				resolve({
-					members: new Map(response.members.map((member) => [member._id.user, member])),
-					users: new Map(response.users.map((user) => [user._id, user]))
-				});
 				const members = useContext(MemberCollectionContext);
-				for (const member of response.members) {
-					const [store, setStore] = createStore(member);
-					members.set(util.hashMemberId(member._id), [store, setStore]);
-				}
+				const users = useContext(UserCollectionContext);
+
+				resolve({
+					members: new Map(
+						response.members.map((member) => {
+							const item = members.get(util.hashMemberId(member._id));
+							if (item != undefined) {
+								return [item[0]._id.user, item[0]];
+							}
+
+							const [store, setStore] = createStore(member);
+							members.set(util.hashMemberId(member._id), [store, setStore]);
+
+							return [member._id.user, store];
+						})
+					),
+					users: new Map(
+						response.users.map((user) => {
+							const item = users.get(user._id);
+							if (item != undefined) {
+								return [item[0]._id, item[0]];
+							}
+
+							const [store, setStore] = createStore(user);
+							users.set(user._id, [store, setStore]);
+
+							return [user._id, store];
+						})
+					)
+				});
 			})
 			.catch(reject);
 	});
@@ -207,9 +239,7 @@ async function ackMessage(target: string, message: string): Promise<void> {
 	await req('PUT', `/channels/${target}/ack/${message}`);
 }
 
-async function setSettings() {
-
-}
+async function setSettings() {}
 
 export default {
 	req,
