@@ -91,10 +91,10 @@ export function MessageComponent(props: Props) {
 			<div class={styles.messageContainer}>
 				<span class={styles.messageInfo}>
 					<Switch fallback={<time>{time().format('HH:mm')}</time>}>
-						<Match keyed when={!props.isHead && props.message.edited}>
-							{(time) => <EditedIndicator time={time} />}
+						<Match when={!props.isHead && props.message.edited}>
+							{(time) => <EditedIndicator time={time()} />}
 						</Match>
-						<Match keyed when={props.isHead}>
+						<Match when={props.isHead}>
 							<img
 								class={utilStyles.cover}
 								src={util.getDisplayAvatar(props.author, props.member, props.message)}
@@ -138,7 +138,7 @@ export function MessageComponent(props: Props) {
 					</Show>
 
 					<Switch>
-						<Match keyed when={editingMessageId() == props.message._id}>
+						<Match when={editingMessageId() == props.message._id}>
 							{/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
 							{(_s) => {
 								const [editedMessageInput, setEditedMessageInput] = createSignal<string>(

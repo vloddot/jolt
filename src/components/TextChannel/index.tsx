@@ -48,16 +48,10 @@ export default function TextChannel() {
 
 	return (
 		<Switch>
-			<Match keyed when={messageCollection.state == 'errored'}>
-				Error loading messages
-			</Match>
-			<Match keyed when={messageCollection.state == 'pending'}>
-				Loading messages...
-			</Match>
-			<Match keyed when={messageCollection.state == 'refreshing'}>
-				Reloading messages...
-			</Match>
-			<Match keyed when={messageCollection.state == 'unresolved' || channel() == undefined}>
+			<Match when={messageCollection.state == 'errored'}>Error loading messages</Match>
+			<Match when={messageCollection.state == 'pending'}>Loading messages...</Match>
+			<Match when={messageCollection.state == 'refreshing'}>Reloading messages...</Match>
+			<Match when={messageCollection.state == 'unresolved' || channel() == undefined}>
 				Unresolved channel.
 			</Match>
 			<Match
@@ -473,9 +467,9 @@ function TextChannelMeta(props: MetaProps) {
 
 				<div class={styles.typingIndicators}>
 					<Switch>
-						<Match keyed when={typing().length == 1 && typing()}>
+						<Match when={typing().length == 1 && typing()}>
 							{(typing) => {
-								const user = () => typing[0];
+								const user = () => typing()[0];
 								return (
 									<Show
 										when={

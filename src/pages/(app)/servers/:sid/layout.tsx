@@ -162,10 +162,10 @@ function ChannelComponent(props: ChannelComponentProps) {
 						when={channel().icon != undefined && channel().icon}
 						fallback={
 							<Switch>
-								<Match keyed when={channel().channel_type == 'VoiceChannel'}>
+								<Match when={channel().channel_type == 'VoiceChannel'}>
 									<HiOutlineSpeakerWave />
 								</Match>
-								<Match keyed when={channel().channel_type == 'TextChannel'}>
+								<Match when={channel().channel_type == 'TextChannel'}>
 									<OcHash3 />
 								</Match>
 							</Switch>
