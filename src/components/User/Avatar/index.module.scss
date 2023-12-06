@@ -1,0 +1,13 @@
+.userAvatar {
+	position: relative;
+
+	.presenceIcon {
+		position: absolute;
+		background-color: var(--presence-color);
+		top: 55%;
+		left: 75%;
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+	}
+}

@@ -19,7 +19,7 @@ import { SelectedServerContext } from '@lib/context/SelectedServer';
 import { ChannelCollectionContext } from '@lib/context/collections/Channels';
 import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
 import api from '@lib/api';
-import UserButton from '@components/User/UserButton';
+import UserButton from '@components/User/Button';
 import { UnreadsCollectionContext } from '@lib/context/collections/Unreads';
 import { ServerMembersListContext } from '@lib/context/collections/ServerMembersList';
 
@@ -196,7 +196,7 @@ function MembersList() {
 
 								return (
 									<Show when={user()}>
-										{(user) => <UserButton user={user()} member={member} />}
+										{(user) => <UserButton user={user()} member={member} showPresence />}
 									</Show>
 								);
 							}}
