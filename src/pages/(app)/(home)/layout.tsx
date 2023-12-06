@@ -103,7 +103,7 @@ export default function HomeWrapper() {
 												<Show when={channel().icon} fallback={<FaSolidUserGroup />}>
 													{(icon) => <img src={util.getAutumnURL(icon())} alt={channel().name} />}
 												</Show>
-												<span>{channel.name}</span>
+												<span>{channel().name}</span>
 											</ChannelItem>
 										);
 									}}
