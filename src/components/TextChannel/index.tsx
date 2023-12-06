@@ -147,7 +147,12 @@ function TextChannelMeta(props: MetaProps) {
 	};
 
 	const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {
-		if (!util.inputSelected() && event.key == 'Escape') {
+		if (event.key != 'Escape') {
+			return;
+		}
+
+		messageListElement.scrollTop = messageListElement.scrollHeight;
+		if (!util.inputSelected()) {
 			messageTextarea.focus();
 		}
 	};
@@ -337,6 +342,7 @@ function TextChannelMeta(props: MetaProps) {
 							return;
 						}
 
+						event.preventDefault();
 						setAttachments((attachments) => attachments.slice(0, attachments.length - 1));
 					};
 
