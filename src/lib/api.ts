@@ -207,6 +207,10 @@ async function ackMessage(target: string, message: string): Promise<void> {
 	await req('PUT', `/channels/${target}/ack/${message}`);
 }
 
+async function setSettings() {
+
+}
+
 export default {
 	req,
 	login,
@@ -223,5 +227,6 @@ export default {
 	deleteMessage,
 	uploadAttachment,
 	editMessage,
-	ackMessage
+	ackMessage,
+	setSettings
 };

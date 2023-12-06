@@ -9,6 +9,7 @@ import { BiSolidXCircle } from 'solid-icons/bi';
 import type { SetStoreFunction } from 'solid-js/store';
 import { SelectedServerIdContext } from '@lib/context/SelectedServerId';
 import UserAvatar from '@components/User/Avatar';
+import { SettingsContext } from '@lib/context/Settings';
 
 export interface Props {
 	reply: SendableReply;
@@ -18,6 +19,7 @@ export interface Props {
 export default function SendableReplyComponent(props: Props) {
 	const [, setReplies] = useContext(RepliesContext);
 	const selectedServerId = useContext(SelectedServerIdContext);
+	const [settings] = useContext(SettingsContext);
 	const [author] = createResource(() => props.reply.message.author, api.fetchUser);
 	const [member] = createResource(() => {
 		const server = selectedServerId();
@@ -39,7 +41,7 @@ export default function SendableReplyComponent(props: Props) {
 				message={props.reply.message}
 				width="16px"
 				height="16px"
-				showPresence
+				showPresence={settings['appearance:presence-icons']['reply-bar']}
 				presenceIndicatorHeight="6px"
 				presenceIndicatorWidth="6px"
 			/>

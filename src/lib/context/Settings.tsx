@@ -3,7 +3,6 @@ import {
 	type JSX,
 	batch,
 	useContext,
-	createSignal,
 	onMount,
 	onCleanup,
 	createEffect,
@@ -14,20 +13,31 @@ import { SessionContext } from './Session';
 import localforage from 'localforage';
 import ClientContext from './Client';
 import type { ClientEvents } from '@lib/Client';
+import { createStore, unwrap, type SetStoreFunction } from 'solid-js/store';
 
 export const DEFAULT_SETTINGS: Settings = {
-	ordering: {}
+	ordering: {},
+	'appearance:presence-icons': {
+		dms: true,
+		'members-list': true,
+		messages: true,
+		replies: true,
+		'reply-bar': true
+	}
 };
 
-export const SettingsContext = createContext(() => DEFAULT_SETTINGS);
+export const SettingsContext = createContext<CollectionItem<Settings>>(
+	// eslint-disable-next-line solid/reactivity
+	createStore(DEFAULT_SETTINGS)
+);
 
-interface Props {
+export interface Props {
 	children: JSX.Element;
 }
 
 export default function SettingsProvider(props: Props) {
 	const client = useContext(ClientContext);
-	const [settings, setSettings] = createSignal(SettingsContext.defaultValue());
+	const [settings, setSettings] = createStore(DEFAULT_SETTINGS);
 	const [session] = useContext(SessionContext);
 
 	createEffect(
@@ -48,14 +58,14 @@ export default function SettingsProvider(props: Props) {
 								const valueParsed = JSON.parse(serverValue);
 								localforage.setItem(revisionKey, serverRevision);
 								localforage.setItem(key, valueParsed);
-								setSettings((settings) => ({ ...settings, [key]: valueParsed }));
+								setSettings(key, valueParsed);
 							}
 
 							localforage.getItem(key).then((localValue) => {
 								if (localValue == null) {
-									setSettings((settings) => ({ ...settings, [key]: DEFAULT_SETTINGS[key] }));
+									setSettings(key, DEFAULT_SETTINGS[key]);
 								} else {
-									setSettings((settings) => ({ ...settings, [key]: localValue }));
+									setSettings(key, localValue);
 								}
 							});
 						});
@@ -90,7 +100,33 @@ export default function SettingsProvider(props: Props) {
 		onCleanup(() => {
 			client.removeListener('UserSettingsUpdate', userSettingsUpdateHandler);
 		});
+
+		for (const key of Object.keys(settings) as (keyof Settings)[]) {
+			localforage.getItem(key).then((value) => {
+				if (value != null) {
+					setSettings(key, value as Settings[keyof Settings]);
+				}
+			});
+		}
 	});
 
-	return <SettingsContext.Provider value={settings}>{props.children}</SettingsContext.Provider>;
+	function updateSettings(...args: unknown[]) {
+		(setSettings as (...args: unknown[]) => void)(...args);
+
+		if (typeof args[0] == 'string') {
+			const key = args[0] as keyof Settings;
+			const revisionKey = `revision:${key}`;
+
+			localforage.setItem(key, unwrap(settings[key]));
+			localforage.setItem(revisionKey, Date.now());
+
+			api.setSettings();
+		}
+	}
+
+	return (
+		<SettingsContext.Provider value={[settings, updateSettings as SetStoreFunction<Settings>]}>
+			{props.children}
+		</SettingsContext.Provider>
+	);
 }

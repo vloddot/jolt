@@ -35,6 +35,8 @@ import UnreadsCollectionProvider, {
 import { FaSolidHouse } from 'solid-icons/fa';
 import api from '@lib/api';
 import UserAvatar from '@components/User/Avatar';
+import { OcGear3 } from 'solid-icons/oc';
+import settingsSections from './settings/sections';
 
 export default function AppWrapper() {
 	const client = useContext(ClientContext);
@@ -78,7 +80,7 @@ export default function AppWrapper() {
 }
 
 function ServerSidebar() {
-	const settings = useContext(SettingsContext);
+	const [settings] = useContext(SettingsContext);
 	const servers = useContext(ServerCollectionContext);
 	const channels = useContext(ChannelCollectionContext);
 	const selectedServerId = useContext(SelectedServerIdContext);
@@ -107,9 +109,7 @@ function ServerSidebar() {
 	);
 
 	const sortedServers = createMemo(() => {
-		const {
-			ordering: { servers: ordering }
-		} = settings();
+		const ordering = settings.ordering.servers;
 
 		if (ordering == undefined || Object.keys(ordering).length == 0) {
 			return Array.from(servers.values());
@@ -225,8 +225,8 @@ function ServerSidebar() {
 								when={server.icon}
 								fallback={server.name
 									.split(' ')
-									.map((s) => s[0])
 									.slice(0, 5)
+									.map((s) => s[0])
 									.join('')}
 							>
 								{(icon) => (
@@ -237,6 +237,17 @@ function ServerSidebar() {
 					);
 				}}
 			</For>
+
+			<div class={styles.flexDivider} />
+
+			<ServerSidebarIcon
+				href={`/settings/${Object.values(settingsSections)[0].id}`}
+				selected={false}
+				unread={false}
+				tooltip="Settings"
+			>
+				<OcGear3 />
+			</ServerSidebarIcon>
 		</div>
 	);
 }

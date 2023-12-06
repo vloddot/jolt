@@ -23,6 +23,7 @@ import api from '@lib/api';
 import UserButton from '@components/User/Button';
 import { UnreadsCollectionContext } from '@lib/context/collections/Unreads';
 import { ServerMembersListContext } from '@lib/context/collections/ServerMembersList';
+import { SettingsContext } from '@lib/context/Settings';
 
 export default function ServerWrapper() {
 	const selectedServerId = useContext(SelectedServerIdContext);
@@ -183,6 +184,7 @@ function ChannelComponent(props: ChannelComponentProps) {
 
 function MembersList() {
 	const membersResponse = useContext(ServerMembersListContext);
+	const [settings] = useContext(SettingsContext);
 
 	return (
 		<div class="members-list-container">
@@ -199,7 +201,11 @@ function MembersList() {
 									<Show when={user()}>
 										{(user) => (
 											<div class={styles.membersListButton}>
-												<UserButton user={user()} member={member} showPresence />
+												<UserButton
+													user={user()}
+													member={member}
+													showPresence={settings['appearance:presence-icons']['members-list']}
+												/>
 											</div>
 										)}
 									</Show>

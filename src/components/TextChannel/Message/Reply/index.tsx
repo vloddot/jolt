@@ -7,6 +7,7 @@ import { SelectedChannelContext } from '@lib/context/SelectedChannel';
 import MessageCollectionContext from '@components/TextChannel/context/MessageCollection';
 import { AiFillFileText } from 'solid-icons/ai';
 import UserAvatar from '@components/User/Avatar';
+import { SettingsContext } from '@lib/context/Settings';
 
 export interface Props {
 	to_id: string;
@@ -15,6 +16,7 @@ export interface Props {
 
 export default function MessageReply(props: Props) {
 	const selectedChannel = useContext(SelectedChannelContext);
+	const [settings] = useContext(SettingsContext);
 	const collection = useContext(MessageCollectionContext);
 
 	const [message] = createResource(
@@ -73,7 +75,7 @@ export default function MessageReply(props: Props) {
 													<UserAvatar
 														width="14px"
 														height="14px"
-														showPresence
+														showPresence={settings['appearance:presence-icons']['replies']}
 														presenceIndicatorWidth="6px"
 														presenceIndicatorHeight="6px"
 														user={user()}

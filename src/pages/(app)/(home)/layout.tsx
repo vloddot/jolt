@@ -22,6 +22,7 @@ import { ChannelCollectionContext } from '@lib/context/collections/Channels';
 import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
 import { UnreadsCollectionContext } from '@lib/context/collections/Unreads';
 import UserButton from '@components/User/Button';
+import { SettingsContext } from '@lib/context/Settings';
 
 export default function HomeWrapper() {
 	const location = useLocation();
@@ -109,6 +110,7 @@ export default function HomeWrapper() {
 								</Match>
 								<Match when={channel.channel_type == 'DirectMessage' && channel.active && channel}>
 									{(channel) => {
+										const [settings] = useContext(SettingsContext);
 										const [recipient] = createResource(
 											() => util.getOtherRecipient(channel().recipients),
 											api.fetchUser
@@ -132,7 +134,10 @@ export default function HomeWrapper() {
 													<Match when={recipient.state == 'ready' && recipient()}>
 														{(recipient) => {
 															return (
-																<UserButton user={recipient()} showPresence />
+																<UserButton
+																	user={recipient()}
+																	showPresence={settings['appearance:presence-icons']['dms']}
+																/>
 															);
 														}}
 													</Match>

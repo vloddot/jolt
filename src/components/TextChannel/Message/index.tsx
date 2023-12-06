@@ -19,6 +19,7 @@ import MessageReply from './Reply';
 import EditingMessageIdContext from '../context/EditingMessageId';
 import Markdown from '@components/Markdown';
 import UserAvatar from '@components/User/Avatar';
+import { SettingsContext } from '@lib/context/Settings';
 
 export interface Props {
 	message: Message;
@@ -38,6 +39,7 @@ export function MessageComponent(props: Props) {
 	const [replies, setReplies] = useContext(RepliesContext)!;
 	const [session] = useContext(SessionContext);
 	const [editingMessageId, setEditingMessageId] = useContext(EditingMessageIdContext);
+	const [settings] = useContext(SettingsContext);
 
 	const messageControls: MessageControls[] = [
 		{
@@ -96,7 +98,13 @@ export function MessageComponent(props: Props) {
 							{(time) => <EditedIndicator time={time()} />}
 						</Match>
 						<Match when={props.isHead}>
-							<UserAvatar user={props.author} {...props} height="32px" width="32px" showPresence />
+							<UserAvatar
+								user={props.author}
+								{...props}
+								height="32px"
+								width="32px"
+								showPresence={settings['appearance:presence-icons']['messages']}
+							/>
 						</Match>
 					</Switch>
 				</span>

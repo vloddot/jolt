@@ -11,6 +11,9 @@ import ServerWrapper from './pages/(app)/servers/:sid/layout';
 import ChannelMatcher from './pages/(app)/servers/:sid/page';
 import SessionProvider from '@lib/context/Session';
 import TextChannel from '@components/TextChannel';
+import SettingsWrapper from './pages/(app)/settings/layout';
+import SettingsMatcher from './pages/(app)/settings/page';
+import SettingsSection from './pages/(app)/settings/:id/page';
 
 render(
 	() => (
@@ -21,6 +24,10 @@ render(
 						<Route path="/servers/:sid" component={ServerWrapper}>
 							<Route path="/" component={ChannelMatcher} />
 							<Route path="/channels/:cid" component={TextChannel} />
+						</Route>
+						<Route path="/settings" component={SettingsWrapper}>
+							<Route path="/" component={SettingsMatcher} />
+							<Route path="/:id" component={SettingsSection} />
 						</Route>
 						<Route path="/" component={HomeWrapper}>
 							<Route path="/" component={HomeScreen} />
