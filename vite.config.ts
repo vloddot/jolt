@@ -3,7 +3,7 @@ import solid from 'vite-plugin-solid';
 import path from 'path';
 export default defineConfig({
 	plugins: [solid()],
-	base: process.env.NODE_ENV == 'production' ? '/jolt-solidjs' : '',
+	base: process.env.NODE_ENV == 'production' ? '/jolt' : '',
 
 	css: {
 		modules: {
