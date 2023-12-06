@@ -18,6 +18,7 @@ import { createStore } from 'solid-js/store';
 import MessageReply from './Reply';
 import EditingMessageIdContext from '../context/EditingMessageId';
 import Markdown from '@components/Markdown';
+import UserAvatar from '@components/User/Avatar';
 
 export interface Props {
 	message: Message;
@@ -95,12 +96,7 @@ export function MessageComponent(props: Props) {
 							{(time) => <EditedIndicator time={time()} />}
 						</Match>
 						<Match when={props.isHead}>
-							<img
-								class={utilStyles.cover}
-								src={util.getDisplayAvatar(props.author, props.member, props.message)}
-								alt={displayName()}
-								style={{ width: '32px', height: '32px' }}
-							/>
+							<UserAvatar user={props.author} {...props} height="32px" width="32px" showPresence />
 						</Match>
 					</Switch>
 				</span>

@@ -16,12 +16,12 @@ import {
 	createSelector,
 	useContext
 } from 'solid-js';
-import styles from '@lib/util.module.scss';
 import util from '@lib/util';
 import api from '@lib/api';
 import { ChannelCollectionContext } from '@lib/context/collections/Channels';
 import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
 import { UnreadsCollectionContext } from '@lib/context/collections/Unreads';
+import UserButton from '@components/User/Button';
 
 export default function HomeWrapper() {
 	const location = useLocation();
@@ -131,14 +131,8 @@ export default function HomeWrapper() {
 													<Match when={recipient.state == 'refreshing'}>Reloading user...</Match>
 													<Match when={recipient.state == 'ready' && recipient()}>
 														{(recipient) => {
-															const name = createMemo(() => util.getDisplayName(recipient()));
-															const avatar = createMemo(() => util.getDisplayAvatar(recipient()));
-
 															return (
-																<>
-																	<img class={styles.cover} src={avatar()} alt={name()} />
-																	<span>{name()}</span>
-																</>
+																<UserButton user={recipient()} showPresence />
 															);
 														}}
 													</Match>

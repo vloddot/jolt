@@ -1,3 +1,4 @@
+import styles from './index.module.scss';
 import { SelectedServerIdContext } from '@lib/context/SelectedServerId';
 import { Outlet } from '@solidjs/router';
 import {
@@ -196,7 +197,11 @@ function MembersList() {
 
 								return (
 									<Show when={user()}>
-										{(user) => <UserButton user={user()} member={member} showPresence />}
+										{(user) => (
+											<div class={styles.membersListButton}>
+												<UserButton user={user()} member={member} showPresence />
+											</div>
+										)}
 									</Show>
 								);
 							}}

@@ -2,11 +2,11 @@ import api from '@lib/api';
 import { A } from '@solidjs/router';
 import { Match, Show, Switch, createMemo, createResource, useContext } from 'solid-js';
 import styles from './index.module.scss';
-import utilStyles from '@lib/util.module.scss';
 import util from '@lib/util';
 import { SelectedChannelContext } from '@lib/context/SelectedChannel';
 import MessageCollectionContext from '@components/TextChannel/context/MessageCollection';
 import { AiFillFileText } from 'solid-icons/ai';
+import UserAvatar from '@components/User/Avatar';
 
 export interface Props {
 	to_id: string;
@@ -68,17 +68,17 @@ export default function MessageReply(props: Props) {
 												util.getDisplayName(user(), member(), message())
 											);
 
-											const displayAvatar = createMemo(() =>
-												util.getDisplayAvatar(user(), member(), message())
-											);
-
 											return (
 												<>
-													<img
-														class={utilStyles.cover}
-														style={{ width: '14px', height: '14px' }}
-														src={displayAvatar()}
-														alt={displayName()}
+													<UserAvatar
+														width="14px"
+														height="14px"
+														showPresence
+														presenceIndicatorWidth="6px"
+														presenceIndicatorHeight="6px"
+														user={user()}
+														member={member()}
+														message={message()}
 													/>
 													<span>
 														<Show when={props.from.mentions?.includes(user()._id)}>@</Show>

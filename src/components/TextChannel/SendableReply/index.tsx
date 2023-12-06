@@ -8,6 +8,7 @@ import { HiSolidAtSymbol } from 'solid-icons/hi';
 import { BiSolidXCircle } from 'solid-icons/bi';
 import type { SetStoreFunction } from 'solid-js/store';
 import { SelectedServerIdContext } from '@lib/context/SelectedServerId';
+import UserAvatar from '@components/User/Avatar';
 
 export interface Props {
 	reply: SendableReply;
@@ -29,15 +30,19 @@ export default function SendableReplyComponent(props: Props) {
 			: '<Unknown User>'
 	);
 
-	const displayAvatar = createMemo(() =>
-		author.state == 'ready'
-			? util.getDisplayAvatar(author(), member(), props.reply.message)
-			: util.getDefaultUserAvatar(props.reply.message.author)
-	);
-
 	return (
 		<div class={styles.replyContainer}>
-			Replying to <img class={utilStyles.cover} src={displayAvatar()} width="16px" height="16px" />
+			Replying to
+			<UserAvatar
+				user={author() ?? props.reply.message.author}
+				member={member()}
+				message={props.reply.message}
+				width="16px"
+				height="16px"
+				showPresence
+				presenceIndicatorHeight="6px"
+				presenceIndicatorWidth="6px"
+			/>
 			<span>{displayName()}</span>
 			<Show when={props.reply.message.content}>
 				{(content) => <span class={styles.messageContent}>{content()}</span>}

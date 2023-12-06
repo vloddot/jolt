@@ -1,31 +1,8 @@
 .userButton {
 	display: flex;
-	margin-left: 12px;
-	margin-right: 12px;
 	border-radius: 6px;
-	padding-top: 4px;
-	padding-left: 4px;
-	padding-right: 4px;
 	gap: 8px;
 	cursor: pointer;
-	
-	.userAvatar {
-		position: relative;
-
-		.presenceIcon {
-			position: absolute;
-			background-color: var(--presence-color);
-			top: 55%;
-			left: 75%;
-			width: 10px;
-			height: 10px;
-			border-radius: 50%;
-		}
-	}
-
-	&:hover {
-		background-color: var(--hover);
-	}
 
 	.userDetail {
 		display: flex;

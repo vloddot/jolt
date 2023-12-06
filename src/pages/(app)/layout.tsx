@@ -34,6 +34,7 @@ import UnreadsCollectionProvider, {
 } from '@lib/context/collections/Unreads';
 import { FaSolidHouse } from 'solid-icons/fa';
 import api from '@lib/api';
+import UserAvatar from '@components/User/Avatar';
 
 export default function AppWrapper() {
 	const client = useContext(ClientContext);
@@ -169,7 +170,6 @@ function ServerSidebar() {
 						<Show when={recipient.state == 'ready' && recipient()}>
 							{(recipient) => {
 								const displayName = createMemo(() => util.getDisplayName(recipient()));
-								const displayAvatar = createMemo(() => util.getDisplayAvatar(recipient()));
 
 								return (
 									<ServerSidebarIcon
@@ -179,7 +179,7 @@ function ServerSidebar() {
 										unread={isUnread()}
 										mentions={unreadObject()?.mentions?.length}
 									>
-										<img class={styles.cover} src={displayAvatar()} alt={displayName()} />
+										<UserAvatar user={recipient()} />
 									</ServerSidebarIcon>
 								);
 							}}
