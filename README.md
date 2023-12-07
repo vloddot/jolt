@@ -4,9 +4,9 @@
 
 In physics, [jolt](<https://en.m.wikipedia.org/wiki/Jerk_(physics)>) is the rate at which an object's acceleration changes with respect to time. It is a vector quantity (having both magnitude and direction). Jolt is most commonly denoted by the symbol `j` and expressed in m/s<sup>3</sup> (SI units) or standard gravities per second (g<sub>0</sub>/s).
 
-Custom [Revolt](https://www.github.com/revoltchat) client for desktop made in [Tauri](https://tauri.app) and [Solid.js](https://solidjs.com).
+Custom [Revolt](https://revolt.chat) client for desktop made in [Tauri](https://tauri.app) and [Solid.js](https://solidjs.com).
 
-> This is currently a rewrite of the [old Svelte client](https://github.com/vloddot/jolt) in Solid.js.
+> This is currently a rewrite of the [old Svelte client](https://github.com/vloddot/jolt-svelte) in Solid.js.
 
 <!-- omit in toc -->
 
@@ -20,7 +20,7 @@ Custom [Revolt](https://www.github.com/revoltchat) client for desktop made in [T
 
 ## Installation
 
-To install, follow the [releases page](https://www.github.com/vloddot/jolt/releases) and pick out the version you need.
+Currently, binaries are not being provided.
 
 ## Running and compiling the project
 
@@ -46,7 +46,7 @@ To build the desktop app (has to build the browser app with it; see below), exec
 cargo tauri build
 ```
 
-> Once it is finished, you will find the build files in [`src-tauri/target/bundle`](src-tauri/target/bundle).
+> Once it is finished, you will find the build files in `src-tauri/target/bundle`.
 
 To build the browser app, execute this command:
 
