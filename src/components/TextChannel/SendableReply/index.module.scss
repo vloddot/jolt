@@ -17,6 +17,8 @@
 
 	.messageContent {
 		color: var(--tertiary-foreground);
+		overflow: hidden;
+		white-space: nowrap;
 		text-overflow: ellipsis;
 	}
 
