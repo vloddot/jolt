@@ -101,7 +101,13 @@ export default function HomeWrapper() {
 												mentions={unreadObject()?.mentions?.length}
 											>
 												<Show when={channel().icon} fallback={<FaSolidUserGroup />}>
-													{(icon) => <img src={util.getAutumnURL(icon())} alt={channel().name} />}
+													{(icon) => (
+														<img
+															loading="lazy"
+															src={util.getAutumnURL(icon())}
+															alt={channel().name}
+														/>
+													)}
 												</Show>
 												<span>{channel().name}</span>
 											</ChannelItem>

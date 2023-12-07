@@ -174,7 +174,7 @@ function ChannelComponent(props: ChannelComponentProps) {
 							</Switch>
 						}
 					>
-						{(icon) => <img src={util.getAutumnURL(icon())} alt={channel().name} />}
+						{(icon) => <img loading="lazy" src={util.getAutumnURL(icon())} alt={channel().name} />}
 					</Show>
 					<span>{channel().name}</span>
 				</ChannelItem>

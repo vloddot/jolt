@@ -56,6 +56,7 @@ export default function UserAvatar(_props: Props) {
 			<img
 				class={utilStyles.cover}
 				src={displayAvatar()}
+				loading="lazy"
 				alt={displayName()}
 				style={{ width: props.width, height: props.height }}
 			/>

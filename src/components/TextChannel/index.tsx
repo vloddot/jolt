@@ -12,7 +12,9 @@ import {
 	onMount,
 	onCleanup,
 	createEffect,
-	type Accessor
+	type Accessor,
+	untrack,
+	createSelector
 } from 'solid-js';
 import styles from './index.module.scss';
 import utilStyles from '@lib/util.module.scss';
@@ -38,6 +40,11 @@ import { on } from 'solid-js';
 import { SessionContext } from '@lib/context/Session';
 import EditingMessageIdContext from './context/EditingMessageId';
 import { ServerMembersListContext } from '@lib/context/collections/ServerMembersList';
+import { EmojiCollectionContext } from '@lib/context/collections/Emojis';
+import AutocompleteItem from './AutocompleteItem';
+import { OcHash3 } from 'solid-icons/oc';
+import { HiSolidSpeakerWave } from 'solid-icons/hi';
+import { UserCollectionContext } from '@lib/context/collections/Users';
 
 export default function TextChannel() {
 	const selectedChannelId = useContext(SelectedChannelIdContext);
@@ -79,6 +86,26 @@ interface MetaProps {
 	collection: MessageCollection;
 }
 
+type AutocompleteState =
+	| {
+			type: 'none';
+			matches?: undefined;
+	  }
+	| ({ startIndex: number } & (
+			| {
+					type: 'emoji';
+					matches: Emoji[];
+			  }
+			| {
+					type: 'user';
+					matches: User[];
+			  }
+			| {
+					type: 'channel';
+					matches: Extract<Channel, { channel_type: 'TextChannel' | 'VoiceChannel' }>[];
+			  }
+	  ));
+
 function TextChannelMeta(props: MetaProps) {
 	const server = useContext(SelectedServerContext);
 	const channel = useContext(SelectedChannelContext)!;
@@ -89,6 +116,10 @@ function TextChannelMeta(props: MetaProps) {
 	const [, setEditingMessageId] = useContext(EditingMessageIdContext);
 
 	const [showMasqueradeControls, setShowMasqueradeControls] = createSignal(false);
+
+	const [autocompleteState, setAutocompleteState] = createSignal<AutocompleteState>({
+		type: 'none'
+	});
 
 	// does not need reactivity
 	let masqueradeName = '';
@@ -102,9 +133,11 @@ function TextChannelMeta(props: MetaProps) {
 			() => [target(), props.collection.users[target()] as User | undefined] as const,
 			([target, user]) => {
 				if (user == undefined) {
-					// specifically not awaiting here to make the request happen only once (for caching)
+					// specifically not awaiting here to make the request happen only once (cahed)
 					const u = api.fetchUser(target);
-					props.collection.users[target] = u;
+					untrack(() => {
+						props.collection.users[target] = u;
+					});
 					return u;
 				}
 
@@ -130,9 +163,13 @@ function TextChannelMeta(props: MetaProps) {
 					return;
 				}
 
-				// specifically not awaiting here to make the request happen only once (for caching)
+				// specifically not awaiting here to make the request happen only once (cahed)
 				const m = api.fetchMember({ server: s, user: target });
-				props.collection.members[target] = m;
+
+				untrack(() => {
+					props.collection.members[target] = m;
+				});
+
 				return m;
 			}
 		);
@@ -147,13 +184,11 @@ function TextChannelMeta(props: MetaProps) {
 	};
 
 	const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {
-		if (event.key != 'Escape') {
-			return;
-		}
-
-		messageListElement.scrollTop = messageListElement.scrollHeight;
-		if (!util.inputSelected()) {
-			messageTextarea.focus();
+		if (event.key == 'Escape') {
+			messageListElement.scrollTop = messageListElement.scrollHeight;
+			if (!util.inputSelected()) {
+				messageTextarea.focus();
+			}
 		}
 	};
 
@@ -335,6 +370,135 @@ function TextChannelMeta(props: MetaProps) {
 				</For>
 			</div>
 
+			<Show
+				keyed
+				when={
+					autocompleteState().type != 'none' &&
+					autocompleteState().matches?.length != 0 &&
+					(autocompleteState() as Exclude<AutocompleteState, { type: 'none' }>)
+				}
+			>
+				{(state) => {
+					function replaceWith(input: string) {
+						const value =
+							messageTextarea.value.slice(0, state.startIndex - 1) +
+							input +
+							messageTextarea.value.slice(messageTextarea.selectionStart);
+
+						messageTextarea.value = value;
+						setMessageInput(value);
+
+						setAutocompleteState({ type: 'none' });
+					}
+
+					const [selectedItem, setSelectedItem] = createSignal(0);
+					const itemSelected = createSelector(selectedItem);
+
+					function doAction(id: string) {
+						switch (state.type) {
+							case 'channel':
+								replaceWith(`<#${id}>`);
+								break;
+							case 'emoji':
+								replaceWith(`:${id}:`);
+								break;
+							case 'user':
+								replaceWith(`<@${id}>`);
+								break;
+						}
+					}
+
+					const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {
+						if (event.key == 'ArrowUp' && selectedItem() > 0) {
+							setSelectedItem((item) => item - 1);
+							event.preventDefault();
+						} else if (event.key == 'ArrowDown' && selectedItem() < state.matches.length - 1) {
+							setSelectedItem((item) => item + 1);
+							event.preventDefault();
+						} else if (event.key == 'Enter') {
+							doAction(state.matches[selectedItem()]._id);
+							event.preventDefault();
+						}
+					};
+
+					onMount(() => {
+						document.addEventListener('keydown', onKeyDown);
+						onCleanup(() => {
+							document.removeEventListener('keydown', onKeyDown);
+						});
+					});
+
+					return (
+						<div class={styles.autocompleteBase}>
+							<Switch>
+								<Match when={state.type == 'emoji' && state}>
+									{(state) => (
+										<For each={state().matches}>
+											{(emoji, index) => (
+												<AutocompleteItem
+													onClick={() => doAction(emoji._id)}
+													src={util.getAutumnURL(
+														{ _id: emoji._id, tag: 'emojis' },
+														{ max_side: '256' }
+													)}
+													selected={itemSelected(index())}
+													name={emoji.name}
+												/>
+											)}
+										</For>
+									)}
+								</Match>
+								<Match when={state.type == 'channel' && state}>
+									{(state) => (
+										<For each={state().matches}>
+											{(channel, index) => {
+												const icon = createMemo(() => {
+													if (channel.icon == undefined) {
+														return channel.channel_type == 'TextChannel' ? (
+															<OcHash3 />
+														) : (
+															<HiSolidSpeakerWave />
+														);
+													}
+
+													return util.getAutumnURL(channel.icon, { max_side: '256' });
+												});
+
+												return (
+													<AutocompleteItem
+														onClick={() => doAction(channel._id)}
+														selected={itemSelected(index())}
+														name={channel.name}
+														src={icon()}
+													/>
+												);
+											}}
+										</For>
+									)}
+								</Match>
+								<Match when={state.type == 'user' && state}>
+									{(state) => (
+										<For each={state().matches}>
+											{(user, index) => {
+												return (
+													<AutocompleteItem
+														onClick={() => doAction(user._id)}
+														selected={itemSelected(index())}
+														name={user.username}
+														src={util.getDisplayAvatar(user)}
+													/>
+												);
+											}}
+										</For>
+									)}
+								</Match>
+							</Switch>
+							<hr />
+						</div>
+					);
+				}}
+			</Show>
+
 			<Show when={attachments().length != 0 && attachments()}>
 				{(attachments) => {
 					const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {
@@ -370,7 +534,7 @@ function TextChannelMeta(props: MetaProps) {
 													when={attachment.type.startsWith('image/')}
 													fallback={<AiFillFileText size={30} />}
 												>
-													<img src={URL.createObjectURL(attachment)} />
+													<img src={URL.createObjectURL(attachment)} loading="lazy" />
 												</Show>
 											</AttachmentPreviewItem>
 										);
@@ -405,7 +569,10 @@ function TextChannelMeta(props: MetaProps) {
 					}}
 				</For>
 				<form id="send-message-form" class={styles.messageForm} onSubmit={sendMessage}>
-					<button onClick={() => (attachments().length == 0 ? pushFile() : setAttachments([]))}>
+					<button
+						type="button"
+						onClick={() => (attachments().length == 0 ? pushFile() : setAttachments([]))}
+					>
 						<AiOutlinePlus
 							size={24}
 							style={{
@@ -422,7 +589,106 @@ function TextChannelMeta(props: MetaProps) {
 						}
 						ref={(r) => (messageTextarea = r)}
 						sendTypingIndicators
-						onInput={(event) => setMessageInput(event.currentTarget.value)}
+						onInput={(event) => {
+							const input = event.currentTarget.value;
+							setMessageInput(input);
+
+							const key = input[messageTextarea.selectionStart - 1];
+
+							setAutocompleteState((state) => {
+								if (state.type == 'none') {
+									if (key == ':' || key == '@' || key == '#') {
+										const keyMapping: Record<
+											':' | '@' | '#',
+											Exclude<AutocompleteState['type'], 'none'>
+										> = {
+											':': 'emoji',
+											'@': 'user',
+											'#': 'channel'
+										};
+
+										return {
+											type: keyMapping[key] ?? 'none',
+											matches: [],
+											startIndex: messageTextarea.selectionStart
+										};
+									}
+									return state;
+								}
+
+								if (
+									// outside of the range
+									messageTextarea.selectionStart < state.startIndex ||
+									!/[\w-]/.test(key)
+								) {
+									return { type: 'none' };
+								}
+
+								const search = input.slice(state.startIndex, messageTextarea.selectionStart);
+
+								switch (state.type) {
+									case 'channel': {
+										if (server() == undefined) {
+											return state;
+										}
+
+										const channels = Array.from(
+											useContext(ChannelCollectionContext).values()
+										).flatMap(([channel]) => {
+											if (
+												(channel.channel_type == 'TextChannel' ||
+													channel.channel_type == 'VoiceChannel') &&
+												channel.server == server()?._id
+											) {
+												return [channel];
+											}
+
+											return [];
+										});
+										const matches = [];
+										for (const channel of channels) {
+											if (channel.name.toLowerCase().includes(search.toLowerCase())) {
+												matches.push(channel);
+												if (matches.length >= 5) {
+													break;
+												}
+											}
+										}
+
+										return { ...state, matches };
+									}
+									case 'emoji': {
+										const emojis = useContext(EmojiCollectionContext);
+										const matches = [];
+
+										for (const [emoji] of emojis.values()) {
+											if (emoji.name.toLowerCase().includes(search.toLowerCase())) {
+												matches.push(emoji);
+												if (matches.length >= 5) {
+													break;
+												}
+											}
+										}
+										return { ...state, matches };
+									}
+									case 'user': {
+										const users = useContext(UserCollectionContext);
+										const matches = [];
+
+										for (const [user] of users.values()) {
+											if (user.username.toLowerCase().includes(search.toLowerCase())) {
+												matches.push(user);
+												if (matches.length >= 5) {
+													break;
+												}
+											}
+										}
+
+										return { ...state, matches };
+									}
+								}
+							});
+						}}
 						onKeyDown={(event) => {
 							if (event.key == 'ArrowUp' && messageInput() == '') {
 								// the question of the day, why can you not use `messages` at the top?
@@ -440,12 +706,11 @@ function TextChannelMeta(props: MetaProps) {
 								return;
 							}
 
-							if (event.shiftKey || event.key != 'Enter') {
+							if (!event.shiftKey && event.key == 'Enter' && autocompleteState().type == 'none') {
+								event.preventDefault();
+								event.currentTarget.form?.requestSubmit();
 								return;
 							}
-
-							event.preventDefault();
-							event.currentTarget.form?.requestSubmit();
 						}}
 					/>
 					<div class={utilStyles.flexDivider} />
@@ -455,11 +720,13 @@ function TextChannelMeta(props: MetaProps) {
 							<>
 								<input
 									type="text"
+									value={masqueradeName} // initial value
 									onInput={(event) => (masqueradeName = event.currentTarget.value)}
 									placeholder="Masquerade Name"
 								/>
 								<input
 									type="text"
+									value={masqueradeAvatar} // initial value
 									onInput={(event) => (masqueradeAvatar = event.currentTarget.value)}
 									placeholder="Masquerade Avatar"
 								/>

@@ -230,7 +230,12 @@ function ServerSidebar() {
 									.join('')}
 							>
 								{(icon) => (
-									<img class={styles.cover} src={util.getAutumnURL(icon())} alt={server.name} />
+									<img
+										loading="lazy"
+										class={styles.cover}
+										src={util.getAutumnURL(icon())}
+										alt={server.name}
+									/>
 								)}
 							</Show>
 						</ServerSidebarIcon>
