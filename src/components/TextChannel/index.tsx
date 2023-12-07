@@ -596,32 +596,33 @@ function TextChannelMeta(props: MetaProps) {
 							const key = input[messageTextarea.selectionStart - 1];
 
 							setAutocompleteState((state) => {
-								if (state.type == 'none') {
-									if (key == ':' || key == '@' || key == '#') {
-										const keyMapping: Record<
-											':' | '@' | '#',
-											Exclude<AutocompleteState['type'], 'none'>
-										> = {
-											':': 'emoji',
-											'@': 'user',
-											'#': 'channel'
-										};
-
-										return {
-											type: keyMapping[key] ?? 'none',
-											matches: [],
-											startIndex: messageTextarea.selectionStart
-										};
-									}
-									return state;
-								}
-
 								if (
 									// outside of the range
-									messageTextarea.selectionStart < state.startIndex ||
-									!/[\w-]/.test(key)
+									(state.type != 'none' && messageTextarea.selectionStart < state.startIndex) ||
+									(state.type == 'none' && /[\w-]/.test(key))
 								) {
 									return { type: 'none' };
+								}
+
+								if (key == ':' || key == '@' || key == '#') {
+									const keyMapping: Record<
+										':' | '@' | '#',
+										Exclude<AutocompleteState['type'], 'none'>
+									> = {
+										':': 'emoji',
+										'@': 'user',
+										'#': 'channel'
+									};
+
+									state = {
+										type: keyMapping[key] ?? 'none',
+										matches: [],
+										startIndex: messageTextarea.selectionStart
+									};
+								}
+
+								if (state.type == 'none') {
+									return state;
 								}
 
 								const search = input.slice(state.startIndex, messageTextarea.selectionStart);
@@ -645,6 +646,7 @@ function TextChannelMeta(props: MetaProps) {
 
 											return [];
 										});
+
 										const matches = [];
 										for (const channel of channels) {
 											if (channel.name.toLowerCase().includes(search.toLowerCase())) {
@@ -658,6 +660,10 @@ function TextChannelMeta(props: MetaProps) {
 										return { ...state, matches };
 									}
 									case 'emoji': {
+										if (search.length < 2) {
+											return state;
+										}
+
 										const emojis = useContext(EmojiCollectionContext);
 										const matches = [];
 
