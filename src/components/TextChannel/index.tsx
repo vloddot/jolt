@@ -45,6 +45,7 @@ import AutocompleteItem from './AutocompleteItem';
 import { OcHash3 } from 'solid-icons/oc';
 import { HiSolidSpeakerWave } from 'solid-icons/hi';
 import { UserCollectionContext } from '@lib/context/collections/Users';
+import emojis from '@lib/emojis.json';
 
 export default function TextChannel() {
 	const selectedChannelId = useContext(SelectedChannelIdContext);
@@ -94,7 +95,11 @@ type AutocompleteState =
 	| ({ startIndex: number } & (
 			| {
 					type: 'emoji';
-					matches: Emoji[];
+					matches: {
+						name: string;
+						src: string;
+						_id: string;
+					}[];
 			  }
 			| {
 					type: 'user';
@@ -437,10 +442,7 @@ function TextChannelMeta(props: MetaProps) {
 											{(emoji, index) => (
 												<AutocompleteItem
 													onClick={() => doAction(emoji._id)}
-													src={util.getAutumnURL(
-														{ _id: emoji._id, tag: 'emojis' },
-														{ max_side: '256' }
-													)}
+													src={emoji.src}
 													selected={itemSelected(index())}
 													name={emoji.name}
 												/>
@@ -664,17 +666,56 @@ function TextChannelMeta(props: MetaProps) {
 											return state;
 										}
 
-										const emojis = useContext(EmojiCollectionContext);
-										const matches = [];
+										const emojiCollection = useContext(EmojiCollectionContext);
+										const matches = new Array<{ name: string; src: string; _id: string }>();
 
-										for (const [emoji] of emojis.values()) {
+										for (const [emoji] of emojiCollection.values()) {
+											if (matches.length >= 5) {
+												break;
+											}
+
 											if (emoji.name.toLowerCase().includes(search.toLowerCase())) {
-												matches.push(emoji);
-												if (matches.length >= 5) {
-													break;
-												}
+												matches.push({
+													name: emoji.name,
+													_id: emoji._id,
+													src: util.getAutumnURL(
+														{ _id: emoji._id, tag: 'emojis' },
+														{ max_side: '256' }
+													)
+												});
 											}
 										}
+
+										for (const [name, character] of Object.entries(emojis.standard)) {
+											if (matches.length >= 5) {
+												break;
+											}
+
+											if (name.toLowerCase().includes(search.toLowerCase())) {
+												matches.push({
+													src: `https://static.revolt.chat/emoji/twemoji/${character
+														.codePointAt(0)
+														?.toString(16)}.svg`,
+													_id: name,
+													name
+												});
+											}
+										}
+
+										for (const [name, filename] of Object.entries(emojis.custom)) {
+											if (matches.length >= 5) {
+												break;
+											}
+
+											if (name.toLowerCase().includes(search.toLowerCase())) {
+												matches.push({
+													src: `https://dl.insrt.uk/projects/revolt/emotes/${filename}`,
+													_id: name,
+													name
+												});
+											}
+										}
+
 										return { ...state, matches };
 									}
 									case 'user': {
