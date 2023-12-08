@@ -599,9 +599,9 @@ function TextChannelMeta(props: MetaProps) {
 
 							setAutocompleteState((state) => {
 								if (
-									// outside of the range
-									(state.type != 'none' && messageTextarea.selectionStart < state.startIndex) ||
-									(state.type == 'none' && /[\w-]/.test(key))
+									state.type != 'none' &&
+									// outside of the range or not a query character
+									(messageTextarea.selectionStart < state.startIndex || !/[\w-]/.test(key))
 								) {
 									return { type: 'none' };
 								}
@@ -753,7 +753,11 @@ function TextChannelMeta(props: MetaProps) {
 								return;
 							}
 
-							if (!event.shiftKey && event.key == 'Enter' && autocompleteState().type == 'none') {
+							if (
+								!event.shiftKey &&
+								event.key == 'Enter' &&
+								(autocompleteState().type == 'none' || autocompleteState().matches?.length == 0)
+							) {
 								event.preventDefault();
 								event.currentTarget.form?.requestSubmit();
 								return;
