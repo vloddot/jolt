@@ -663,7 +663,7 @@ function TextChannelMeta(props: MetaProps) {
 									}
 									case 'emoji': {
 										if (search.length < 2) {
-											return state;
+											return { type: 'none' };
 										}
 
 										const emojiCollection = useContext(EmojiCollectionContext);
