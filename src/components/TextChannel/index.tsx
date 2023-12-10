@@ -791,21 +791,20 @@ function TextChannelMeta(props: MetaProps) {
 
 				<div class={styles.typingIndicators}>
 					<Switch>
-						<Match when={typing().length == 1 && typing()}>
+						<Match when={typing().length == 1 && typing()[0]}>
 							{(typing) => {
-								const user = () => typing()[0];
 								return (
 									<Show
 										when={
-											user().user.state == 'ready' && {
-												user: user().user()!,
-												member: user().member()
+											typing().user.state == 'ready' && {
+												user: typing().user()!,
+												member: typing().member()
 											}
 										}
 									>
-										{(typingAccessor) => (
+										{(typing) => (
 											<>
-												{util.getDisplayName(typingAccessor().user, typingAccessor().member)} is
+												{util.getDisplayName(typing().user, typing().member)} is
 												typing...
 											</>
 										)}
