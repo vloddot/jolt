@@ -421,7 +421,7 @@ function TextChannelMeta(props: MetaProps) {
 						} else if (event.key == 'ArrowDown' && selectedItem() < state.matches.length - 1) {
 							setSelectedItem((item) => item + 1);
 							event.preventDefault();
-						} else if (event.key == 'Enter') {
+						} else if (event.key == 'Enter' || event.key == 'Tab') {
 							doAction(state.matches[selectedItem()]._id);
 							event.preventDefault();
 						}
