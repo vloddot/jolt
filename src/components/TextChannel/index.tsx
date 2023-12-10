@@ -388,6 +388,7 @@ function TextChannelMeta(props: MetaProps) {
 						const value =
 							messageTextarea.value.slice(0, state.startIndex - 1) +
 							input +
+							' ' +
 							messageTextarea.value.slice(messageTextarea.selectionStart);
 
 						messageTextarea.value = value;
@@ -803,10 +804,7 @@ function TextChannelMeta(props: MetaProps) {
 										}
 									>
 										{(typing) => (
-											<>
-												{util.getDisplayName(typing().user, typing().member)} is
-												typing...
-											</>
+											<>{util.getDisplayName(typing().user, typing().member)} is typing...</>
 										)}
 									</Show>
 								);
