@@ -20,7 +20,7 @@ import EditingMessageIdContext from '../context/EditingMessageId';
 import Markdown from '@components/Markdown';
 import UserAvatar from '@components/User/Avatar';
 import { SettingsContext } from '@lib/context/Settings';
-import { ServerCollectionContext } from '@lib/context/collections/Servers';
+import RoleColorStyle from '@components/RoleColorStyle';
 
 export interface Props {
 	message: Message;
@@ -41,32 +41,10 @@ export function MessageComponent(props: Props) {
 	const [session] = useContext(SessionContext);
 	const [editingMessageId, setEditingMessageId] = useContext(EditingMessageIdContext);
 	const [settings] = useContext(SettingsContext);
-	const serverCollection = useContext(ServerCollectionContext);
-
-	const server = createMemo(() =>
-		props.member == undefined ? undefined : serverCollection.get(props.member?._id.server)?.[0]
-	);
 
 	const displayName = createMemo(() =>
 		util.getDisplayName(props.author, props.member, props.message)
 	);
-
-	const displayNameStyle = createMemo(() => {
-		if (props.message.masquerade?.colour != undefined) {
-			return util.getRoleColorStyle(props.message.masquerade.colour);
-		}
-
-		const s = server();
-		if (props.member?.roles == undefined || s == undefined) {
-			return {};
-		}
-
-		const color =
-			util.sortRoles(s, props.member.roles).find((role) => role.colour != undefined)?.colour ??
-			'inherit';
-
-		return util.getRoleColorStyle(color);
-	});
 
 	const time = createMemo(() => dayjs(decodeTime(props.message._id)));
 
@@ -149,9 +127,13 @@ export function MessageComponent(props: Props) {
 				<span class={styles.messageBase}>
 					<Show when={props.isHead}>
 						<span class={styles.messageMeta}>
-							<span style={displayNameStyle()} class={styles.displayName}>
+							<RoleColorStyle
+								member={props.member}
+								message={props.message}
+								class={styles.displayName}
+							>
 								{displayName()}
-							</span>
+							</RoleColorStyle>
 							<Show when={displayName() != props.author.username}>
 								<span class={styles.username}>
 									@{props.author.username}#{props.author.discriminator}
