@@ -26,7 +26,7 @@ export default function RoleColorStyle(_props: Props) {
 		}
 
 		const s = server();
-		if (props.member?.roles == undefined || s == undefined) {
+		if (s == undefined || props.member?.roles == undefined) {
 			return {};
 		}
 
@@ -34,6 +34,7 @@ export default function RoleColorStyle(_props: Props) {
 			util.sortRoles(s, props.member.roles).find((role) => role.colour != undefined)?.colour ??
 			'inherit';
 
+		if (props.message) console.log(props.member._id.user, color);
 		return util.getRoleColorStyle(color);
 	});
 

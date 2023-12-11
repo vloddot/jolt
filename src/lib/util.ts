@@ -134,7 +134,7 @@ function sortRoles(server: Server, roleIds: string[]) {
 function getRoleColorStyle(color: string): JSX.CSSProperties {
 	if (color.includes('gradient')) {
 		return {
-			background: `${color} text`,
+			background: `${color}`,
 			'background-clip': 'text',
 			'-webkit-background-clip': 'text',
 			'-webkit-text-fill-color': 'transparent'

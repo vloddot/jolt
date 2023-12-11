@@ -32,13 +32,27 @@ export default function HomeWrapper() {
 	const unreads = useContext(UnreadsCollectionContext);
 
 	const channels = createMemo(() => {
-		const list = Array.from(channelCollection.values());
+		return (
+			Array.from(channelCollection.values()).filter((accessor) => {
+				const [channel] = accessor;
 
-		return list.filter((accessor) => {
-			const [channel] = accessor;
+				return channel.channel_type != 'TextChannel' && channel.channel_type != 'VoiceChannel';
+			}) as CollectionItem<Exclude<Channel, { channel_type: 'TextChannel' | 'VoiceChannel' }>>[]
+		).sort(([a], [b]) => {
+			if (a.channel_type == 'SavedMessages') {
+				return -1;
+			}
 
-			return channel.channel_type != 'TextChannel' && channel.channel_type != 'VoiceChannel';
-		}) as CollectionItem<Exclude<Channel, { channel_type: 'TextChannel' | 'VoiceChannel' }>>[];
+			if (b.channel_type == 'SavedMessages') {
+				return 1;
+			}
+
+			if (a.last_message_id == undefined && b.last_message_id == undefined) {
+				return 0;
+			}
+
+			return (b.last_message_id ?? '0').localeCompare(a.last_message_id ?? '0');
+		});
 	});
 
 	return (
@@ -54,19 +68,7 @@ export default function HomeWrapper() {
 
 					<span>Friends (placeholder)</span>
 				</ChannelItem>
-				<For
-					each={channels()?.sort(([a], [b]) => {
-						if (a.channel_type == 'SavedMessages') {
-							return -1;
-						}
-
-						if (b.channel_type == 'SavedMessages') {
-							return 1;
-						}
-
-						return b.last_message_id?.localeCompare(a.last_message_id ?? '0') ?? 0;
-					})}
-				>
+				<For each={channels()}>
 					{([channel]) => {
 						const unreadObject = createMemo(() => unreads.get(channel._id)?.[0]);
 						const isUnread = createMemo(() => {
