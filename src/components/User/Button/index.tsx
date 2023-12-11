@@ -2,6 +2,7 @@ import styles from './index.module.scss';
 import util from '@lib/util';
 import { Match, Switch, createMemo } from 'solid-js';
 import UserAvatar from '../Avatar';
+import RoleColorStyle from '@components/RoleColorStyle';
 
 export interface Props {
 	user: User;
@@ -22,7 +23,7 @@ export default function UserButton(props: Props) {
 			<UserAvatar {...props} />
 
 			<div class={styles.userDetail}>
-				<span>{displayName()}</span>
+				<RoleColorStyle member={props.member}>{displayName()}</RoleColorStyle>
 
 				<span class={styles.userPresence}>
 					<Switch fallback="Online">

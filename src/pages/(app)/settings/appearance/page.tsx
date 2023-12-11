@@ -52,6 +52,15 @@ export default function SettingsAppearance() {
 					setSettings('appearance:presence-icons', 'dms', event.currentTarget.checked)
 				}
 			/>
+
+			<CheckboxSetting
+				title="Show role colors"
+				description="Show colors for roles inside a server"
+				checked={settings['appearance:show-role-colors']}
+				onInput={(event) => {
+					setSettings('appearance:show-role-colors', event.currentTarget.checked);
+				}}
+			/>
 		</>
 	);
 }

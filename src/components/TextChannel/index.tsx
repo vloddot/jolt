@@ -388,6 +388,7 @@ function TextChannelMeta(props: MetaProps) {
 						const value =
 							messageTextarea.value.slice(0, state.startIndex - 1) +
 							input +
+							' ' +
 							messageTextarea.value.slice(messageTextarea.selectionStart);
 
 						messageTextarea.value = value;
@@ -420,7 +421,7 @@ function TextChannelMeta(props: MetaProps) {
 						} else if (event.key == 'ArrowDown' && selectedItem() < state.matches.length - 1) {
 							setSelectedItem((item) => item + 1);
 							event.preventDefault();
-						} else if (event.key == 'Enter') {
+						} else if (event.key == 'Enter' || event.key == 'Tab') {
 							doAction(state.matches[selectedItem()]._id);
 							event.preventDefault();
 						}
@@ -599,9 +600,9 @@ function TextChannelMeta(props: MetaProps) {
 
 							setAutocompleteState((state) => {
 								if (
-									// outside of the range
-									(state.type != 'none' && messageTextarea.selectionStart < state.startIndex) ||
-									(state.type == 'none' && /[\w-]/.test(key))
+									state.type != 'none' &&
+									// outside of the range or not a query character
+									(messageTextarea.selectionStart < state.startIndex || !/[\w-]/.test(key))
 								) {
 									return { type: 'none' };
 								}
@@ -753,7 +754,11 @@ function TextChannelMeta(props: MetaProps) {
 								return;
 							}
 
-							if (!event.shiftKey && event.key == 'Enter' && autocompleteState().type == 'none') {
+							if (
+								!event.shiftKey &&
+								event.key == 'Enter' &&
+								(autocompleteState().type == 'none' || autocompleteState().matches?.length == 0)
+							) {
 								event.preventDefault();
 								event.currentTarget.form?.requestSubmit();
 								return;
@@ -787,23 +792,19 @@ function TextChannelMeta(props: MetaProps) {
 
 				<div class={styles.typingIndicators}>
 					<Switch>
-						<Match when={typing().length == 1 && typing()}>
+						<Match when={typing().length == 1 && typing()[0]}>
 							{(typing) => {
-								const user = () => typing()[0];
 								return (
 									<Show
 										when={
-											user().user.state == 'ready' && {
-												user: user().user()!,
-												member: user().member()
+											typing().user.state == 'ready' && {
+												user: typing().user()!,
+												member: typing().member()
 											}
 										}
 									>
-										{(typingAccessor) => (
-											<>
-												{util.getDisplayName(typingAccessor().user, typingAccessor().member)} is
-												typing...
-											</>
+										{(typing) => (
+											<>{util.getDisplayName(typing().user, typing().member)} is typing...</>
 										)}
 									</Show>
 								);

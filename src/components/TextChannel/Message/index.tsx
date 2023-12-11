@@ -20,6 +20,7 @@ import EditingMessageIdContext from '../context/EditingMessageId';
 import Markdown from '@components/Markdown';
 import UserAvatar from '@components/User/Avatar';
 import { SettingsContext } from '@lib/context/Settings';
+import RoleColorStyle from '@components/RoleColorStyle';
 
 export interface Props {
 	message: Message;
@@ -40,6 +41,12 @@ export function MessageComponent(props: Props) {
 	const [session] = useContext(SessionContext);
 	const [editingMessageId, setEditingMessageId] = useContext(EditingMessageIdContext);
 	const [settings] = useContext(SettingsContext);
+
+	const displayName = createMemo(() =>
+		util.getDisplayName(props.author, props.member, props.message)
+	);
+
+	const time = createMemo(() => dayjs(decodeTime(props.message._id)));
 
 	const messageControls: MessageControls[] = [
 		{
@@ -73,12 +80,6 @@ export function MessageComponent(props: Props) {
 			onclick: () => api.deleteMessage(props.message.channel, props.message._id)
 		}
 	];
-
-	const displayName = createMemo(() =>
-		util.getDisplayName(props.author, props.member, props.message)
-	);
-
-	const time = createMemo(() => dayjs(decodeTime(props.message._id)));
 
 	return (
 		<div id={`MESSAGE-${props.message._id}`} classList={{ [styles.messageHead]: props.isHead }}>
@@ -126,7 +127,13 @@ export function MessageComponent(props: Props) {
 				<span class={styles.messageBase}>
 					<Show when={props.isHead}>
 						<span class={styles.messageMeta}>
-							<span class={styles.displayName}>{displayName()}</span>
+							<RoleColorStyle
+								member={props.member}
+								message={props.message}
+								class={styles.displayName}
+							>
+								{displayName()}
+							</RoleColorStyle>
 							<Show when={displayName() != props.author.username}>
 								<span class={styles.username}>
 									@{props.author.username}#{props.author.discriminator}

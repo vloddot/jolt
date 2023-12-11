@@ -8,5 +8,6 @@ interface Settings {
 		replies: boolean;
 		'reply-bar': boolean;
 		dms: boolean;
-	}
+	},
+	'appearance:show-role-colors'
 }

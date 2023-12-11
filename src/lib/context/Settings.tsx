@@ -23,7 +23,8 @@ export const DEFAULT_SETTINGS: Settings = {
 		messages: true,
 		replies: true,
 		'reply-bar': true
-	}
+	},
+	'appearance:show-role-colors': true
 };
 
 export const SettingsContext = createContext<CollectionItem<Settings>>(

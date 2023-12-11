@@ -1,4 +1,4 @@
-import { useContext } from 'solid-js';
+import { useContext, type JSX } from 'solid-js';
 import { SessionContext } from './context/Session';
 import { UnreadsCollectionContext } from './context/collections/Unreads';
 
@@ -107,6 +107,43 @@ function inputSelected() {
 	return ['TEXTAREA', 'INPUT'].includes(document.activeElement?.nodeName ?? '');
 }
 
+/**
+ * Sorts the roles by rank (lowest number to highest number)
+ * @param roleIds The array of role IDs
+ * @param server The server containing these roles
+ * @returns The roles sorted by rank
+ */
+function sortRoles(server: Server, roleIds: string[]) {
+	const roles = server.roles;
+	if (roles == undefined) {
+		return [];
+	}
+
+	return roleIds
+		.flatMap((id) => {
+			const role = roles[id];
+			if (role == undefined) {
+				return [];
+			}
+
+			return [role];
+		})
+		.sort((a, b) => (a.rank ?? 1) - (b.rank ?? -1));
+}
+
+function getRoleColorStyle(color: string): JSX.CSSProperties {
+	if (color.includes('gradient')) {
+		return {
+			background: `${color} text`,
+			'background-clip': 'text',
+			'-webkit-background-clip': 'text',
+			'-webkit-text-fill-color': 'transparent'
+		};
+	}
+
+	return { color };
+}
+
 export default {
 	getAutumnURL,
 	getDisplayName,
@@ -118,4 +155,6 @@ export default {
 	unreadObject,
 	isUnread,
 	inputSelected,
+	sortRoles,
+	getRoleColorStyle
 };
