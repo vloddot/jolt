@@ -109,33 +109,30 @@ function ServerSidebar() {
 	);
 
 	const sortedServers = createMemo(() => {
-		const ordering = settings.ordering.servers;
-
-		if (ordering == undefined || Object.keys(ordering).length == 0) {
+		if (
+			settings.ordering.servers == undefined ||
+			Object.keys(settings.ordering.servers).length == 0
+		) {
 			return Array.from(servers.values());
 		}
 
+		const ordering = Object.fromEntries(settings.ordering.servers.map((id, index) => [id, index]));
+
 		return Array.from(servers.values()).sort(([a], [b]) => {
-			const aIndex = ordering.indexOf(a._id);
-			const bIndex = ordering.indexOf(b._id);
+			const aIndex = ordering[a._id];
+			const bIndex = ordering[b._id];
 
-			if (aIndex == -1) {
+			// sort servers that don't exist in the ordering to the bottom
+			if (aIndex == undefined) {
 				return 1;
 			}
 
-			if (bIndex == -1) {
+			if (bIndex == undefined) {
 				return -1;
 			}
 
-			if (aIndex > bIndex) {
-				return 1;
-			}
-
-			if (bIndex < aIndex) {
-				return -1;
-			}
-
-			return 0;
+			// sort anything else by index
+			return aIndex - bIndex;
 		});
 	});
 
