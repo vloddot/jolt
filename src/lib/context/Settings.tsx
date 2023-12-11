@@ -24,7 +24,11 @@ export const DEFAULT_SETTINGS: Settings = {
 		replies: true,
 		'reply-bar': true
 	},
-	'appearance:show-role-colors': true
+	'appearance:show-role-colors': true,
+	'behavior:typing-indicators': {
+		send: true,
+		receive: true
+	}
 };
 
 export const SettingsContext = createContext<CollectionItem<Settings>>(

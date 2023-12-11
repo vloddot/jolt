@@ -9,6 +9,7 @@ import { UserCollectionContext } from './context/collections/Users';
 import { MemberCollectionContext } from './context/collections/Members';
 import util from './util';
 import { SelectedServerIdContext } from './context/SelectedServerId';
+import { SettingsContext } from './context/Settings';
 
 export interface MessageCollection {
 	messages: Record<Message['_id'], Message | undefined>;
@@ -25,6 +26,7 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 		const response = await api.queryMessages([channel_id, { sort: 'Latest', include_users: true }]);
 		const client = useContext(ClientContext);
 		const [session] = useContext(SessionContext);
+		const [settings] = useContext(SettingsContext);
 		const userCollection = useContext(UserCollectionContext);
 		const memberCollection = useContext(MemberCollectionContext);
 		const selectedServerId = useContext(SelectedServerIdContext);
@@ -183,8 +185,11 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 				client.on('MessageReact', messageReactHandler);
 				client.on('MessageUnreact', messageUnreactHandler);
 				client.on('MessageRemoveReaction', messageRemoveReactionHandler);
-				client.on('ChannelStartTyping', channelStartTypingHandler);
-				client.on('ChannelStopTyping', channelStopTypingHandler);
+
+				if (settings['behavior:typing-indicators'].receive) {
+					client.on('ChannelStartTyping', channelStartTypingHandler);
+					client.on('ChannelStopTyping', channelStopTypingHandler);
+				}
 
 				onCleanup(() => {
 					for (const timeout of typingTimeouts.values()) {
@@ -199,8 +204,11 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 					client.removeListener('MessageReact', messageReactHandler);
 					client.removeListener('MessageUnreact', messageUnreactHandler);
 					client.removeListener('MessageRemoveReaction', messageRemoveReactionHandler);
-					client.removeListener('ChannelStartTyping', channelStartTypingHandler);
-					client.removeListener('ChannelStopTyping', channelStopTypingHandler);
+
+					if (settings['behavior:typing-indicators'].receive) {
+						client.removeListener('ChannelStartTyping', channelStartTypingHandler);
+						client.removeListener('ChannelStopTyping', channelStopTypingHandler);
+					}
 				});
 			});
 

@@ -46,6 +46,7 @@ import { OcHash3 } from 'solid-icons/oc';
 import { HiSolidSpeakerWave } from 'solid-icons/hi';
 import { UserCollectionContext } from '@lib/context/collections/Users';
 import emojis from '@lib/emojis.json';
+import { SettingsContext } from '@lib/context/Settings';
 
 export default function TextChannel() {
 	const selectedChannelId = useContext(SelectedChannelIdContext);
@@ -118,6 +119,7 @@ function TextChannelMeta(props: MetaProps) {
 	const [messageInput, setMessageInput] = useContext(MessageInputContext);
 	const [replies, setReplies] = useContext(RepliesContext)!;
 	const [session] = useContext(SessionContext);
+	const [settings] = useContext(SettingsContext);
 	const [, setEditingMessageId] = useContext(EditingMessageIdContext);
 
 	const [showMasqueradeControls, setShowMasqueradeControls] = createSignal(false);
@@ -591,7 +593,7 @@ function TextChannelMeta(props: MetaProps) {
 								: `Send message in ${channelName()}`
 						}
 						ref={(r) => (messageTextarea = r)}
-						sendTypingIndicators
+						sendTypingIndicators={settings['behavior:typing-indicators'].send}
 						onInput={(event) => {
 							const input = event.currentTarget.value;
 							setMessageInput(input);
