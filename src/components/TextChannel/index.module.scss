@@ -7,6 +7,21 @@
 	padding-bottom: 8px;
 }
 
+.autocompleteBase {
+	display: flex;
+	flex-direction: column;
+	background-color: var(--message-box);
+	margin: 0px 16px;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+
+	& ~ .attachmentPreviewBase,
+	& ~ .messageFormBase .messageForm {
+		border-top-right-radius: 0;
+		border-top-left-radius: 0;
+	}
+}
+
 .messageFormBase {
 	display: flex;
 	flex-direction: column;
@@ -33,15 +48,18 @@
 	}
 }
 
+hr {
+	border-color: hsl(228 6% 32.5% / 0.48);
+	margin: initial 0;
+}
+
 .attachmentPreviewBase {
 	background-color: var(--message-box);
 	margin: 0px 16px;
 
-	& ~ .messageFormBase {
-		.messageForm {
-			border-top-right-radius: 0;
-			border-top-left-radius: 0;
-		}
+	& ~ .messageFormBase .messageForm {
+		border-top-right-radius: 0;
+		border-top-left-radius: 0;
 	}
 
 	border-top-right-radius: 6px;
@@ -53,10 +71,5 @@
 		border-top-right-radius: 6px;
 		border-top-left-radius: 6px;
 		padding: 16px;
-	}
-
-	hr {
-		border-color: hsl(228 6% 32.5% / 0.48);
-		margin: initial 0;
 	}
 }

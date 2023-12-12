@@ -40,7 +40,7 @@ export default function ServerWrapper() {
 						{(server) => {
 							return (
 								<SelectedServerContext.Provider value={() => server()[0]}>
-									<Show when={members.state == 'ready'}>
+									<Show when={members.state == 'ready'} fallback={<p>Loading members...</p>}>
 										<ServerMembersListContext.Provider value={members}>
 											<ChannelBar />
 											<main class="main-content-container">
@@ -93,14 +93,15 @@ function ChannelBar() {
 				return getChannel(channel_id);
 			}),
 			categorized: s.categories?.flatMap((category) => {
-				if (category.channels.length == 0) {
+				const channels = category.channels.flatMap(getChannel);
+				if (channels.length == 0) {
 					return [];
 				}
 
 				return [
 					{
 						...category,
-						channels: category.channels.flatMap(getChannel)
+						channels
 					}
 				];
 			})
@@ -173,7 +174,7 @@ function ChannelComponent(props: ChannelComponentProps) {
 							</Switch>
 						}
 					>
-						{(icon) => <img src={util.getAutumnURL(icon())} alt={channel().name} />}
+						{(icon) => <img loading="lazy" src={util.getAutumnURL(icon())} alt={channel().name} />}
 					</Show>
 					<span>{channel().name}</span>
 				</ChannelItem>
@@ -184,7 +185,7 @@ function ChannelComponent(props: ChannelComponentProps) {
 
 function MembersList() {
 	const membersResponse = useContext(ServerMembersListContext);
-	const [settings] = useContext(SettingsContext);
+	const { settings } = useContext(SettingsContext);
 
 	return (
 		<div class="members-list-container">

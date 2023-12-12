@@ -1,5 +1,6 @@
 import { EventEmitter } from 'eventemitter3';
-import { createSignal, type Accessor, type Setter } from 'solid-js';
+import { createSignal, type Accessor, type Setter, useContext } from 'solid-js';
+import { SettingsContext } from './context/Settings';
 
 const PING_HEARTBEAT_INTERVAL = 30;
 const PONG_TIMEOUT = 10;
@@ -188,7 +189,8 @@ export class Client extends EventEmitter<ClientEvents> {
 	}
 
 	authenticate(token: string) {
-		this.#socket = new WebSocket(`wss://ws.revolt.chat?token=${token}`);
+		const { settings } = useContext(SettingsContext);
+		this.#socket = new WebSocket(`${settings.instance.bonfire}?token=${token}`);
 		this.#setConnectionState('connecting');
 
 		this.#socket.onopen = () => {

@@ -1,9 +1,9 @@
-import CheckboxSetting from '@components/Settings/CheckboxSetting';
+import CheckboxSetting from '@components/Setting/CheckboxSetting';
 import { SettingsContext } from '@lib/context/Settings';
 import { useContext } from 'solid-js';
 
 export default function SettingsAppearance() {
-	const [settings, setSettings] = useContext(SettingsContext);
+	const { settings, setSettings } = useContext(SettingsContext);
 
 	return (
 		<>
@@ -51,6 +51,15 @@ export default function SettingsAppearance() {
 				onInput={(event) =>
 					setSettings('appearance:presence-icons', 'dms', event.currentTarget.checked)
 				}
+			/>
+
+			<CheckboxSetting
+				title="Show role colors"
+				description="Show colors for roles inside a server"
+				checked={settings['appearance:show-role-colors']}
+				onInput={(event) => {
+					setSettings('appearance:show-role-colors', event.currentTarget.checked);
+				}}
 			/>
 		</>
 	);

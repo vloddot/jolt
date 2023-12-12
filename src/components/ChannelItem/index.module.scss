@@ -5,8 +5,12 @@
 	border-bottom-right-radius: 15px;
 	display: flex;
 	align-items: center;
-	transition: background-color 150ms, outline 150ms;
+	transition:
+		background-color 150ms,
+		outline 150ms;
 	min-height: 32px;
+	min-width: fit-content;
+
 	color: inherit;
 
 	img,

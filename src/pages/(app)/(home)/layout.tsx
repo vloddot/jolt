@@ -23,23 +23,44 @@ import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
 import { UnreadsCollectionContext } from '@lib/context/collections/Unreads';
 import UserButton from '@components/User/Button';
 import { SettingsContext } from '@lib/context/Settings';
+import { UserCollectionContext } from '@lib/context/collections/Users';
 
 export default function HomeWrapper() {
 	const location = useLocation();
 	const channelCollection = useContext(ChannelCollectionContext);
+	const userCollection = useContext(UserCollectionContext);
 	const selectedChannelId = useContext(SelectedChannelIdContext);
 	const channelIsSelected = createSelector(selectedChannelId);
 	const unreads = useContext(UnreadsCollectionContext);
 
 	const channels = createMemo(() => {
-		const list = Array.from(channelCollection.values());
+		return (
+			Array.from(channelCollection.values()).filter((accessor) => {
+				const [channel] = accessor;
 
-		return list.filter((accessor) => {
-			const [channel] = accessor;
+				return channel.channel_type != 'TextChannel' && channel.channel_type != 'VoiceChannel';
+			}) as CollectionItem<Exclude<Channel, { channel_type: 'TextChannel' | 'VoiceChannel' }>>[]
+		).sort(([a], [b]) => {
+			if (a.channel_type == 'SavedMessages') {
+				return -1;
+			}
 
-			return channel.channel_type != 'TextChannel' && channel.channel_type != 'VoiceChannel';
-		}) as CollectionItem<Exclude<Channel, { channel_type: 'TextChannel' | 'VoiceChannel' }>>[];
+			if (b.channel_type == 'SavedMessages') {
+				return 1;
+			}
+
+			if (a.last_message_id == undefined && b.last_message_id == undefined) {
+				return 0;
+			}
+
+			return (b.last_message_id ?? '0').localeCompare(a.last_message_id ?? '0');
+		});
 	});
+
+	const incomingFriendRequestsCount = createMemo(
+		() =>
+			Array.from(userCollection.values()).filter(([user]) => user.relationship == 'Incoming').length
+	);
 
 	return (
 		<>
@@ -49,24 +70,17 @@ export default function HomeWrapper() {
 
 					<span>Home</span>
 				</ChannelItem>
-				<ChannelItem href="/friends" selected={location.pathname == '/friends'} unread={false}>
+				<ChannelItem
+					href="/friends"
+					selected={location.pathname == '/friends'}
+					unread={false}
+					mentions={incomingFriendRequestsCount()}
+				>
 					<FaRegularCircleUser />
 
-					<span>Friends (placeholder)</span>
+					<span>Friends</span>
 				</ChannelItem>
-				<For
-					each={channels()?.sort(([a], [b]) => {
-						if (a.channel_type == 'SavedMessages') {
-							return -1;
-						}
-
-						if (b.channel_type == 'SavedMessages') {
-							return 1;
-						}
-
-						return b.last_message_id?.localeCompare(a.last_message_id ?? '0') ?? 0;
-					})}
-				>
+				<For each={channels()}>
 					{([channel]) => {
 						const unreadObject = createMemo(() => unreads.get(channel._id)?.[0]);
 						const isUnread = createMemo(() => {
@@ -101,7 +115,13 @@ export default function HomeWrapper() {
 												mentions={unreadObject()?.mentions?.length}
 											>
 												<Show when={channel().icon} fallback={<FaSolidUserGroup />}>
-													{(icon) => <img src={util.getAutumnURL(icon())} alt={channel().name} />}
+													{(icon) => (
+														<img
+															loading="lazy"
+															src={util.getAutumnURL(icon())}
+															alt={channel().name}
+														/>
+													)}
 												</Show>
 												<span>{channel().name}</span>
 											</ChannelItem>
@@ -110,7 +130,7 @@ export default function HomeWrapper() {
 								</Match>
 								<Match when={channel.channel_type == 'DirectMessage' && channel.active && channel}>
 									{(channel) => {
-										const [settings] = useContext(SettingsContext);
+										const { settings } = useContext(SettingsContext);
 										const [recipient] = createResource(
 											() => util.getOtherRecipient(channel().recipients),
 											api.fetchUser

@@ -9,10 +9,10 @@ export interface Props {
 
 export default function SelectedServerProvider(props: Props) {
 	const params = useParams();
-	const selectedServer = createMemo(() => params.sid);
+	const selectedServerId = createMemo(() => params.sid);
 
 	return (
-		<SelectedServerIdContext.Provider value={selectedServer}>
+		<SelectedServerIdContext.Provider value={selectedServerId}>
 			{props.children}
 		</SelectedServerIdContext.Provider>
 	);

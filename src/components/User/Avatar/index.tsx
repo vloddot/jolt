@@ -15,7 +15,7 @@ export interface Props {
 }
 
 export default function UserAvatar(_props: Props) {
-	const props = mergeProps({ width: '28px', height: '28px', showPresence: false }, _props);
+	const props = mergeProps({ width: '28px', height: '28px', showPresence: true }, _props);
 
 	const displayName = createMemo(() =>
 		typeof props.user == 'string'
@@ -56,6 +56,7 @@ export default function UserAvatar(_props: Props) {
 			<img
 				class={utilStyles.cover}
 				src={displayAvatar()}
+				loading="lazy"
 				alt={displayName()}
 				style={{ width: props.width, height: props.height }}
 			/>

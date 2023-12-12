@@ -22,6 +22,7 @@ export default function Attachment(attachment: AutumnFile) {
 							class={styles.mediaAttachment}
 							src={href()}
 							alt={attachment().filename}
+							loading="lazy"
 							style={{
 								'--width': `${attachment().metadata.width}px`,
 								'--height': `${attachment().metadata.width}px`
@@ -56,9 +57,7 @@ export default function Attachment(attachment: AutumnFile) {
 
 						return (
 							<div class={styles.textAttachment}>
-								<div class={styles.textContent}>
-									{text()}
-								</div>
+								<div class={styles.textContent}>{text()}</div>
 								<FileAttachment
 									attachment={attachment()}
 									showLinkButton

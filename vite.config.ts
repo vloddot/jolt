@@ -15,7 +15,7 @@ export default defineConfig({
 	resolve: {
 		alias: [
 			{ find: '@lib', replacement: path.resolve(__dirname, 'src', 'lib') },
-			{ find: '@components', replacement: path.resolve(__dirname, 'src', 'components') },
+			{ find: '@components', replacement: path.resolve(__dirname, 'src', 'components') }
 		]
 	},
 	// prevent vite from obscuring rust errors

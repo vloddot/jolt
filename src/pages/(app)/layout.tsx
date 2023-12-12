@@ -1,4 +1,4 @@
-import ServerSidebarIcon from '@components/ServerSidebarIcon';
+import ServerSidebarIcon from './ServerSidebarIcon';
 import './layout.scss';
 import styles from '@lib/util.module.scss';
 import util from '@lib/util';
@@ -19,7 +19,7 @@ import ServerCollectionProvider, {
 } from '@lib/context/collections/Servers';
 import SettingsProvider, { SettingsContext } from '@lib/context/Settings';
 import SelectedServerIdProvider, { SelectedServerIdContext } from '@lib/context/SelectedServerId';
-import UserCollectionProvider from '@lib/context/collections/Users';
+import UserCollectionProvider, { UserCollectionContext } from '@lib/context/collections/Users';
 import ChannelCollectionProvider, {
 	ChannelCollectionContext
 } from '@lib/context/collections/Channels';
@@ -80,8 +80,9 @@ export default function AppWrapper() {
 }
 
 function ServerSidebar() {
-	const [settings] = useContext(SettingsContext);
+	const { settings } = useContext(SettingsContext);
 	const servers = useContext(ServerCollectionContext);
+	const users = useContext(UserCollectionContext);
 	const channels = useContext(ChannelCollectionContext);
 	const selectedServerId = useContext(SelectedServerIdContext);
 	const selectedChannelId = useContext(SelectedChannelIdContext);
@@ -109,35 +110,36 @@ function ServerSidebar() {
 	);
 
 	const sortedServers = createMemo(() => {
-		const ordering = settings.ordering.servers;
-
-		if (ordering == undefined || Object.keys(ordering).length == 0) {
+		if (
+			settings.ordering.servers == undefined ||
+			Object.keys(settings.ordering.servers).length == 0
+		) {
 			return Array.from(servers.values());
 		}
 
+		const ordering = Object.fromEntries(settings.ordering.servers.map((id, index) => [id, index]));
+
 		return Array.from(servers.values()).sort(([a], [b]) => {
-			const aIndex = ordering.indexOf(a._id);
-			const bIndex = ordering.indexOf(b._id);
+			const aIndex = ordering[a._id];
+			const bIndex = ordering[b._id];
 
-			if (aIndex == -1) {
+			// sort servers that don't exist in the ordering to the bottom
+			if (aIndex == undefined) {
 				return 1;
 			}
 
-			if (bIndex == -1) {
+			if (bIndex == undefined) {
 				return -1;
 			}
 
-			if (aIndex > bIndex) {
-				return 1;
-			}
-
-			if (bIndex < aIndex) {
-				return -1;
-			}
-
-			return 0;
+			// sort anything else by index
+			return aIndex - bIndex;
 		});
 	});
+
+	const incomingFriendRequestsCount = createMemo(
+		() => Array.from(users.values()).filter(([user]) => user.relationship == 'Incoming').length
+	);
 
 	return (
 		<div class="server-sidebar-container">
@@ -149,6 +151,7 @@ function ServerSidebar() {
 				}
 				tooltip="Home"
 				unread={false}
+				mentions={incomingFriendRequestsCount()}
 			>
 				<FaSolidHouse />
 			</ServerSidebarIcon>
@@ -230,7 +233,12 @@ function ServerSidebar() {
 									.join('')}
 							>
 								{(icon) => (
-									<img class={styles.cover} src={util.getAutumnURL(icon())} alt={server.name} />
+									<img
+										loading="lazy"
+										class={styles.cover}
+										src={util.getAutumnURL(icon())}
+										alt={server.name}
+									/>
 								)}
 							</Show>
 						</ServerSidebarIcon>
@@ -242,7 +250,7 @@ function ServerSidebar() {
 
 			<ServerSidebarIcon
 				href={`/settings/${Object.values(settingsSections)[0].id}`}
-				selected={false}
+				selected={location.pathname.startsWith('/settings')}
 				unread={false}
 				tooltip="Settings"
 			>

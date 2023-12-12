@@ -12,7 +12,6 @@
 	position: relative;
 	gap: 12px;
 
-
 	&:hover {
 		background-color: var(--hover);
 
@@ -28,11 +27,11 @@
 	}
 
 	.messageInfo {
-		width: 32px;
+		min-width: 32px;
 		display: flex;
 		justify-content: center;
 		font-size: 0.7em;
-		
+
 		.editedIndicator {
 			user-select: none;
 			margin-left: 2px;
@@ -72,7 +71,6 @@
 		display: flex;
 		flex-direction: column;
 		width: 100%;
-		align-items: start;
 
 		.messageMeta {
 			font-size: 0.75rem;
@@ -91,12 +89,12 @@
 			}
 
 			.timestamp {
-				font-size: 0.7em;
+				font-size: 0.75em;
 				opacity: 0.5;
 			}
 
 			.editedIndicator {
-				font-size: 0.7em;
+				font-size: 0.75em;
 				margin-left: 2px;
 				opacity: 0.5;
 			}

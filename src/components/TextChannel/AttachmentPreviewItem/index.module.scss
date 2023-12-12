@@ -31,7 +31,9 @@
 			justify-content: center;
 			visibility: hidden;
 			opacity: 0;
-			transition: background-color 150ms, opacity 150ms;
+			transition:
+				background-color 150ms,
+				opacity 150ms;
 		}
 
 		&:hover {

@@ -1,7 +1,7 @@
-import utilStyles from '@lib/util.module.scss';
 import styles from './index.module.scss';
 import { splitProps, type JSX } from 'solid-js';
 import { IoCheckmarkSharp } from 'solid-icons/io';
+import Setting from '..';
 
 export type Props = {
 	title: string;
@@ -12,17 +12,17 @@ export default function CheckboxSetting(props: Props) {
 	const [settingsProps, inputProps] = splitProps(props, ['title', 'description']);
 
 	return (
-		<label class={styles.checkboxSettingBase}>
-			<div class={utilStyles.flexDivider}>
-				<span class={styles.title}>{settingsProps.title}</span>
-				<p class={styles.description}>{settingsProps.description}</p>
-			</div>
+		<Setting {...settingsProps} labelStyle={{ flex: 1 }}>
+			<input
+				checked={/* @once */ inputProps.checked}
+				style={{ display: 'none' }}
+				type="checkbox"
+				{...inputProps}
+			/>
 
-			<input checked={/* @once */ props.checked} type="checkbox" {...inputProps} />
-
-			<div aria-checked={props.checked} class={styles.checkmark}>
+			<div aria-checked={inputProps.checked} class={styles.checkmark}>
 				<IoCheckmarkSharp />
 			</div>
-		</label>
+		</Setting>
 	);
 }

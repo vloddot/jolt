@@ -16,7 +16,7 @@ export interface Props {
 
 export default function MessageReply(props: Props) {
 	const selectedChannel = useContext(SelectedChannelContext);
-	const [settings] = useContext(SettingsContext);
+	const { settings } = useContext(SettingsContext);
 	const collection = useContext(MessageCollectionContext);
 
 	const [message] = createResource(

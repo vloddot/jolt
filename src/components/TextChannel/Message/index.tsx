@@ -4,7 +4,7 @@ import utilStyles from '@lib/util.module.scss';
 import dayjs from '@lib/dayjs';
 import { HiOutlinePencilSquare } from 'solid-icons/hi';
 import { BsReply, BsTrash } from 'solid-icons/bs';
-import { For, Show, type JSX, useContext, createMemo, createSignal, Match, Switch } from 'solid-js';
+import { For, Show, type JSX, useContext, createMemo, Match, Switch } from 'solid-js';
 import { decodeTime } from 'ulid';
 import { RepliesContext, type SendableReply } from '../context/Replies';
 import 'tippy.js/animations/scale-subtle.css';
@@ -20,6 +20,7 @@ import EditingMessageIdContext from '../context/EditingMessageId';
 import Markdown from '@components/Markdown';
 import UserAvatar from '@components/User/Avatar';
 import { SettingsContext } from '@lib/context/Settings';
+import RoleColorStyle from '@components/RoleColorStyle';
 
 export interface Props {
 	message: Message;
@@ -39,7 +40,13 @@ export function MessageComponent(props: Props) {
 	const [replies, setReplies] = useContext(RepliesContext)!;
 	const [session] = useContext(SessionContext);
 	const [editingMessageId, setEditingMessageId] = useContext(EditingMessageIdContext);
-	const [settings] = useContext(SettingsContext);
+	const { settings } = useContext(SettingsContext);
+
+	const displayName = createMemo(() =>
+		util.getDisplayName(props.author, props.member, props.message)
+	);
+
+	const time = createMemo(() => dayjs(decodeTime(props.message._id)));
 
 	const messageControls: MessageControls[] = [
 		{
@@ -52,7 +59,7 @@ export function MessageComponent(props: Props) {
 
 				const [store, setStore] = createStore<SendableReply>({
 					message: props.message,
-					mention: true
+					mention: settings['behavior:reply-mention']
 				});
 				setReplies((replies) => [...replies, [store, setStore]]);
 			}
@@ -73,12 +80,6 @@ export function MessageComponent(props: Props) {
 			onclick: () => api.deleteMessage(props.message.channel, props.message._id)
 		}
 	];
-
-	const displayName = createMemo(() =>
-		util.getDisplayName(props.author, props.member, props.message)
-	);
-
-	const time = createMemo(() => dayjs(decodeTime(props.message._id)));
 
 	return (
 		<div id={`MESSAGE-${props.message._id}`} classList={{ [styles.messageHead]: props.isHead }}>
@@ -126,7 +127,13 @@ export function MessageComponent(props: Props) {
 				<span class={styles.messageBase}>
 					<Show when={props.isHead}>
 						<span class={styles.messageMeta}>
-							<span class={styles.displayName}>{displayName()}</span>
+							<RoleColorStyle
+								member={props.member}
+								message={props.message}
+								class={styles.displayName}
+							>
+								{displayName()}
+							</RoleColorStyle>
 							<Show when={displayName() != props.author.username}>
 								<span class={styles.username}>
 									@{props.author.username}#{props.author.discriminator}
@@ -145,16 +152,18 @@ export function MessageComponent(props: Props) {
 						<Match when={editingMessageId() == props.message._id}>
 							{/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
 							{(_s) => {
-								const [editedMessageInput, setEditedMessageInput] = createSignal<string>(
-									props.message.content ?? ''
-								);
+								let editedMessageInput = props.message.content;
+
+								function finishEditing(value?: string) {
+									setEditingMessageId(value);
+								}
 
 								function editMessage() {
 									api.editMessage(props.message.channel, props.message._id, {
-										content: editedMessageInput()
+										content: editedMessageInput
 									});
 
-									setEditingMessageId(undefined);
+									finishEditing();
 								}
 
 								return (
@@ -171,10 +180,10 @@ export function MessageComponent(props: Props) {
 												placeholder="Edit message"
 												initialValue={props.message.content}
 												sendTypingIndicators={false}
-												onInput={(event) => setEditedMessageInput(event.currentTarget.value)}
+												onInput={(event) => (editedMessageInput = event.currentTarget.value)}
 												onKeyDown={(event) => {
 													if (event.key == 'Escape') {
-														setEditingMessageId(undefined);
+														finishEditing();
 														return;
 													}
 
@@ -192,7 +201,7 @@ export function MessageComponent(props: Props) {
 											<a
 												style={{ cursor: 'pointer' }}
 												role="button"
-												onClick={() => setEditingMessageId(undefined)}
+												onClick={() => finishEditing()}
 											>
 												cancel
 											</a>

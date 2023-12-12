@@ -5,6 +5,7 @@ import { createStore, type Store } from 'solid-js/store';
 import { ChannelCollectionContext } from './context/collections/Channels';
 import { MemberCollectionContext } from './context/collections/Members';
 import util from './util';
+import { SettingsContext } from './context/Settings';
 
 function req(
 	method: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
@@ -13,8 +14,9 @@ function req(
 ): Promise<Response> {
 	return new Promise((resolve, reject) => {
 		const session = useContext(SessionContext)[0]();
+		const { settings } = useContext(SettingsContext);
 
-		fetch(`https://api.revolt.chat${path}`, {
+		fetch(settings.instance.delta + path, {
 			method,
 			body,
 			headers: session?.token == undefined ? undefined : { 'x-session-token': session.token }
@@ -203,11 +205,13 @@ async function deleteMessage(target: string, msg: string): Promise<void> {
 }
 
 async function uploadAttachment(file: File, tag = 'attachments'): Promise<string> {
+	const { settings } = useContext(SettingsContext);
+
 	const form = new FormData();
 
 	form.append('file', file);
 
-	const { id } = await fetch(`https://autumn.revolt.chat/${tag}`, {
+	const { id } = await fetch(`${settings.instance.autumn}/${tag}`, {
 		method: 'POST',
 		body: form
 	}).then((response) => response.json());
@@ -241,6 +245,14 @@ async function ackMessage(target: string, message: string): Promise<void> {
 
 async function setSettings() {}
 
+async function removeFriend(target: string): Promise<User> {
+	return req('DELETE', `/users/${target}/friend`).then((response) => response.json());
+}
+
+async function acceptFriend(target: string): Promise<User> {
+	return req('PUT', `/users/${target}/friend`).then((response) => response.json());
+}
+
 export default {
 	req,
 	login,
@@ -258,5 +270,7 @@ export default {
 	uploadAttachment,
 	editMessage,
 	ackMessage,
-	setSettings
+	setSettings,
+	removeFriend,
+	acceptFriend
 };

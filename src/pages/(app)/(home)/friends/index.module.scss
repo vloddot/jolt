@@ -1,0 +1,38 @@
+.friendsList {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	overflow-y: scroll;
+
+	margin: 8px;
+	.friendsListCategoryItem {
+		transition: color 150ms;
+
+		background-color: var(--initial-background);
+		padding: 2px 4px;
+		border-radius: 6px;
+
+		display: flex;
+
+		&:hover {
+			background-color: var(--hover);
+		}
+	}
+}
+
+.roundButton {
+	background-color: var(--secondary-background);
+	transition: background-color 150ms;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	width: 32px;
+	height: 32px;
+
+	&:hover {
+		background-color: var(--hover);
+	}
+
+	border-radius: 50%;
+}

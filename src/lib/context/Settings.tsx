@@ -23,13 +23,40 @@ export const DEFAULT_SETTINGS: Settings = {
 		messages: true,
 		replies: true,
 		'reply-bar': true
+	},
+	'appearance:show-role-colors': true,
+	'behavior:typing-indicators': {
+		send: true,
+		receive: true
+	},
+	'behavior:reply-mention': true,
+	instance: {
+		delta: 'https://api.revolt.chat',
+		bonfire: 'wss://ws.revolt.chat',
+		autumn: 'https://autumn.revolt.chat',
+		emotes: 'https://static.revolt.chat/emoji/twemoji',
+		legacyEmotes: 'https://dl.insrt.uk'
 	}
 };
 
-export const SettingsContext = createContext<CollectionItem<Settings>>(
-	// eslint-disable-next-line solid/reactivity
-	createStore(DEFAULT_SETTINGS)
-);
+const [defaultSettings, setDefaultSettings] = createStore(DEFAULT_SETTINGS);
+
+function setLocalSettings(key: string, value: Settings[keyof Settings]) {
+	localforage.setItem(key, value);
+	localforage.setItem(`revision:${key}`, Date.now());
+
+	api.setSettings();
+}
+
+export const SettingsContext = createContext<{
+	settings: Settings;
+	setSettings: SetStoreFunction<Settings>;
+	setLocalSettings: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
+}>({
+	settings: defaultSettings,
+	setSettings: setDefaultSettings,
+	setLocalSettings
+});
 
 export interface Props {
 	children: JSX.Element;
@@ -90,7 +117,7 @@ export default function SettingsProvider(props: Props) {
 					const valueParsed = JSON.parse(value);
 					localforage.setItem(revisionKey, revision);
 					localforage.setItem(key, valueParsed);
-					setSettings((settings) => ({ ...settings, [key]: valueParsed }));
+					setSettings(key, valueParsed);
 				}
 			});
 		};
@@ -115,17 +142,18 @@ export default function SettingsProvider(props: Props) {
 
 		if (typeof args[0] == 'string') {
 			const key = args[0] as keyof Settings;
-			const revisionKey = `revision:${key}`;
-
-			localforage.setItem(key, unwrap(settings[key]));
-			localforage.setItem(revisionKey, Date.now());
-
-			api.setSettings();
+			SettingsContext.defaultValue.setLocalSettings(key, unwrap(settings[key]));
 		}
 	}
 
 	return (
-		<SettingsContext.Provider value={[settings, updateSettings as SetStoreFunction<Settings>]}>
+		<SettingsContext.Provider
+			value={{
+				settings,
+				setSettings: updateSettings as SetStoreFunction<Settings>,
+				setLocalSettings: SettingsContext.defaultValue.setLocalSettings
+			}}
+		>
 			{props.children}
 		</SettingsContext.Provider>
 	);

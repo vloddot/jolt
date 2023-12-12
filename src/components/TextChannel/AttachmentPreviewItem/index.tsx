@@ -18,11 +18,7 @@ export default function AttachmentPreviewItem(props: Props) {
 			<button class={styles.attachmentIcon} onClick={() => props.action()}>
 				{props.children}
 				<Show when={props.overlay}>
-					{(overlay) => (
-						<div class={styles.attachmentOverlay}>
-							{overlay()}
-						</div>
-					)}
+					{(overlay) => <div class={styles.attachmentOverlay}>{overlay()}</div>}
 				</Show>
 			</button>
 			<Show when={props.metadata}>

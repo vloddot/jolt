@@ -19,7 +19,7 @@
 		"baseUrl": ".",
 		"paths": {
 			"@lib/*": ["./src/lib/*"],
-			"@components/*": ["./src/components/*"],
+			"@components/*": ["./src/components/*"]
 		},
 
 		"verbatimModuleSyntax": true,
