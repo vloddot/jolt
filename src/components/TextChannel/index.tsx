@@ -696,7 +696,7 @@ function TextChannelMeta(props: MetaProps) {
 
 											if (name.toLowerCase().includes(search.toLowerCase())) {
 												matches.push({
-													src: `https://static.revolt.chat/emoji/twemoji/${character
+													src: `${settings.instance.emotes}/${character
 														.codePointAt(0)
 														?.toString(16)}.svg`,
 													_id: name,
@@ -712,7 +712,7 @@ function TextChannelMeta(props: MetaProps) {
 
 											if (name.toLowerCase().includes(search.toLowerCase())) {
 												matches.push({
-													src: `https://dl.insrt.uk/projects/revolt/emotes/${filename}`,
+													src: `${settings.instance.legacyEmotes}/projects/revolt/emotes/${filename}`,
 													_id: name,
 													name
 												});

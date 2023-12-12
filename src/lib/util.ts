@@ -1,16 +1,19 @@
 import { useContext, type JSX } from 'solid-js';
 import { SessionContext } from './context/Session';
 import { UnreadsCollectionContext } from './context/collections/Unreads';
+import { SettingsContext } from './context/Settings';
 
 function getAutumnURL(
 	file: { _id: string; tag: string },
 	options?: Partial<{ max_side: string }>
 ): string {
-	return `https://autumn.revolt.chat/${file.tag}/${file._id}?${new URLSearchParams(options)}`;
+	const { settings } = useContext(SettingsContext);
+	return `${settings.instance.autumn}/${file.tag}/${file._id}?${new URLSearchParams(options)}`;
 }
 
 function getDefaultUserAvatar(user_id: string): string {
-	return `https://api.revolt.chat/users/${user_id}/default_avatar`;
+	const { settings } = useContext(SettingsContext);
+	return `${settings.instance.delta}/users/${user_id}/default_avatar`;
 }
 
 function getDisplayName(
