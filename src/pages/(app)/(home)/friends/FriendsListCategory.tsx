@@ -34,7 +34,11 @@ export default function FriendsListCategory(props: Props) {
 
 								<Show when={user.relationship == 'Incoming'}>
 									<Tooltip content="Accept Friend Request">
-										<button class={styles.roundButton} style={{ '--hover': 'var(--success)' }}>
+										<button
+											class={styles.roundButton}
+											style={{ '--hover': 'var(--success)' }}
+											onClick={() => api.acceptFriend(user._id)}
+										>
 											<CgUserAdd size="16" />
 										</button>
 									</Tooltip>

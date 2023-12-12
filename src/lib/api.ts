@@ -245,6 +245,10 @@ async function removeFriend(target: string): Promise<User> {
 	return req('DELETE', `/users/${target}/friend`).then((response) => response.json());
 }
 
+async function acceptFriend(target: string): Promise<User> {
+	return req('PUT', `/users/${target}/friend`).then((response) => response.json());
+}
+
 export default {
 	req,
 	login,
@@ -263,5 +267,6 @@ export default {
 	editMessage,
 	ackMessage,
 	setSettings,
-	removeFriend
+	removeFriend,
+	acceptFriend
 };
