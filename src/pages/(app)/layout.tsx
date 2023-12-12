@@ -1,4 +1,4 @@
-import ServerSidebarIcon from '@components/ServerSidebarIcon';
+import ServerSidebarIcon from './ServerSidebarIcon';
 import './layout.scss';
 import styles from '@lib/util.module.scss';
 import util from '@lib/util';
