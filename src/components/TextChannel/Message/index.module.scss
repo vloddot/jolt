@@ -27,7 +27,7 @@
 	}
 
 	.messageInfo {
-		width: 32px;
+		min-width: 32px;
 		display: flex;
 		justify-content: center;
 		font-size: 0.7em;
@@ -71,7 +71,6 @@
 		display: flex;
 		flex-direction: column;
 		width: 100%;
-		align-items: start;
 
 		.messageMeta {
 			font-size: 0.75rem;
