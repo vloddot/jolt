@@ -120,7 +120,7 @@ function TextChannelMeta(props: MetaProps) {
 	const [replies, setReplies] = useContext(RepliesContext)!;
 	const [session] = useContext(SessionContext);
 	const { settings } = useContext(SettingsContext);
-	const [, setEditingMessageId] = useContext(EditingMessageIdContext);
+	const [editingMessageId, setEditingMessageId] = useContext(EditingMessageIdContext);
 
 	const [showMasqueradeControls, setShowMasqueradeControls] = createSignal(false);
 
@@ -314,6 +314,14 @@ function TextChannelMeta(props: MetaProps) {
 	});
 
 	const messages = createMemo(() => Object.values(props.collection.messages));
+
+	createEffect(
+		on(editingMessageId, (id) => {
+			if (id == undefined) {
+				messageTextarea.focus();
+			}
+		})
+	);
 
 	createEffect(
 		on(messages, (messages) => {
@@ -666,7 +674,7 @@ function TextChannelMeta(props: MetaProps) {
 									}
 									case 'emoji': {
 										if (search.length < 2) {
-											return { type: 'none' };
+											return state;
 										}
 
 										const emojiCollection = useContext(EmojiCollectionContext);

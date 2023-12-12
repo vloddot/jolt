@@ -4,7 +4,7 @@ import utilStyles from '@lib/util.module.scss';
 import dayjs from '@lib/dayjs';
 import { HiOutlinePencilSquare } from 'solid-icons/hi';
 import { BsReply, BsTrash } from 'solid-icons/bs';
-import { For, Show, type JSX, useContext, createMemo, createSignal, Match, Switch } from 'solid-js';
+import { For, Show, type JSX, useContext, createMemo, Match, Switch } from 'solid-js';
 import { decodeTime } from 'ulid';
 import { RepliesContext, type SendableReply } from '../context/Replies';
 import 'tippy.js/animations/scale-subtle.css';
@@ -152,16 +152,18 @@ export function MessageComponent(props: Props) {
 						<Match when={editingMessageId() == props.message._id}>
 							{/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
 							{(_s) => {
-								const [editedMessageInput, setEditedMessageInput] = createSignal<string>(
-									props.message.content ?? ''
-								);
+								let editedMessageInput = props.message.content;
+
+								function finishEditing(value?: string) {
+									setEditingMessageId(value);
+								}
 
 								function editMessage() {
 									api.editMessage(props.message.channel, props.message._id, {
-										content: editedMessageInput()
+										content: editedMessageInput
 									});
 
-									setEditingMessageId(undefined);
+									finishEditing();
 								}
 
 								return (
@@ -178,10 +180,10 @@ export function MessageComponent(props: Props) {
 												placeholder="Edit message"
 												initialValue={props.message.content}
 												sendTypingIndicators={false}
-												onInput={(event) => setEditedMessageInput(event.currentTarget.value)}
+												onInput={(event) => (editedMessageInput = event.currentTarget.value)}
 												onKeyDown={(event) => {
 													if (event.key == 'Escape') {
-														setEditingMessageId(undefined);
+														finishEditing();
 														return;
 													}
 
@@ -199,7 +201,7 @@ export function MessageComponent(props: Props) {
 											<a
 												style={{ cursor: 'pointer' }}
 												role="button"
-												onClick={() => setEditingMessageId(undefined)}
+												onClick={() => finishEditing()}
 											>
 												cancel
 											</a>
