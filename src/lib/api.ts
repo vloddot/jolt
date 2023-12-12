@@ -241,6 +241,10 @@ async function ackMessage(target: string, message: string): Promise<void> {
 
 async function setSettings() {}
 
+async function removeFriend(target: string): Promise<User> {
+	return req('DELETE', `/users/${target}/friend`).then((response) => response.json());
+}
+
 export default {
 	req,
 	login,
@@ -258,5 +262,6 @@ export default {
 	uploadAttachment,
 	editMessage,
 	ackMessage,
-	setSettings
+	setSettings,
+	removeFriend
 };

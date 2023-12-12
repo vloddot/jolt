@@ -19,7 +19,7 @@ import ServerCollectionProvider, {
 } from '@lib/context/collections/Servers';
 import SettingsProvider, { SettingsContext } from '@lib/context/Settings';
 import SelectedServerIdProvider, { SelectedServerIdContext } from '@lib/context/SelectedServerId';
-import UserCollectionProvider from '@lib/context/collections/Users';
+import UserCollectionProvider, { UserCollectionContext } from '@lib/context/collections/Users';
 import ChannelCollectionProvider, {
 	ChannelCollectionContext
 } from '@lib/context/collections/Channels';
@@ -82,6 +82,7 @@ export default function AppWrapper() {
 function ServerSidebar() {
 	const [settings] = useContext(SettingsContext);
 	const servers = useContext(ServerCollectionContext);
+	const users = useContext(UserCollectionContext);
 	const channels = useContext(ChannelCollectionContext);
 	const selectedServerId = useContext(SelectedServerIdContext);
 	const selectedChannelId = useContext(SelectedChannelIdContext);
@@ -136,6 +137,10 @@ function ServerSidebar() {
 		});
 	});
 
+	const incomingFriendRequestsCount = createMemo(() =>
+		Array.from(users.values()).filter(([user]) => user.relationship == 'Incoming').length
+	);
+
 	return (
 		<div class="server-sidebar-container">
 			<ServerSidebarIcon
@@ -146,6 +151,7 @@ function ServerSidebar() {
 				}
 				tooltip="Home"
 				unread={false}
+				mentions={incomingFriendRequestsCount()}
 			>
 				<FaSolidHouse />
 			</ServerSidebarIcon>

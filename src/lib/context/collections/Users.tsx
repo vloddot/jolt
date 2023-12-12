@@ -1,11 +1,4 @@
-import {
-	createContext,
-	useContext,
-	type JSX,
-	batch,
-	onMount,
-	onCleanup
-} from 'solid-js';
+import { createContext, useContext, type JSX, batch, onMount, onCleanup } from 'solid-js';
 import ClientContext from '@lib/context/Client';
 import { createStore } from 'solid-js/store';
 import type { ClientEvents } from '@lib/Client';
@@ -80,11 +73,11 @@ export default function UserCollectionProvider(props: Props) {
 		const userRelationshipHandler: ClientEvents['UserRelationship'] = (m) => {
 			const user = users.get(m.user._id);
 			if (user == undefined) {
-				const [store, setStore] = createStore(m.user);
+				const [store, setStore] = createStore({ ...m.user, relationship: m.status });
 				users.set(m.user._id, [store, setStore]);
 			} else {
 				const [, setUser] = user;
-				setUser('relationship', m.user.relationship);
+				setUser('relationship', m.status);
 			}
 		};
 

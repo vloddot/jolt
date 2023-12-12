@@ -23,10 +23,12 @@ import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
 import { UnreadsCollectionContext } from '@lib/context/collections/Unreads';
 import UserButton from '@components/User/Button';
 import { SettingsContext } from '@lib/context/Settings';
+import { UserCollectionContext } from '@lib/context/collections/Users';
 
 export default function HomeWrapper() {
 	const location = useLocation();
 	const channelCollection = useContext(ChannelCollectionContext);
+	const userCollection = useContext(UserCollectionContext);
 	const selectedChannelId = useContext(SelectedChannelIdContext);
 	const channelIsSelected = createSelector(selectedChannelId);
 	const unreads = useContext(UnreadsCollectionContext);
@@ -55,6 +57,11 @@ export default function HomeWrapper() {
 		});
 	});
 
+	const incomingFriendRequestsCount = createMemo(
+		() =>
+			Array.from(userCollection.values()).filter(([user]) => user.relationship == 'Incoming').length
+	);
+
 	return (
 		<>
 			<div class="channel-bar-container">
@@ -63,10 +70,15 @@ export default function HomeWrapper() {
 
 					<span>Home</span>
 				</ChannelItem>
-				<ChannelItem href="/friends" selected={location.pathname == '/friends'} unread={false}>
+				<ChannelItem
+					href="/friends"
+					selected={location.pathname == '/friends'}
+					unread={false}
+					mentions={incomingFriendRequestsCount()}
+				>
 					<FaRegularCircleUser />
 
-					<span>Friends (placeholder)</span>
+					<span>Friends</span>
 				</ChannelItem>
 				<For each={channels()}>
 					{([channel]) => {
