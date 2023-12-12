@@ -12,7 +12,6 @@
 	position: relative;
 	gap: 12px;
 
-
 	&:hover {
 		background-color: var(--hover);
 
@@ -32,7 +31,7 @@
 		display: flex;
 		justify-content: center;
 		font-size: 0.7em;
-		
+
 		.editedIndicator {
 			user-select: none;
 			margin-left: 2px;

@@ -57,9 +57,7 @@ export default function Attachment(attachment: AutumnFile) {
 
 						return (
 							<div class={styles.textAttachment}>
-								<div class={styles.textContent}>
-									{text()}
-								</div>
+								<div class={styles.textContent}>{text()}</div>
 								<FileAttachment
 									attachment={attachment()}
 									showLinkButton

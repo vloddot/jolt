@@ -24,7 +24,7 @@ export default function TextArea(props: Props) {
 		ref.focus();
 
 		// don't ask me my code is weird
-		setTimeout(() => ref.selectionStart = ref.selectionEnd = ref.value.length, 1);
+		setTimeout(() => (ref.selectionStart = ref.selectionEnd = ref.value.length), 1);
 	}
 
 	const onKeyDown: GlobalEventHandlers['onkeydown'] = (event) => {

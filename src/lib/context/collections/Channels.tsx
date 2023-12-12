@@ -1,11 +1,4 @@
-import {
-	createContext,
-	useContext,
-	type JSX,
-	batch,
-	onMount,
-	onCleanup,
-} from 'solid-js';
+import { createContext, useContext, type JSX, batch, onMount, onCleanup } from 'solid-js';
 import ClientContext from '@lib/context/Client';
 import { createStore } from 'solid-js/store';
 import type { ClientEvents } from '@lib/Client';

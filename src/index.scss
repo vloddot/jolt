@@ -21,7 +21,7 @@
 	--status-invisible: #80848e;
 	--success: #0ea55e;
 	--hover: rgba(255, 255, 255, 0.075);
-	--selected: rgba(255, 255, 255, 0.150);
+	--selected: rgba(255, 255, 255, 0.15);
 	--scrollbar-track: transparent;
 	--scrollbar-thumb: #2469b2;
 	--error: #d2373d;
@@ -79,7 +79,9 @@ button {
 	border: none;
 	padding: 8px;
 	border-radius: 6px;
-	transition: background-color 100ms, outline 50ms;
+	transition:
+		background-color 100ms,
+		outline 50ms;
 }
 
 button {
@@ -116,26 +118,26 @@ input:focus {
 	border-radius: 6px !important;
 }
 
-.tippy-box[data-placement='top']>.tippy-arrow::before {
+.tippy-box[data-placement='top'] > .tippy-arrow::before {
 	border-top-color: black !important;
 }
 
-.tippy-box[data-placement='right']>.tippy-arrow::before {
+.tippy-box[data-placement='right'] > .tippy-arrow::before {
 	border-right-color: black !important;
 }
 
-.tippy-box[data-placement='bottom']>.tippy-arrow::before {
+.tippy-box[data-placement='bottom'] > .tippy-arrow::before {
 	border-bottom-color: black !important;
 }
 
-.tippy-box[data-placement='left']>.tippy-arrow::before {
+.tippy-box[data-placement='left'] > .tippy-arrow::before {
 	border-left-color: black !important;
 }
 
 details {
 	margin-top: 8px;
 
-	>summary {
+	> summary {
 		user-select: none;
 		margin-left: 8px;
 		cursor: pointer;

@@ -21,5 +21,5 @@ interface Settings {
 		autumn: string;
 		emotes: string;
 		legacyEmotes: string;
-	}
+	};
 }

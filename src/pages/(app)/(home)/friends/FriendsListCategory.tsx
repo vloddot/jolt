@@ -4,7 +4,12 @@ import UserButton from '@components/User/Button';
 import { For, Match, Show, Switch } from 'solid-js';
 import api from '@lib/api';
 import Tooltip from '@components/Tooltip';
-import { FaSolidUserMinus, FaSolidUserPlus, FaSolidUserSlash, FaSolidUserXmark } from 'solid-icons/fa';
+import {
+	FaSolidUserMinus,
+	FaSolidUserPlus,
+	FaSolidUserSlash,
+	FaSolidUserXmark
+} from 'solid-icons/fa';
 import type { IconTypes } from 'solid-icons';
 import { Dynamic } from 'solid-js/web';
 
@@ -68,7 +73,7 @@ export default function FriendsListCategory(props: Props) {
 											const iconMapping: Record<'Friend' | 'Incoming' | 'Outgoing', IconTypes> = {
 												Friend: FaSolidUserMinus,
 												Incoming: FaSolidUserSlash,
-												Outgoing: FaSolidUserXmark,
+												Outgoing: FaSolidUserXmark
 											};
 
 											return (

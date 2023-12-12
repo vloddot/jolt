@@ -6,7 +6,9 @@ export default function Embed(embed: Embed) {
 	return (
 		<Switch>
 			<Match when={embed.type == 'Image' && embed}>
-				{(embed) => <img loading="lazy" src={embed().url} width={embed().width} height={embed().height} />}
+				{(embed) => (
+					<img loading="lazy" src={embed().url} width={embed().width} height={embed().height} />
+				)}
 			</Match>
 			<Match when={embed.type == 'Text' && embed}>
 				{(embed) => (

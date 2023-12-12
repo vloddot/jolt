@@ -5,7 +5,7 @@ export interface SettingsProps {
 	title: string;
 	description: string;
 	cursor?: JSX.CSSProperties['cursor'];
-	labelStyle?: JSX.CSSProperties;	
+	labelStyle?: JSX.CSSProperties;
 	children: JSX.Element;
 }
 
