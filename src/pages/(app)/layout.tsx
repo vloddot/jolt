@@ -80,7 +80,7 @@ export default function AppWrapper() {
 }
 
 function ServerSidebar() {
-	const [settings] = useContext(SettingsContext);
+	const { settings } = useContext(SettingsContext);
 	const servers = useContext(ServerCollectionContext);
 	const users = useContext(UserCollectionContext);
 	const channels = useContext(ChannelCollectionContext);
@@ -137,8 +137,8 @@ function ServerSidebar() {
 		});
 	});
 
-	const incomingFriendRequestsCount = createMemo(() =>
-		Array.from(users.values()).filter(([user]) => user.relationship == 'Incoming').length
+	const incomingFriendRequestsCount = createMemo(
+		() => Array.from(users.values()).filter(([user]) => user.relationship == 'Incoming').length
 	);
 
 	return (

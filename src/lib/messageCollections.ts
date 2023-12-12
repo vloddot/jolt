@@ -26,7 +26,7 @@ export async function getMessageCollection(channel_id: string): Promise<MessageC
 		const response = await api.queryMessages([channel_id, { sort: 'Latest', include_users: true }]);
 		const client = useContext(ClientContext);
 		const [session] = useContext(SessionContext);
-		const [settings] = useContext(SettingsContext);
+		const { settings } = useContext(SettingsContext);
 		const userCollection = useContext(UserCollectionContext);
 		const memberCollection = useContext(MemberCollectionContext);
 		const selectedServerId = useContext(SelectedServerIdContext);

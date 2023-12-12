@@ -119,7 +119,7 @@ function TextChannelMeta(props: MetaProps) {
 	const [messageInput, setMessageInput] = useContext(MessageInputContext);
 	const [replies, setReplies] = useContext(RepliesContext)!;
 	const [session] = useContext(SessionContext);
-	const [settings] = useContext(SettingsContext);
+	const { settings } = useContext(SettingsContext);
 	const [, setEditingMessageId] = useContext(EditingMessageIdContext);
 
 	const [showMasqueradeControls, setShowMasqueradeControls] = createSignal(false);

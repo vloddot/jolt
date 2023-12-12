@@ -185,7 +185,7 @@ function ChannelComponent(props: ChannelComponentProps) {
 
 function MembersList() {
 	const membersResponse = useContext(ServerMembersListContext);
-	const [settings] = useContext(SettingsContext);
+	const { settings } = useContext(SettingsContext);
 
 	return (
 		<div class="members-list-container">

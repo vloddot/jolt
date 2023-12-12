@@ -130,7 +130,7 @@ export default function HomeWrapper() {
 								</Match>
 								<Match when={channel.channel_type == 'DirectMessage' && channel.active && channel}>
 									{(channel) => {
-										const [settings] = useContext(SettingsContext);
+										const { settings } = useContext(SettingsContext);
 										const [recipient] = createResource(
 											() => util.getOtherRecipient(channel().recipients),
 											api.fetchUser

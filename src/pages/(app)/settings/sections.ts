@@ -1,11 +1,12 @@
 import type { IconTypes } from 'solid-icons';
 import { BiSolidPaint } from 'solid-icons/bi';
+import { FaSolidUserGear } from 'solid-icons/fa';
 import { TbUserCog } from 'solid-icons/tb';
 
 export interface SettingsSection {
 	title: string;
-	icon: IconTypes;
 	id: string;
+	icon: IconTypes;
 }
 
 const settingsSections: SettingsSection[] = [
@@ -18,6 +19,11 @@ const settingsSections: SettingsSection[] = [
 		title: 'Behavior',
 		id: 'behavior',
 		icon: TbUserCog
+	},
+	{
+		title: 'Instance',
+		id: 'instance',
+		icon: FaSolidUserGear
 	}
 ];
 

@@ -40,7 +40,7 @@ export function MessageComponent(props: Props) {
 	const [replies, setReplies] = useContext(RepliesContext)!;
 	const [session] = useContext(SessionContext);
 	const [editingMessageId, setEditingMessageId] = useContext(EditingMessageIdContext);
-	const [settings] = useContext(SettingsContext);
+	const { settings } = useContext(SettingsContext);
 
 	const displayName = createMemo(() =>
 		util.getDisplayName(props.author, props.member, props.message)

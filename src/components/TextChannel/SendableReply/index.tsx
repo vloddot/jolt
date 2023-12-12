@@ -19,7 +19,7 @@ export interface Props {
 export default function SendableReplyComponent(props: Props) {
 	const [, setReplies] = useContext(RepliesContext);
 	const selectedServerId = useContext(SelectedServerIdContext);
-	const [settings, setSettings] = useContext(SettingsContext);
+	const { settings, setSettings } = useContext(SettingsContext);
 	const [author] = createResource(() => props.reply.message.author, api.fetchUser);
 	const [member] = createResource(() => {
 		const server = selectedServerId();

@@ -1,9 +1,9 @@
-import CheckboxSetting from '@components/CheckboxSetting';
+import CheckboxSetting from '@components/Setting/CheckboxSetting';
 import { SettingsContext } from '@lib/context/Settings';
 import { useContext } from 'solid-js';
 
 export default function SettingsBehavior() {
-	const [settings, setSettings] = useContext(SettingsContext);
+	const { settings, setSettings } = useContext(SettingsContext);
 
 	return (
 		<>

@@ -15,4 +15,11 @@ interface Settings {
 		receive: boolean;
 	};
 	'behavior:reply-mention': boolean;
+	instance: {
+		delta: string;
+		bonfire: string;
+		autumn: string;
+		emotes: string;
+		legacyEmotes: string;
+	}
 }

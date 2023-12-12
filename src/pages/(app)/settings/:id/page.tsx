@@ -4,10 +4,12 @@ import SettingsAppearance from '../appearance/page';
 import { Dynamic } from 'solid-js/web';
 import { useParams } from '@solidjs/router';
 import SettingsBehavior from '../behavior/page';
+import SettingsInstance from '../instance/page';
 
 const sectionMapping: Record<string, Component> = {
 	appearance: SettingsAppearance,
-	behavior: SettingsBehavior
+	behavior: SettingsBehavior,
+	instance: SettingsInstance
 };
 
 export default function SettingsSection() {

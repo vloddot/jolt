@@ -10,7 +10,7 @@ export type Props = {
 } & JSX.HTMLAttributes<HTMLSpanElement>;
 
 export default function RoleColorStyle(_props: Props) {
-	const [settings] = useContext(SettingsContext);
+	const { settings } = useContext(SettingsContext);
 
 	const [props, elementProps] = splitProps(_props, ['member', 'message', 'children']);
 
