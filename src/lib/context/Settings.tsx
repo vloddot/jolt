@@ -28,7 +28,8 @@ export const DEFAULT_SETTINGS: Settings = {
 	'behavior:typing-indicators': {
 		send: true,
 		receive: true
-	}
+	},
+	'behavior:reply-mention': true
 };
 
 export const SettingsContext = createContext<CollectionItem<Settings>>(

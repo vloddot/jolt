@@ -19,7 +19,7 @@ export interface Props {
 export default function SendableReplyComponent(props: Props) {
 	const [, setReplies] = useContext(RepliesContext);
 	const selectedServerId = useContext(SelectedServerIdContext);
-	const [settings] = useContext(SettingsContext);
+	const [settings, setSettings] = useContext(SettingsContext);
 	const [author] = createResource(() => props.reply.message.author, api.fetchUser);
 	const [member] = createResource(() => {
 		const server = selectedServerId();
@@ -59,7 +59,10 @@ export default function SendableReplyComponent(props: Props) {
 					type="checkbox"
 					id="mention"
 					checked={props.reply.mention}
-					onInput={(event) => props.setReply('mention', event.currentTarget.checked)}
+					onInput={(event) => {
+						props.setReply('mention', event.currentTarget.checked);
+						setSettings('behavior:reply-mention', event.currentTarget.checked);
+					}}
 				/>
 				<HiSolidAtSymbol size={20} />
 				{props.reply.mention ? 'ON' : 'OFF'}

@@ -26,6 +26,15 @@ export default function SettingsBehavior() {
 					setSettings('behavior:typing-indicators', 'receive', event.currentTarget.checked)
 				}
 			/>
+
+			<hr />
+
+			<CheckboxSetting
+				title="Reply mention by default"
+				description="Mention users when replying to them by default. (gets toggled when you change it in the UI)"
+				checked={settings['behavior:reply-mention']}
+				onInput={(event) => setSettings('behavior:reply-mention', event.currentTarget.checked)}
+			/>
 		</>
 	);
 }

@@ -59,7 +59,7 @@ export function MessageComponent(props: Props) {
 
 				const [store, setStore] = createStore<SendableReply>({
 					message: props.message,
-					mention: true
+					mention: settings['behavior:reply-mention']
 				});
 				setReplies((replies) => [...replies, [store, setStore]]);
 			}

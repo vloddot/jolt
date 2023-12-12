@@ -14,4 +14,5 @@ interface Settings {
 		send: boolean;
 		receive: boolean;
 	};
+	'behavior:reply-mention': boolean;
 }
