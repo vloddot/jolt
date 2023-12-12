@@ -244,7 +244,7 @@ function ServerSidebar() {
 
 			<ServerSidebarIcon
 				href={`/settings/${Object.values(settingsSections)[0].id}`}
-				selected={false}
+				selected={location.pathname.startsWith('/settings')}
 				unread={false}
 				tooltip="Settings"
 			>
