@@ -4,7 +4,9 @@ import styles from '@lib/util.module.scss';
 import util from '@lib/util';
 import {
 	For,
+	Match,
 	Show,
+	Switch,
 	createMemo,
 	createResource,
 	createSelector,
@@ -32,7 +34,7 @@ import ClientContext from '@lib/context/Client';
 import UnreadsCollectionProvider, {
 	UnreadsCollectionContext
 } from '@lib/context/collections/Unreads';
-import { FaSolidHouse } from 'solid-icons/fa';
+import { FaSolidHouse, FaSolidUserGroup } from 'solid-icons/fa';
 import api from '@lib/api';
 import UserAvatar from '@components/User/Avatar';
 import { OcGear3 } from 'solid-icons/oc';
@@ -157,36 +159,70 @@ function ServerSidebar() {
 			</ServerSidebarIcon>
 
 			<For each={unreadDms()}>
-				{(dm) => {
-					const unreadObject = createMemo(() => unreads.get(dm._id)?.[0]);
+				{(channel) => {
+					const unreadObject = createMemo(() => unreads.get(channel._id)?.[0]);
 					const isUnread = createMemo(() => {
 						const o = unreadObject();
-						return o == undefined ? false : util.isUnread(dm, o);
+						return o == undefined ? false : util.isUnread(channel, o);
 					});
 
-					const [recipient] = createResource(
-						() => util.getOtherRecipient(dm.recipients),
-						api.fetchUser
+					const [recipient] = createResource<User | string, string>(
+						() => util.getOtherRecipient(channel.recipients),
+						(recipient) => {
+							if (channel.channel_type == 'Group') {
+								return channel.name;
+							}
+
+							return api.fetchUser(recipient);
+						}
 					);
 
-					return (
-						<Show when={recipient.state == 'ready' && recipient()}>
-							{(recipient) => {
-								const displayName = createMemo(() => util.getDisplayName(recipient()));
+					const tooltip = createMemo(() => {
+						if (recipient.state == 'ready') {
+							const result = recipient();
+							if (typeof result == 'string') {
+								return result;
+							}
 
-								return (
-									<ServerSidebarIcon
-										href={`/conversations/${dm._id}`}
-										selected={false}
-										tooltip={displayName()}
-										unread={isUnread()}
-										mentions={unreadObject()?.mentions?.length}
-									>
-										<UserAvatar user={recipient()} />
-									</ServerSidebarIcon>
-								);
-							}}
-						</Show>
+							return util.getDisplayName(result);
+						}
+
+						return '';
+					});
+					return (
+						<ServerSidebarIcon
+							href={`/conversations/${channel._id}`}
+							unread={isUnread()}
+							selected={false}
+							mentions={unreadObject()?.mentions?.length}
+							tooltip={tooltip()}
+						>
+							<Switch>
+								<Match when={channel.channel_type == 'DirectMessage' && channel}>
+									{(channel) => {
+										const [recipient] = createResource(
+											() => util.getOtherRecipient(channel().recipients),
+											api.fetchUser
+										);
+
+										return (
+											<Show when={recipient.state == 'ready' && recipient()}>
+												{(recipient) => (
+													<UserAvatar user={recipient()} width="100%" height="100%" />
+												)}
+											</Show>
+										);
+									}}
+								</Match>
+								<Match when={channel.channel_type == 'Group' && channel}>
+									{(channel) => (
+										<Show when={channel().icon} fallback={<FaSolidUserGroup size="28" />}>
+											{(icon) => <img src={util.getAutumnURL(icon())} width="100%" height="100%" />}
+										</Show>
+									)}
+								</Match>
+							</Switch>
+						</ServerSidebarIcon>
 					);
 				}}
 			</For>
