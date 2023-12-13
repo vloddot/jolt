@@ -115,7 +115,7 @@ export default function Markdown(props: Props) {
 								}
 							} else {
 								const emojiComponent = standard.codePointAt(0)?.toString(16);
-								src = `${settings.instance.emotes}/${emojiComponent})}.svg`;
+								src = `${settings.instance.emotes}/${emojiComponent}.svg`;
 							}
 
 							img.src = src ?? `${settings.instance.autumn}/emojis/${emoji}`;
