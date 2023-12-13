@@ -15,7 +15,7 @@
 		background-color: var(--secondary-background);
 		display: inline-flex;
 		gap: 4px;
-		max-width: fit-content;
+		vertical-align: middle;
 		padding-left: 2px;
 		padding-right: 6px;
 		border-radius: 12px;
@@ -23,7 +23,6 @@
 
 	> * {
 		margin: 0;
-		display: flex;
 	}
 
 	table {
