@@ -8,6 +8,7 @@ import api from '@lib/api';
 import { SelectedServerIdContext } from '@lib/context/SelectedServerId';
 import util from '@lib/util';
 import { useNavigate } from '@solidjs/router';
+import { SettingsContext } from '@lib/context/Settings';
 
 export interface Props {
 	children: string;
@@ -25,6 +26,8 @@ const converter = new showdown.Converter({
 export default function Markdown(props: Props) {
 	const selectedServerId = useContext(SelectedServerIdContext);
 	const navigate = useNavigate();
+
+	const { settings } = useContext(SettingsContext);
 
 	let ref: HTMLSpanElement;
 
@@ -108,14 +111,14 @@ export default function Markdown(props: Props) {
 							if (standard == undefined) {
 								const custom = (emojis.custom as Record<string, string>)[emoji];
 								if (custom != undefined) {
-									src = `https://dl.insrt.uk/projects/revolt/emotes/${custom}`;
+									src = `${settings.instance.legacyEmotes}/projects/revolt/emotes/${custom}`;
 								}
 							} else {
 								const emojiComponent = standard.codePointAt(0)?.toString(16);
-								src = `https://static.revolt.chat/emoji/twemoji/${emojiComponent})}.svg`;
+								src = `${settings.instance.emotes}/${emojiComponent})}.svg`;
 							}
 
-							img.src = src ?? `https://autumn.revolt.chat/emojis/${emoji}`;
+							img.src = src ?? `${settings.instance.autumn}/emojis/${emoji}`;
 						});
 
 						return img;
