@@ -37,7 +37,7 @@ export default function Markdown(props: Props) {
 	 * @param regex Regex to match
 	 * @param replacer Element replacer function, takes the first group of the regex and returns a `Node`
 	 */
-	function parser(regex: RegExp, replacer: (group: string) => Node) {
+	function parser(regex: RegExp, replacer: (group: RegExpMatchArray) => Node) {
 		for (const node of Array.from(ref.childNodes).flatMap(function flattenTextNodes(node): Text[] {
 			// flatten out text nodes
 			if (node instanceof Text) {
@@ -57,13 +57,12 @@ export default function Markdown(props: Props) {
 			// for each match, replace the text nodes with the elements needed
 			for (const match of matches ?? []) {
 				// the group for the replacer function to use
-				const group = match[1];
-				if (group == undefined || match.index == undefined) {
+				if (match.index == undefined) {
 					continue;
 				}
 
 				// get match replacement
-				const element = replacer(group);
+				const element = replacer(match);
 
 				// split the node into two parts, end ^1 and start ^2
 
@@ -96,14 +95,18 @@ export default function Markdown(props: Props) {
 						.replace(new RegExp('/', 'g'), '&#47;')
 				);
 
-				parser(RE_EMOJI, (emoji) => {
+				parser(RE_EMOJI, (match) => {
+					const emoji = match[1];
+
 					return createRoot(() => {
 						let src: string | undefined;
 
+						const text = new Text(match[0]);
+
 						const img = document.createElement('img');
 						img.classList.add(styles.emoji);
-						img.onerror = () => {
-							img.replaceWith(`:${emoji}:`);
+						img.onload = () => {
+							text.replaceWith(img);
 						};
 
 						createEffect(() => {
@@ -121,11 +124,12 @@ export default function Markdown(props: Props) {
 							img.src = src ?? `${settings.instance.autumn}/emojis/${emoji}`;
 						});
 
-						return img;
+						return text;
 					});
 				});
 
-				parser(RE_MENTION, (id) => {
+				parser(RE_MENTION, (match) => {
+					const id = match[1];
 					return createRoot(() => {
 						const [user] = createResource(() => id, api.fetchUser);
 						const [member] = createResource(() => {
@@ -167,7 +171,8 @@ export default function Markdown(props: Props) {
 					});
 				});
 
-				parser(RE_CHANNEL, (id) => {
+				parser(RE_CHANNEL, (match) => {
+					const id = match[1];
 					return createRoot(() => {
 						const [channel] = createResource(() => id, api.fetchChannel);
 
