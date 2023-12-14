@@ -1,6 +1,8 @@
-import CheckboxSetting from '@components/Setting/CheckboxSetting';
+import styles from './index.module.scss';
+import CheckboxSetting from '../GenericSetting/CheckboxSetting';
 import { SettingsContext } from '@lib/context/Settings';
-import { useContext } from 'solid-js';
+import { Index, useContext } from 'solid-js';
+import ThemeOverride from '../ThemeOverride';
 
 export default function SettingsAppearance() {
 	const { settings, setSettings } = useContext(SettingsContext);
@@ -61,6 +63,21 @@ export default function SettingsAppearance() {
 					setSettings('appearance:show-role-colors', event.currentTarget.checked);
 				}}
 			/>
+
+			<details open style={{ padding: '16px' }}>
+				<summary>Theming</summary>
+				<div class={styles.themeOverridesContainer}>
+					<Index
+						each={
+							Object.keys(
+								settings['appearance:theme:overrides']
+							) as (keyof Settings['appearance:theme:overrides'])[]
+						}
+					>
+						{(override) => <ThemeOverride overrideKey={override()} />}
+					</Index>
+				</div>
+			</details>
 		</>
 	);
 }

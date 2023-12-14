@@ -22,4 +22,32 @@ interface Settings {
 		emotes: string;
 		legacyEmotes: string;
 	};
+	'appearance:theme:overrides': Record<
+		| 'accent'
+		| 'background'
+		| 'foreground'
+		| 'block'
+		| 'primary-background'
+		| 'primary-header'
+		| 'secondary-background'
+		| 'secondary-foreground'
+		| 'secondary-header'
+		| 'message-box'
+		| 'mention'
+		| 'tertiary-background'
+		| 'tertiary-foreground'
+		| 'status-online'
+		| 'status-idle'
+		| 'status-focus'
+		| 'status-busy'
+		| 'status-invisible'
+		| 'success'
+		| 'error'
+		| 'hover'
+		| 'selected'
+		| 'scrollbar-track'
+		| 'scrollbar-thumb'
+		| 'scrollbar-thickness',
+		string
+	>;
 }

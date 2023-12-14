@@ -36,6 +36,33 @@ export const DEFAULT_SETTINGS: Settings = {
 		autumn: 'https://autumn.revolt.chat',
 		emotes: 'https://static.revolt.chat/emoji/twemoji',
 		legacyEmotes: 'https://dl.insrt.uk'
+	},
+	'appearance:theme:overrides': {
+		accent: '#3399ff',
+		background: '#141414',
+		foreground: '#dddddd',
+		block: '#2d2d2d',
+		'primary-background': '#202020',
+		'primary-header': '#323232',
+		'secondary-background': '#1a1a1a',
+		'secondary-foreground': '#aaaaaa',
+		'secondary-header': '#262626',
+		'message-box': '#2d2d2d',
+		mention: '#3399ff30',
+		'tertiary-background': '#3d3d3d',
+		'tertiary-foreground': '#666666',
+		'status-online': '#12ca74',
+		'status-idle': '#f1b040',
+		'status-focus': '#4799f0',
+		'status-busy': '#f53d42',
+		'status-invisible': '#80848e',
+		success: '#0ea55e',
+		hover: 'rgba(255, 255, 255, 0.075)',
+		selected: 'rgba(255, 255, 255, 0.15)',
+		'scrollbar-track': 'transparent',
+		'scrollbar-thumb': '#2469b2',
+		error: '#d2373d',
+		'scrollbar-thickness': '5px'
 	}
 };
 
@@ -100,6 +127,29 @@ export default function SettingsProvider(props: Props) {
 				});
 			});
 		})
+	);
+
+	// effect that updates when the theme overrides proxy object changes...
+	createEffect(
+		on(
+			() => settings['appearance:theme:overrides'],
+			(overrides) => {
+				// create an effect for every override; when each one changes...
+				for (const key of Object.keys(
+					overrides
+				) as (keyof Settings['appearance:theme:overrides'])[]) {
+					createEffect(
+						on(
+							() => settings['appearance:theme:overrides'][key],
+							(value) => {
+								// ...set the value
+								document.documentElement.style.setProperty(`--${key}`, value);
+							}
+						)
+					);
+				}
+			}
+		)
 	);
 
 	onMount(() => {
