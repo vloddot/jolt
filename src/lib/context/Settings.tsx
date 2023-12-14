@@ -77,11 +77,7 @@ function setLocalSettings(key: string, value: Settings[keyof Settings]) {
 	api.setSettings();
 }
 
-export const SettingsContext = createContext<{
-	settings: Settings;
-	setSettings: SetStoreFunction<Settings>;
-	setLocalSettings: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
-}>({
+export const SettingsContext = createContext({
 	settings: defaultSettings,
 	setSettings: setDefaultSettings,
 	setLocalSettings
