@@ -6,7 +6,8 @@ import {
 	onMount,
 	onCleanup,
 	createEffect,
-	on
+	on,
+	createMemo
 } from 'solid-js';
 import api from '@lib/api';
 import { SessionContext } from './Session';
@@ -63,7 +64,8 @@ export const DEFAULT_SETTINGS: Settings = {
 		'scrollbar-thumb': '#2469b2',
 		error: '#d2373d',
 		'scrollbar-thickness': '5px'
-	}
+	},
+	'appearance:theme:css': ''
 };
 
 const [defaultSettings, setDefaultSettings] = createStore(DEFAULT_SETTINGS);
@@ -93,6 +95,7 @@ export default function SettingsProvider(props: Props) {
 	const client = useContext(ClientContext);
 	const [settings, setSettings] = createStore(DEFAULT_SETTINGS);
 	const [session] = useContext(SessionContext);
+	const customCSSElement = createMemo(() => document.getElementById('custom-css'));
 
 	createEffect(
 		on(session, (session) => {
@@ -148,6 +151,20 @@ export default function SettingsProvider(props: Props) {
 						)
 					);
 				}
+			}
+		)
+	);
+
+	createEffect(
+		on(
+			() => settings['appearance:theme:css'],
+			(css) => {
+				const element = customCSSElement();
+				if (element == undefined) {
+					return;
+				}
+
+				element.innerHTML = css;
 			}
 		)
 	);

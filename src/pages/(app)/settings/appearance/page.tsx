@@ -64,7 +64,7 @@ export default function SettingsAppearance() {
 				}}
 			/>
 
-			<details open style={{ padding: '16px' }}>
+			<details style={{ padding: '16px' }}>
 				<summary>Theming</summary>
 				<div class={styles.themeOverridesContainer}>
 					<Index
@@ -77,6 +77,16 @@ export default function SettingsAppearance() {
 						{(override) => <ThemeOverride overrideKey={override()} />}
 					</Index>
 				</div>
+			</details>
+
+			<details style={{ padding: '16px' }}>
+				<summary>Custom CSS</summary>
+				<textarea
+					value={settings['appearance:theme:css']}
+					onInput={(event) => setSettings('appearance:theme:css', event.currentTarget.value)}
+					rows="20"
+					cols="20"
+				/>
 			</details>
 		</>
 	);

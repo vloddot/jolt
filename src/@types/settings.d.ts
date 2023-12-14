@@ -50,4 +50,5 @@ interface Settings {
 		| 'scrollbar-thickness',
 		string
 	>;
+	'appearance:theme:css': string;
 }
