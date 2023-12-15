@@ -235,6 +235,7 @@ function ServerSidebar() {
 					const channels = createMemo(() =>
 						server.channels.flatMap((channel) => channelCollection.get(channel)?.[0] ?? [])
 					);
+					const [imageLoaded, setImageLoaded] = createSignal(true);
 
 					const isUnread = createMemo(
 						() =>
@@ -261,7 +262,7 @@ function ServerSidebar() {
 							mentions={mentions()}
 						>
 							<Show
-								when={server.icon}
+								when={imageLoaded() && server.icon}
 								fallback={server.name
 									.split(' ')
 									.slice(0, 5)
@@ -271,6 +272,7 @@ function ServerSidebar() {
 								{(icon) => (
 									<img
 										loading="lazy"
+										onError={() => setImageLoaded(false)}
 										class={styles.cover}
 										src={util.getAutumnURL(icon())}
 										alt={server.name}
