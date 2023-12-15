@@ -143,6 +143,11 @@ function Login() {
 					together by duct tape and bad code
 				</p>
 
+				<p>
+					Default theme manually ported from <a href="https://github.com/meppu/fin">meppu/fin</a>{' '}
+					and slightly changed.
+				</p>
+
 				<input type="email" placeholder="Email" ref={emailInput!} />
 				<input type="password" placeholder="Password" ref={passwordInput!} />
 
