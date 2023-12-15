@@ -38,7 +38,7 @@ import { FaSolidHouse, FaSolidUserGroup } from 'solid-icons/fa';
 import api from '@lib/api';
 import UserAvatar from '@components/User/Avatar';
 import { OcGear3 } from 'solid-icons/oc';
-import settingsSections from './settings/sections';
+import { CgUser } from 'solid-icons/cg';
 
 export default function AppWrapper() {
 	const client = useContext(ClientContext);
@@ -285,7 +285,16 @@ function ServerSidebar() {
 			<div class={styles.flexDivider} />
 
 			<ServerSidebarIcon
-				href={`/settings/${Object.values(settingsSections)[0].id}`}
+				href="#"
+				selected={location.pathname.startsWith('#')}
+				unread={false}
+				tooltip="User Settings"
+			>
+				<CgUser />
+			</ServerSidebarIcon>
+
+			<ServerSidebarIcon
+				href="/settings"
 				selected={location.pathname.startsWith('/settings')}
 				unread={false}
 				tooltip="Settings"
