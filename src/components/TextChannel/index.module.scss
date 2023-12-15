@@ -67,6 +67,9 @@ hr {
 
 	.attachmentPreview {
 		display: flex;
+		overflow-x: scroll;
+		overflow-y: hidden;
+	
 		gap: 8px;
 		border-top-right-radius: 6px;
 		border-top-left-radius: 6px;
