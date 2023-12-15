@@ -160,7 +160,7 @@ function ServerSidebar() {
 				mentions={incomingFriendRequestsCount()}
 			>
 				<Show when={user()} fallback={<FaSolidHouse />}>
-					{(user) => <UserAvatar user={user()} width="42px" height="42px" />}
+					{(user) => <UserAvatar user={user()} width="42px" height="42px" presenceIndicatorHeight="14px" presenceIndicatorWidth="14px" />}
 				</Show>
 			</ServerSidebarIcon>
 
