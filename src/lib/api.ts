@@ -253,6 +253,10 @@ async function acceptFriend(target: string): Promise<User> {
 	return req('PUT', `/users/${target}/friend`).then((response) => response.json());
 }
 
+async function editUser(target: string, data: DataEditUser): Promise<User> {
+	return req('PATCH', `/users/${target}`, JSON.stringify(data)).then((response) => response.json());
+}
+
 export default {
 	req,
 	login,
@@ -272,5 +276,6 @@ export default {
 	ackMessage,
 	setSettings,
 	removeFriend,
-	acceptFriend
+	acceptFriend,
+	editUser
 };

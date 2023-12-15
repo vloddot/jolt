@@ -1,5 +1,5 @@
 import utilStyles from '@lib/util.module.scss';
-import InputSetting from '../GenericSetting/InputSetting';
+import InputSetting from '../../GenericSetting/InputSetting';
 import { SettingsContext } from '@lib/context/Settings';
 import { createEffect, useContext } from 'solid-js';
 

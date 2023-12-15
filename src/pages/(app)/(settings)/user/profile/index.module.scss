@@ -1,0 +1,15 @@
+.presenceIndicators {
+	display: flex;
+	gap: 12px;
+	background-color: var(--secondary-background);
+	padding: 12px;
+	border-radius: 25px;
+
+	.presenceIndicator {
+		margin: 0;
+
+		&:hover, &[data-selected='true'] {
+			background-color: var(--hover);
+		}
+	}
+}

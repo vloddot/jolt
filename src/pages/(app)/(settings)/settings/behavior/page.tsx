@@ -1,4 +1,4 @@
-import CheckboxSetting from '../GenericSetting/CheckboxSetting';
+import CheckboxSetting from '../../GenericSetting/CheckboxSetting';
 import { SettingsContext } from '@lib/context/Settings';
 import { useContext } from 'solid-js';
 

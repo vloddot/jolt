@@ -39,6 +39,7 @@ import api from '@lib/api';
 import UserAvatar from '@components/User/Avatar';
 import { OcGear3 } from 'solid-icons/oc';
 import { CgUser } from 'solid-icons/cg';
+import UserProvider, { UserContext } from '@lib/context/User';
 
 export default function AppWrapper() {
 	const client = useContext(ClientContext);
@@ -61,17 +62,19 @@ export default function AppWrapper() {
 					<MemberCollectionProvider>
 						<EmojiCollectionProvider>
 							<UnreadsCollectionProvider>
-								<SelectedServerIdProvider>
-									<SelectedChannelIdProvider>
-										<SettingsProvider>
-											<Show when={showContent()} fallback={<p>Loading client...</p>}>
-												<ServerSidebar />
+								<UserProvider>
+									<SelectedServerIdProvider>
+										<SelectedChannelIdProvider>
+											<SettingsProvider>
+												<Show when={showContent()} fallback={<p>Loading client...</p>}>
+													<ServerSidebar />
 
-												<Outlet />
-											</Show>
-										</SettingsProvider>
-									</SelectedChannelIdProvider>
-								</SelectedServerIdProvider>
+													<Outlet />
+												</Show>
+											</SettingsProvider>
+										</SelectedChannelIdProvider>
+									</SelectedServerIdProvider>
+								</UserProvider>
 							</UnreadsCollectionProvider>
 						</EmojiCollectionProvider>
 					</MemberCollectionProvider>
@@ -90,6 +93,7 @@ function ServerSidebar() {
 	const selectedChannelId = useContext(SelectedChannelIdContext);
 	const serverIsSelected = createSelector(selectedServerId);
 	const unreads = useContext(UnreadsCollectionContext);
+	const user = useContext(UserContext);
 
 	const location = useLocation();
 	const unreadDms = createMemo(() =>
@@ -155,7 +159,9 @@ function ServerSidebar() {
 				unread={false}
 				mentions={incomingFriendRequestsCount()}
 			>
-				<FaSolidHouse />
+				<Show when={user()} fallback={<FaSolidHouse />}>
+					{(user) => <UserAvatar user={user()} width="42px" height="42px" />}
+				</Show>
 			</ServerSidebarIcon>
 
 			<For each={unreadDms()}>
@@ -208,7 +214,7 @@ function ServerSidebar() {
 										return (
 											<Show when={recipient.state == 'ready' && recipient()}>
 												{(recipient) => (
-													<UserAvatar user={recipient()} width="100%" height="100%" />
+													<UserAvatar user={recipient()} width="42px" height="42px" />
 												)}
 											</Show>
 										);
@@ -287,8 +293,8 @@ function ServerSidebar() {
 			<div class={styles.flexDivider} />
 
 			<ServerSidebarIcon
-				href="#"
-				selected={location.pathname.startsWith('#')}
+				href="/user"
+				selected={location.pathname.startsWith('/user')}
 				unread={false}
 				tooltip="User Settings"
 			>

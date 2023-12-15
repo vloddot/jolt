@@ -1,6 +1,6 @@
 import styles from './index.module.scss';
 import { splitProps, type JSX } from 'solid-js';
-import Setting from '..';
+import GenericSetting from '..';
 
 export type Props = {
 	title: string;
@@ -11,8 +11,13 @@ export default function InputSetting(props: Props) {
 	const [settingsProps, inputProps] = splitProps(props, ['title', 'description']);
 
 	return (
-		<Setting {...settingsProps} cursor="default" labelStyle={{ 'min-width': '320px' }}>
-			<input class={styles.settingsInput} {...inputProps} />
-		</Setting>
+		<GenericSetting
+			class={styles.settingsInput}
+			{...settingsProps}
+			cursor="default"
+			labelStyle={{ 'min-width': '320px' }}
+		>
+			<input style={{ width: '100%' }} {...inputProps} />
+		</GenericSetting>
 	);
 }

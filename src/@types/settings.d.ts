@@ -52,3 +52,9 @@ interface Settings {
 	>;
 	'appearance:theme:css': string;
 }
+
+interface SettingsSection {
+	title: string;
+	id: string;
+	icon: import('solid-icons').IconTypes;
+}

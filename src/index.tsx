@@ -11,9 +11,13 @@ import ServerWrapper from './pages/(app)/servers/:sid/layout';
 import ChannelMatcher from './pages/(app)/servers/:sid/page';
 import SessionProvider from '@lib/context/Session';
 import TextChannel from '@components/TextChannel';
-import SettingsWrapper from './pages/(app)/settings/layout';
-import SettingsMatcher from './pages/(app)/settings/page';
-import SettingsSection from './pages/(app)/settings/:id/page';
+import SettingsWrapper from './pages/(app)/(settings)/layout';
+import SettingsAppearance from './pages/(app)/(settings)/settings/appearance/page';
+import SettingsBehavior from './pages/(app)/(settings)/settings/behavior/page';
+import SettingsInstance from './pages/(app)/(settings)/settings/instance/page';
+import SettingsMatcher from './pages/(app)/(settings)/settings/page';
+import UserSettingsMatcher from './pages/(app)/(settings)/user/page';
+import UserProfileSettings from './pages/(app)/(settings)/user/profile/page';
 
 render(
 	() => (
@@ -25,9 +29,17 @@ render(
 							<Route path="/" component={ChannelMatcher} />
 							<Route path="/channels/:cid" component={TextChannel} />
 						</Route>
-						<Route path="/settings" component={SettingsWrapper}>
-							<Route path="/" component={SettingsMatcher} />
-							<Route path="/:id" component={SettingsSection} />
+						<Route path="/" component={SettingsWrapper}>
+							<Route path="/settings">
+								<Route path="/" component={SettingsMatcher} />
+								<Route path="/appearance" component={SettingsAppearance} />
+								<Route path="/behavior" component={SettingsBehavior} />
+								<Route path="/instance" component={SettingsInstance} />
+							</Route>
+							<Route path="/user">
+								<Route path="/" component={UserSettingsMatcher} />
+								<Route path="/profile" component={UserProfileSettings} />
+							</Route>
 						</Route>
 						<Route path="/" component={HomeWrapper}>
 							<Route path="/" component={HomeScreen} />

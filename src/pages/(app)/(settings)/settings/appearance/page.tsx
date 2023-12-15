@@ -1,8 +1,8 @@
 import styles from './index.module.scss';
-import CheckboxSetting from '../GenericSetting/CheckboxSetting';
+import CheckboxSetting from '../../GenericSetting/CheckboxSetting';
 import { SettingsContext } from '@lib/context/Settings';
 import { Index, useContext } from 'solid-js';
-import ThemeOverride from '../ThemeOverride';
+import ThemeOverride from '../../ThemeOverride';
 
 export default function SettingsAppearance() {
 	const { settings, setSettings } = useContext(SettingsContext);
