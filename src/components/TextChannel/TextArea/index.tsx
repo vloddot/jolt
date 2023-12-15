@@ -90,6 +90,7 @@ export default function TextArea(props: Props) {
 			}}
 			onKeyDown={(event) => {
 				props.onKeyDown?.(event);
+				endTyping();
 			}}
 			autofocus
 			value={props.initialValue ?? ''}
