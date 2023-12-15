@@ -274,8 +274,17 @@ function TextChannelMeta(props: MetaProps) {
 			messageTextarea.value = '';
 		}
 
-		if (Object.keys(masquerade).filter((s) => s != '').length != 0) {
-			data.masquerade = masquerade;
+		const masq = Object.entries(masquerade).flatMap(([s, v]) => {
+			const v2 = v.trim();
+			if (v2 == '') {
+				return [];
+			}
+
+			return [[s, v2]];
+		});
+
+		if (masq.length != 0) {
+			data.masquerade = Object.fromEntries(masq);
 		}
 
 		if (Object.keys(data).length == 0) {
