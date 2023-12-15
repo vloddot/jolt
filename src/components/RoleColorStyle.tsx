@@ -25,6 +25,10 @@ export default function RoleColorStyle(_props: Props) {
 			return {};
 		}
 
+		if (props.message?.masquerade?.colour != undefined) {
+			return util.getRoleColorStyle(props.message.masquerade.colour);
+		}
+
 		const s = server();
 		if (s == undefined || props.member?.roles == undefined) {
 			return {};
