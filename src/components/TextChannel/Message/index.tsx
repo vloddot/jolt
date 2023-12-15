@@ -82,7 +82,13 @@ export function MessageComponent(props: Props) {
 	];
 
 	return (
-		<div id={`MESSAGE-${props.message._id}`} classList={{ [styles.messageHead]: props.isHead }}>
+		<div
+			id={`MESSAGE-${props.message._id}`}
+			classList={{
+				[styles.messageHead]: props.isHead,
+				[styles.mentionMessage]: props.message.mentions?.includes(session()?.user_id ?? '')
+			}}
+		>
 			<Show when={props.message.replies?.length != 0 && props.message.replies}>
 				{(replies) => (
 					<div class={styles.replyBar}>

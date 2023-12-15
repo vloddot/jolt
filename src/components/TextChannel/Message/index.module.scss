@@ -6,6 +6,11 @@
 	margin-top: 6px;
 }
 
+.mentionMessage {
+	background-color: var(--mention);
+	border-left: 2px solid var(--mention);
+}
+
 .messageContainer {
 	display: flex;
 	padding: 2px 16px;
@@ -25,6 +30,7 @@
 			}
 		}
 	}
+
 
 	.messageInfo {
 		min-width: 32px;
