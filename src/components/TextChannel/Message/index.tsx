@@ -85,8 +85,7 @@ export function MessageComponent(props: Props) {
 		<div
 			id={`MESSAGE-${props.message._id}`}
 			classList={{
-				[styles.messageHead]: props.isHead,
-				[styles.mentionMessage]: props.message.mentions?.includes(session()?.user_id ?? '')
+				[styles.messageHead]: props.isHead
 			}}
 		>
 			<Show when={props.message.replies?.length != 0 && props.message.replies}>
@@ -98,7 +97,12 @@ export function MessageComponent(props: Props) {
 					</div>
 				)}
 			</Show>
-			<div class={styles.messageContainer}>
+			<div
+				class={styles.messageContainer}
+				classList={{
+					[styles.mentionMessage]: props.message.mentions?.includes(session()?.user_id ?? '')
+				}}
+			>
 				<span class={styles.messageInfo}>
 					<Switch fallback={<time>{time().format('HH:mm')}</time>}>
 						<Match when={!props.isHead && props.message.edited}>
