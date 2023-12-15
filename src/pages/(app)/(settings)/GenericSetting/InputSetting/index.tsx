@@ -15,7 +15,7 @@ export default function InputSetting(props: Props) {
 			class={styles.settingsInput}
 			{...settingsProps}
 			cursor="default"
-			labelStyle={{ 'min-width': '320px' }}
+			labelStyle={{ 'min-width': '250px' }}
 		>
 			<input style={{ width: '100%' }} {...inputProps} />
 		</GenericSetting>

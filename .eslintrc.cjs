@@ -26,10 +26,8 @@ module.exports = {
 	},
 	plugins: ['@typescript-eslint', 'solid', 'jsx-a11y'],
 	rules: {
-		indent: ['warn', 'tab', { SwitchCase: 1 }],
 		'no-mixed-spaces-and-tabs': 'off',
 		'linebreak-style': ['warn', 'unix'],
-		quotes: ['warn', 'single'],
 		semi: ['warn', 'always'],
 		'solid/prefer-for': 'warn',
 		'solid/prefer-show': 'warn',
