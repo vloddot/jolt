@@ -455,7 +455,7 @@ function TextChannelMeta(props: MetaProps) {
 													onClick={() => doAction(emoji._id)}
 													src={emoji.src}
 													selected={itemSelected(index())}
-													name={emoji.name}
+													name={`:${emoji.name}:`}
 												/>
 											)}
 										</For>
