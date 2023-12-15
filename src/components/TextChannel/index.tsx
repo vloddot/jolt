@@ -129,8 +129,11 @@ function TextChannelMeta(props: MetaProps) {
 	});
 
 	// does not need reactivity
-	let masqueradeName = '';
-	let masqueradeAvatar = '';
+	const masquerade: Required<NonNullable<DataMessageSend['masquerade']>> = {
+		name: '',
+		avatar: '',
+		colour: ''
+	};
 
 	let messageTextarea: HTMLTextAreaElement;
 	let messageListElement: HTMLDivElement;
@@ -271,20 +274,8 @@ function TextChannelMeta(props: MetaProps) {
 			messageTextarea.value = '';
 		}
 
-		const masqname = masqueradeName.trim();
-		if (masqname != '') {
-			data.masquerade = data.masquerade ?? {};
-			data.masquerade.name = masqname;
-		}
-
-		const masqavatar = masqueradeAvatar.trim();
-		if (masqavatar != '') {
-			data.masquerade = data.masquerade ?? {};
-			data.masquerade.avatar = masqavatar;
-		}
-
-		if (masqueradeName != '' || masqueradeAvatar != '') {
-			data.masquerade = { name: masqueradeName, avatar: masqueradeAvatar };
+		if (Object.keys(masquerade).filter((s) => s != '').length != 0) {
+			data.masquerade = masquerade;
 		}
 
 		if (Object.keys(data).length == 0) {
@@ -782,14 +773,20 @@ function TextChannelMeta(props: MetaProps) {
 							<>
 								<input
 									type="text"
-									value={masqueradeName} // initial value
-									onInput={(event) => (masqueradeName = event.currentTarget.value)}
+									value={masquerade.name} // initial value
+									onInput={(event) => (masquerade.name = event.currentTarget.value)}
 									placeholder="Masquerade Name"
 								/>
 								<input
 									type="text"
-									value={masqueradeAvatar} // initial value
-									onInput={(event) => (masqueradeAvatar = event.currentTarget.value)}
+									value={masquerade.colour}
+									onInput={(event) => (masquerade.colour = event.currentTarget.value)}
+									placeholder="Masquerade Color"
+								/>
+								<input
+									type="text"
+									value={masquerade.avatar} // initial value
+									onInput={(event) => (masquerade.avatar = event.currentTarget.value)}
 									placeholder="Masquerade Avatar"
 								/>
 							</>
