@@ -1,13 +1,19 @@
 import Markdown from '@components/Markdown';
 import styles from './index.module.scss';
 import { Match, Show, Switch } from 'solid-js';
+import util from '@lib/util';
 
 export default function Embed(embed: Embed) {
 	return (
 		<Switch>
 			<Match when={embed.type == 'Image' && embed}>
 				{(embed) => (
-					<img loading="lazy" src={embed().url} width={embed().width} height={embed().height} />
+					<img
+						loading="lazy"
+						src={util.proxyURL(embed().url)}
+						width={embed().width}
+						height={embed().height}
+					/>
 				)}
 			</Match>
 			<Match when={embed.type == 'Text' && embed}>
@@ -21,7 +27,7 @@ export default function Embed(embed: Embed) {
 								{(url) => (
 									<img
 										class={styles.icon}
-										src={url()}
+										src={util.proxyURL(url())}
 										loading="lazy"
 										alt={embed().title ?? 'Icon'}
 										width="24px"

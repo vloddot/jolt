@@ -16,6 +16,11 @@ function getDefaultUserAvatar(user_id: string): string {
 	return `${settings.instance.delta}/users/${user_id}/default_avatar`;
 }
 
+function proxyURL(url: string): string {
+	const { settings } = useContext(SettingsContext);
+	return `${settings.instance.january}/proxy?url=${url}`;
+}
+
 function getDisplayName(
 	user: { display_name?: string; username: string },
 	member?: Member,
@@ -149,6 +154,7 @@ function getRoleColorStyle(color: string): JSX.CSSProperties {
 
 export default {
 	getAutumnURL,
+	proxyURL,
 	getDisplayName,
 	getDisplayAvatar,
 	getDefaultUserAvatar,

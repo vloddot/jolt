@@ -19,6 +19,7 @@ interface Settings {
 		delta: string;
 		bonfire: string;
 		autumn: string;
+		january: string;
 		emotes: string;
 		legacyEmotes: string;
 	};

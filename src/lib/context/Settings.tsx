@@ -35,6 +35,7 @@ export const DEFAULT_SETTINGS: Settings = {
 		delta: 'https://api.revolt.chat',
 		bonfire: 'wss://ws.revolt.chat',
 		autumn: 'https://autumn.revolt.chat',
+		january: 'https://jan.revolt.chat',
 		emotes: 'https://static.revolt.chat/emoji/twemoji',
 		legacyEmotes: 'https://dl.insrt.uk'
 	},

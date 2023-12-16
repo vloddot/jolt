@@ -39,6 +39,13 @@ export default function SettingsInstance() {
 			/>
 
 			<InputSetting
+				title="January"
+				description="Proxy service endpoint"
+				value={instance.january}
+				onInput={(event) => (instance.january = event.currentTarget.value)}
+			/>
+
+			<InputSetting
 				title="Emotes"
 				description="Webserver hosting default emote assets"
 				value={instance.emotes}
