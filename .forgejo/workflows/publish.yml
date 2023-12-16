@@ -11,7 +11,7 @@ jobs:
         run: npm install
 
       - name: Build Project
-        run: npm build
+        run: npm run build
       - name: Copy index.html to 404.html
         run: cp dist/index.html dist/404.html # needed because of dynamic routes
       - name: Deploy
