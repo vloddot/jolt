@@ -1,0 +1,26 @@
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: docker
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Project
+        run: npm run build
+      - name: Copy index.html to 404.html
+        run: cp dist/index.html dist/404.html # needed because of dynamic routes
+      - name: Deploy
+        run: |
+          cd dist
+          git init
+          git config --global user.name "vloddot"
+          git config --global user.email "t.mokhtar.vd@gmail.com"
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@codeberg.org/vloddot/jolt
+          git checkout -b pages
+          git add --all
+          git commit -am 'Pages Updates' && git push -u origin pages
