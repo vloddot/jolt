@@ -32,6 +32,12 @@ dependencies:
   showdown:
     specifier: ^2.1.0
     version: 2.1.0
+  showdown-htmlescape:
+    specifier: ^0.1.9
+    version: 0.1.9(showdown@2.1.0)
+  showdown-xss-filter:
+    specifier: ^0.2.0
+    version: 0.2.0
   solid-icons:
     specifier: ^1.1.0
     version: 1.1.0(solid-js@1.8.5)
@@ -44,6 +50,9 @@ dependencies:
   ulid:
     specifier: ^2.3.0
     version: 2.3.0
+  xss:
+    specifier: ^1.0.14
+    version: 1.0.14
 
 devDependencies:
   '@types/dompurify':
@@ -1266,6 +1275,10 @@ packages:
     resolution: {integrity: sha512-nKqUYlo0vZATVOFHY810BSYjmCARrG7e5R3UE3CQlyjJTvv5kSSmPG1kzm/oDyyqjehM+lW1RnEt9It9GNa5JA==}
     dev: false
 
+  /commander@2.20.3:
+    resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
+    dev: false
+
   /commander@9.5.0:
     resolution: {integrity: sha512-KRs7WVDKg86PWiuAqhDrAQnTXZKraVcCc6vFdL14qrZ/DcWwuRo7VoiYXalXO7S5GKpqYiVEwCbgFDfxNHKJBQ==}
     engines: {node: ^12.20.0 || >=14}
@@ -1293,6 +1306,14 @@ packages:
       shebang-command: 2.0.0
       which: 2.0.2
     dev: true
+
+  /cssfilter@0.0.10:
+    resolution: {integrity: sha512-FAaLDaplstoRsDR8XGYH51znUN0UY7nMc6Z9/fvE8EXGwvJE9hu7W2vHwx1+bd6gCYnln9nLbzxFTrcO9YQDZw==}
+    dev: false
+
+  /cssfilter@0.0.8:
+    resolution: {integrity: sha512-i7YoGVXSFDSwdfo0ZaYu8dUvXjFnnn60qGW3rOQR+8kUDjeGsArm5F5iKkj5ahHpz5fgJQ3H3ty8IhsbVE13WA==}
+    dev: false
 
   /csstype@3.1.2:
     resolution: {integrity: sha512-I7K1Uu0MBPzaFKg4nI5Q7Vs2t+3gWWW648spaF+Rg7pI9ds18Ugn+lvg4SHczUdKlHI5LWBXyqfS8+DufyBsgQ==}
@@ -2564,6 +2585,21 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
+  /showdown-htmlescape@0.1.9(showdown@2.1.0):
+    resolution: {integrity: sha512-kkg0Lh6CRzJKMvIkNBYNkZaJiZSii98mfiZj3FpQK0lXn1iV0UT5VD63YoTAqOCP7QiIo3nTH/z5ndVKCfMenQ==}
+    engines: {node: '>= 4.0'}
+    peerDependencies:
+      showdown: ^1.2.0
+    dependencies:
+      showdown: 2.1.0
+    dev: false
+
+  /showdown-xss-filter@0.2.0:
+    resolution: {integrity: sha512-V9YemMkVoMHf+vCt7XZFL7UPSYghiWJeuWx0tCAv7b5aDJ8q0tN6RnIRTYSVSqn6eF/E6/VZOMzLmi/Cw/SKWw==}
+    dependencies:
+      xss: 0.2.18
+    dev: false
+
   /showdown@2.1.0:
     resolution: {integrity: sha512-/6NVYu4U819R2pUIk79n67SYgJHWCce0a5xTP979WbNp0FL9MN1I1QK662IDU1b6JzKTvmhgI7T7JYIxBi3kMQ==}
     hasBin: true
@@ -2923,6 +2959,24 @@ packages:
   /wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
     dev: true
+
+  /xss@0.2.18:
+    resolution: {integrity: sha512-NXxg7yzwwGO7fEsbVHggphWgM9zfFVNXvz9txMB1/a+QAukje64AJ4VNfmOG0QazTxIvo/RbgD0kZoadaGp8Qw==}
+    engines: {node: '>= 0.10.0'}
+    hasBin: true
+    dependencies:
+      commander: 2.20.3
+      cssfilter: 0.0.8
+    dev: false
+
+  /xss@1.0.14:
+    resolution: {integrity: sha512-og7TEJhXvn1a7kzZGQ7ETjdQVS2UfZyTlsEdDOqvQF7GoxNfY+0YLCzBy1kPdsDDx4QuNAonQPddpsn6Xl/7sw==}
+    engines: {node: '>= 0.10.0'}
+    hasBin: true
+    dependencies:
+      commander: 2.20.3
+      cssfilter: 0.0.10
+    dev: false
 
   /yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}

@@ -19,10 +19,12 @@
 		"eventemitter3": "^5.0.1",
 		"localforage": "^1.10.0",
 		"showdown": "^2.1.0",
+		"showdown-htmlescape": "^0.1.9",
 		"solid-icons": "^1.1.0",
 		"solid-js": "^1.7.8",
 		"tippy.js": "^6.3.7",
-		"ulid": "^2.3.0"
+		"ulid": "^2.3.0",
+		"xss": "^1.0.14"
 	},
 	"devDependencies": {
 		"@types/dompurify": "^3.0.5",

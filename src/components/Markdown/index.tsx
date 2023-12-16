@@ -1,3 +1,6 @@
+// @ts-expect-error No typings
+import htmlescape from 'showdown-htmlescape';
+import xss from 'xss';
 import utilStyles from '@lib/util.module.scss';
 import styles from './index.module.scss';
 import { createEffect, createMemo, createRoot, on, useContext } from 'solid-js';
@@ -22,7 +25,8 @@ const converter = new showdown.Converter({
 	strikethrough: true,
 	tables: true,
 	tasklists: true,
-	underline: true
+	underline: true,
+	extensions: [htmlescape]
 });
 
 export default function Markdown(props: Props) {
@@ -93,12 +97,7 @@ export default function Markdown(props: Props) {
 		on(
 			() => props.children,
 			(children) => {
-				ref.innerHTML = converter.makeHtml(
-					children
-						.replace(new RegExp('<', 'g'), '&lt;')
-						.replace(new RegExp('>', 'g'), '&gt;')
-						.replace(new RegExp('/', 'g'), '&#47;')
-				);
+				ref.innerHTML = xss(converter.makeHtml(children));
 
 				parser(RE_EMOJI, (match) => {
 					const emoji = match[1];
