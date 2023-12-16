@@ -28,7 +28,7 @@ function getDisplayName(
 	member?: Member,
 	message?: Message
 ): string {
-	return message?.masquerade?.name ?? member?.nickname ?? user?.display_name ?? user.username;
+	return message?.masquerade?.name ?? member?.nickname ?? user.display_name ?? user.username;
 }
 
 function getDisplayAvatar(

@@ -93,8 +93,8 @@ type DataCreateChannel = components['schemas']['DataCreateChannel'];
 type ChannelType = components['schemas']['ChannelType'];
 type AllMemberResponse = components['schemas']['AllMemberResponse'];
 type AllMemberResponseMap = {
-	members: Map<Member['_id']['user'], Member>;
-	users: Map<User['_id'], User>;
+	members: import('@solid-primitives/map').ReactiveMap<Member['_id']['user'], Member>;
+	users: import('@solid-primitives/map').ReactiveMap<User['_id'], User>;
 };
 type DataMemberEdit = components['schemas']['DataMemberEdit'];
 type FieldsMember = components['schemas']['FieldsMember'];

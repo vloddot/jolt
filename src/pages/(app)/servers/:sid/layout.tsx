@@ -19,11 +19,11 @@ import { ServerCollectionContext } from '@lib/context/collections/Servers';
 import { SelectedServerContext } from '@lib/context/SelectedServer';
 import { ChannelCollectionContext } from '@lib/context/collections/Channels';
 import { SelectedChannelIdContext } from '@lib/context/SelectedChannelId';
-import api from '@lib/api';
 import UserButton from '@components/User/Button';
 import { UnreadsCollectionContext } from '@lib/context/collections/Unreads';
 import { ServerMembersListContext } from '@lib/context/collections/ServerMembersList';
 import { SettingsContext } from '@lib/context/Settings';
+import { getMembersListCollection } from '@lib/membersListCollections';
 
 export default function ServerWrapper() {
 	const selectedServerId = useContext(SelectedServerIdContext);
@@ -31,24 +31,22 @@ export default function ServerWrapper() {
 	return (
 		<Show when={selectedServerId() != undefined && selectedServerId()}>
 			{(id) => {
-				const [members] = createResource(id, api.fetchMembers);
+				const [members] = createResource(id, getMembersListCollection);
 				const servers = useContext(ServerCollectionContext);
-				const server = createMemo(() => servers.get(id()));
+				const server = createMemo(() => servers.get(id())?.[0]);
 
 				return (
 					<Show when={server()} fallback={<p>Unresolved server</p>}>
 						{(server) => {
 							return (
-								<SelectedServerContext.Provider value={() => server()[0]}>
-									<Show when={members.state == 'ready'} fallback={<p>Loading members...</p>}>
-										<ServerMembersListContext.Provider value={members}>
-											<ChannelBar />
-											<main class="main-content-container">
-												<Outlet />
-											</main>
-											<MembersList />
-										</ServerMembersListContext.Provider>
-									</Show>
+								<SelectedServerContext.Provider value={() => server()}>
+									<ServerMembersListContext.Provider value={members}>
+										<ChannelBar />
+										<main class="main-content-container">
+											<Outlet />
+										</main>
+										<MembersList />
+									</ServerMembersListContext.Provider>
 								</SelectedServerContext.Provider>
 							);
 						}}

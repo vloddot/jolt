@@ -6,6 +6,7 @@ import { ChannelCollectionContext } from './context/collections/Channels';
 import { MemberCollectionContext } from './context/collections/Members';
 import util from './util';
 import { SettingsContext } from './context/Settings';
+import { ReactiveMap } from '@solid-primitives/map';
 
 function req(
 	method: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
@@ -141,7 +142,7 @@ function fetchMembers(target: string): Promise<AllMemberResponseMap> {
 				const users = useContext(UserCollectionContext);
 
 				resolve({
-					members: new Map(
+					members: new ReactiveMap(
 						response.members.map((member) => {
 							const item = members.get(util.hashMemberId(member._id));
 							if (item != undefined) {
@@ -154,7 +155,7 @@ function fetchMembers(target: string): Promise<AllMemberResponseMap> {
 							return [member._id.user, store];
 						})
 					),
-					users: new Map(
+					users: new ReactiveMap(
 						response.users.map((user) => {
 							const item = users.get(user._id);
 							if (item != undefined) {

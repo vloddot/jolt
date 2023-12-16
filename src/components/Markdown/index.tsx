@@ -9,6 +9,8 @@ import { SelectedServerIdContext } from '@lib/context/SelectedServerId';
 import util from '@lib/util';
 import { useNavigate } from '@solidjs/router';
 import { SettingsContext } from '@lib/context/Settings';
+import { ServerMembersListContext } from '@lib/context/collections/ServerMembersList';
+import { UserCollectionContext } from '@lib/context/collections/Users';
 
 export interface Props {
 	children: string;
@@ -25,6 +27,8 @@ const converter = new showdown.Converter({
 
 export default function Markdown(props: Props) {
 	const selectedServerId = useContext(SelectedServerIdContext);
+	const membersList = useContext(ServerMembersListContext);
+	const users = useContext(UserCollectionContext);
 	const navigate = useNavigate();
 
 	const { settings } = useContext(SettingsContext);
@@ -131,15 +135,8 @@ export default function Markdown(props: Props) {
 				parser(RE_MENTION, (match) => {
 					const id = match[1];
 					return createRoot(() => {
-						const [user] = createResource(() => id, api.fetchUser);
-						const [member] = createResource(() => {
-							const server = selectedServerId();
-							if (server == undefined) {
-								return;
-							}
-
-							return { server, user: id };
-						}, api.fetchMember);
+						const user = createMemo(() => users.get(id)?.[0]);
+						const member = createMemo(() => membersList()?.members.get(id));
 
 						const mentionElement = document.createElement('span');
 						mentionElement.classList.add(styles.mention);
@@ -149,19 +146,24 @@ export default function Markdown(props: Props) {
 						img.style.width = '16px';
 						img.style.height = '16px';
 
-						const displayName = createMemo(() =>
-							user.state == 'ready' ? util.getDisplayName(user(), member()) : undefined
-						);
+						const displayName = createMemo(() => {
+							const u = user();
+							if (u == undefined) {
+								return id;
+							}
+
+							return util.getDisplayName(u, member());
+						});
 
 						const displayAvatar = createMemo(() =>
-							user.state == 'ready' ? util.getDisplayAvatar(user(), member()) : undefined
+							util.getDisplayAvatar({ ...(user() ?? {}), _id: id }, member())
 						);
 
 						const nameElement = document.createElement('span');
 						createEffect(() => {
-							img.alt = displayName() ?? '';
-							img.src = displayAvatar() ?? '';
-							nameElement.innerText = displayName() ?? '';
+							img.alt = displayName();
+							img.src = displayAvatar();
+							nameElement.innerText = displayName();
 						});
 
 						mentionElement.append(img);

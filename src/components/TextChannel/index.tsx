@@ -164,12 +164,16 @@ function TextChannelMeta(props: MetaProps) {
 					props.collection.members[target()] ?? membersList()?.members.get(target())
 				] as const,
 			([target, member]) => {
-				const s = server()?._id;
 				if (member != undefined) {
 					return member;
 				}
 
+				const s = server()?._id;
 				if (s == undefined) {
+					return;
+				}
+
+				if (membersList.state != 'ready') {
 					return;
 				}
 

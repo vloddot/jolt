@@ -1,5 +1,5 @@
-import { createContext, type Accessor } from 'solid-js';
+import { createContext, createResource, type Resource } from 'solid-js';
 
-export const ServerMembersListContext = createContext<Accessor<AllMemberResponseMap | undefined>>(
-	() => undefined
+export const ServerMembersListContext = createContext<Resource<AllMemberResponseMap | undefined>>(
+	createResource(() => undefined)[0]
 );
