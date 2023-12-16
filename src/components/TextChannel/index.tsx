@@ -173,7 +173,7 @@ function TextChannelMeta(props: MetaProps) {
 					return;
 				}
 
-				if (membersList.state != 'ready') {
+				if (membersList() == undefined) {
 					return;
 				}
 

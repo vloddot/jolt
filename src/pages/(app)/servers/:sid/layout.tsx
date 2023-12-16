@@ -39,7 +39,7 @@ export default function ServerWrapper() {
 					<Show when={server()} fallback={<p>Unresolved server</p>}>
 						{(server) => {
 							return (
-								<SelectedServerContext.Provider value={() => server()}>
+								<SelectedServerContext.Provider value={server}>
 									<ServerMembersListContext.Provider value={members}>
 										<ChannelBar />
 										<main class="main-content-container">
