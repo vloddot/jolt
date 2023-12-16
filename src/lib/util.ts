@@ -1,3 +1,5 @@
+// @ts-expect-error No typings
+import rgba from 'color-rgba';
 import { useContext, type JSX } from 'solid-js';
 import { SessionContext } from './context/Session';
 import { UnreadsCollectionContext } from './context/collections/Unreads';
@@ -152,6 +154,19 @@ function getRoleColorStyle(color: string): JSX.CSSProperties {
 	return { color };
 }
 
+// thanks revite devs
+function getContrastingColor(input: string, fallback?: string): string {
+	const color = rgba(input);
+
+	if (!color) return fallback ? getContrastingColor(fallback) : 'black';
+
+	// https://awik.io/determine-color-bright-dark-using-javascript/
+	// http://alienryderflex.com/hsp.html
+	const [r, g, b] = color;
+	const hsp = Math.sqrt(0.2126 * r ** 2 + 0.7152 * g ** 2 + 0.0722 * b ** 2);
+	return hsp > 175 ? 'black' : 'white';
+}
+
 export default {
 	getAutumnURL,
 	proxyURL,
@@ -165,5 +180,6 @@ export default {
 	isUnread,
 	inputSelected,
 	sortRoles,
-	getRoleColorStyle
+	getRoleColorStyle,
+	getContrastingColor
 };

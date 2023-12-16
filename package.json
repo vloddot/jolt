@@ -13,6 +13,7 @@
 		"@solid-primitives/map": "^0.4.8",
 		"@solid-primitives/set": "^0.4.8",
 		"@solidjs/router": "^0.9.0",
+		"color-rgba": "^3.0.0",
 		"dayjs": "^1.11.10",
 		"dompurify": "^3.0.6",
 		"eventemitter3": "^5.0.1",
