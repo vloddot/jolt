@@ -1,16 +1,16 @@
 import utilStyles from '@lib/util.module.scss';
 import styles from './index.module.scss';
-import { createEffect, createMemo, createResource, createRoot, on, useContext } from 'solid-js';
+import { createEffect, createMemo, createRoot, on, useContext } from 'solid-js';
 import { RE_CHANNEL, RE_EMOJI, RE_MENTION } from '@lib/regex';
 import showdown from 'showdown';
 import emojis from '@lib/emojis.json';
-import api from '@lib/api';
 import { SelectedServerIdContext } from '@lib/context/SelectedServerId';
 import util from '@lib/util';
 import { useNavigate } from '@solidjs/router';
 import { SettingsContext } from '@lib/context/Settings';
 import { ServerMembersListContext } from '@lib/context/collections/ServerMembersList';
 import { UserCollectionContext } from '@lib/context/collections/Users';
+import { ChannelCollectionContext } from '@lib/context/collections/Channels';
 
 export interface Props {
 	children: string;
@@ -29,6 +29,7 @@ export default function Markdown(props: Props) {
 	const selectedServerId = useContext(SelectedServerIdContext);
 	const membersList = useContext(ServerMembersListContext);
 	const users = useContext(UserCollectionContext);
+	const channels = useContext(ChannelCollectionContext);
 	const navigate = useNavigate();
 
 	const { settings } = useContext(SettingsContext);
@@ -176,7 +177,7 @@ export default function Markdown(props: Props) {
 				parser(RE_CHANNEL, (match) => {
 					const id = match[1];
 					return createRoot(() => {
-						const [channel] = createResource(() => id, api.fetchChannel);
+						const channel = createMemo(() => channels.get(id)?.[0]);
 
 						const anchor = document.createElement('a');
 
@@ -188,6 +189,7 @@ export default function Markdown(props: Props) {
 						createEffect(() => {
 							const c = channel();
 							if (c == undefined) {
+								anchor.innerHTML = `#${id}`;
 								return;
 							}
 
