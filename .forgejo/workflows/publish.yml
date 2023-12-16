@@ -3,38 +3,22 @@ on:
     branches:
       - main
 jobs:
-  build:
+  deploy:
     runs-on: docker
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-      - uses: pnpm/action-setup@v2.4.0
-        with:
-          version: 8.10.2
-          run_install: true
+      - name: Install Dependencies
+        run: npm install
 
       - name: Build Project
-        run: pnpm build
+        run: npm build
       - name: Copy index.html to 404.html
         run: cp dist/index.html dist/404.html # needed because of dynamic routes
-      - name: Upload Artifacts
-        uses: actions/upload-pages-artifact@v2
-        with:
-          path: dist/
-
-  deploy:
-    needs: build
-
-    permissions:
-      pages: write # to deploy to Pages
-      id-token: write # to verify the deployment originates from an appropriate source
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
+      - name: Deploy
+        run: | 
+          cd dist
+          git init
+          git remote add origin https://codeberg.org/vloddot/jolt
+          git checkout -b pages
+          git add --all
+          git commit -am 'Pages Updates' && git push -u origin pages
